@@ -4,10 +4,7 @@ import org.example.entity.Student;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
@@ -31,8 +28,8 @@ public class StudentTableFrame extends JFrame {
     private JTextField txtEmail;
     private JTextField txtDiemTongKet;
 
-    //field delete, update could be added here
-    private int editIndex = -1; //-1 = add new item
+    // index đang edit, -1 = thêm mới
+    private int editIndex = -1;
 
     public StudentTableFrame() {
         setTitle("Danh sách sinh viên");
@@ -41,8 +38,7 @@ public class StudentTableFrame extends JFrame {
         setLocationRelativeTo(null);
 
         String[] columnNames = {
-                "Họ tên", "Ngày sinh", "Địa chỉ", "Giới tính",
-                "Mã SV", "Email", "Điểm tổng kết"
+                "STT", "Họ tên", "Ngày sinh", "Địa chỉ", "Giới tính", "Mã SV", "Email", "Điểm tổng kết"
         };
         tableModel = new DefaultTableModel(columnNames, 0);
         table = new JTable(tableModel);
@@ -79,51 +75,48 @@ public class StudentTableFrame extends JFrame {
         inputPanel.add(new JLabel(""));
 
         // ========== ACTION BUTTONS ============== //
-
-        // Save button
-        JButton btnSave = new JButton("Lưu vào file & Load lại");
+        JButton btnSave = new JButton("Lưu (Thêm/Update)");
         btnSave.addActionListener(e -> onSaveOrUpdateStudent());
 
-        // Delete all button
         JButton btnDeleteAll = new JButton("Xóa toàn bộ");
         btnDeleteAll.addActionListener(e -> onDeleteAllStudents());
 
-        // Delete by select
         JButton btnDeleteSelected = new JButton("Xóa mục chọn");
         btnDeleteSelected.addActionListener(e -> onDeleteSelectedStudent());
 
+        JButton btnExit = new JButton("Thoát");
+        btnExit.addActionListener(e -> {
+            this.dispose(); //close form current
+            new LoginForm().setVisible(true);
+
+        });
+
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         buttonPanel.add(btnSave);
-        buttonPanel.add(btnDeleteAll);
         buttonPanel.add(btnDeleteSelected);
+        buttonPanel.add(btnDeleteAll);
+        buttonPanel.add(btnExit);
 
         // Layout
         JPanel topPanel = new JPanel(new BorderLayout(5, 5));
         topPanel.add(inputPanel, BorderLayout.CENTER);
-        topPanel.add(btnSave, BorderLayout.SOUTH);
+        topPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         setLayout(new BorderLayout(5, 5));
         add(topPanel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
 
-
-        // selected item
         table.addMouseListener(new MouseAdapter() {
-            /**
-             * {@inheritDoc}
-             *
-             * @param e
-             */
             @Override
             public void mouseClicked(MouseEvent e) {
-                onTableRowClicked(e);
+                onTableRowClicked();
             }
         });
 
-        // Mở lên load sẵn file (nếu có)
         loadStudentsFromFile();
     }
 
+    // ==================== THÊM / UPDATE ====================
     private void onSaveOrUpdateStudent() {
         String hoTen = txtHoTen.getText().trim();
         String ngaySinh = txtNgaySinh.getText().trim();
@@ -154,106 +147,49 @@ public class StudentTableFrame extends JFrame {
             return;
         }
 
-        String line = hoTen + "$" + ngaySinh + "$" + diaChi + "$"
-                + gioiTinh + "$" + maSV + "$" + email + "$" + diem;
+        Student sv = new Student(hoTen, ngaySinh, diaChi, gioiTinh, maSV, email, diem);
 
-        try (BufferedWriter bw = new BufferedWriter(
-                new java.io.FileWriter(StudentTableFrame.FILE_NAME, true))) {
-
-            System.out.println("Running saving data to file = " + StudentTableFrame.FILE_NAME);
-            bw.write(line);
-            bw.newLine();
-
-        } catch (IOException ex) {
-            System.out.println("Error in save student to file: " + ex.getMessage());
+        if (editIndex == -1) {
+            // thêm mới
+            students.add(sv);
             JOptionPane.showMessageDialog(this,
-                    "Lưu sinh viên thất bại: " + ex.getMessage(),
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
+                    "Thêm sinh viên thành công!",
+                    "Thông báo",
+                    JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            // update
+            students.set(editIndex, sv);
+            JOptionPane.showMessageDialog(this,
+                    "Cập nhật sinh viên thành công!",
+                    "Thông báo",
+                    JOptionPane.INFORMATION_MESSAGE);
         }
 
-        JOptionPane.showMessageDialog(this,
-                "Lưu sinh viên thành công!",
-                "Thông báo",
-                JOptionPane.INFORMATION_MESSAGE);
-
-        loadStudentsFromFile();
+        saveAllStudentsToFile();   // ghi lại toàn bộ list ra file
+        loadStudentsFromFile();    // reload table
         clearForm();
+        editIndex = -1;            // reset trạng thái
     }
 
-    private void loadStudentsFromFile() {
-        students.clear();
-        tableModel.setRowCount(0);
+    // ==================== CLICK TABLE => LOAD LÊN FORM ====================
+    private void onTableRowClicked() {
+        int row = table.getSelectedRow();
+        if (row >= 0 && row < students.size()) {
+            Student sv = students.get(row);
+            txtHoTen.setText(sv.getHoTen());
+            txtNgaySinh.setText(sv.getNgaySinh());
+            txtDiaChi.setText(sv.getDiaChi());
+            txtGioiTinh.setText(sv.getGioiTinh());
+            txtMaSV.setText(sv.getMaSinhVien());
+            txtEmail.setText(sv.getEmail());
+            txtDiemTongKet.setText(String.valueOf(sv.getDiemTongKet()));
 
-        try (BufferedReader br = new BufferedReader(new FileReader(StudentTableFrame.FILE_NAME))) {
-            System.out.println("Running loading data in file = " + StudentTableFrame.FILE_NAME);
-
-            String line;
-            System.out.println("=== Danh sách sinh viên ===");
-
-            while ((line = br.readLine()) != null) {
-                if (line.trim().isEmpty()) {
-                    continue;
-                }
-
-                String[] parts = line.split("\\$");
-                if (parts.length < 7) {
-                    System.out.println("Error line not valid: " + line);
-                    continue;
-                }
-
-                String hoTen = parts[0].trim();
-                String ngaySinh = parts[1].trim();
-                String diaChi = parts[2].trim();
-                String gioiTinh = parts[3].trim();
-                String maSV = parts[4].trim();
-                String email = parts[5].trim();
-                String diemStr = parts[6].trim();
-
-                double diemTongKet;
-                try {
-                    diemTongKet = Double.parseDouble(diemStr);
-                } catch (NumberFormatException e) {
-                    System.out.println("Diem not format in line: " + line);
-                    continue;
-                }
-
-                Student sv = new Student(hoTen, ngaySinh, diaChi, gioiTinh, maSV, email, diemTongKet);
-
-                if (editIndex == -1) {
-                    System.out.println("Adding new student:");
-                    students.add(sv);
-                    JOptionPane.showMessageDialog(this, "Thêm sinh viên: " + sv.getHoTen() + " thành công!");
-                } else {
-                    System.out.println("Updating student at index " + editIndex + ":");
-                    students.set(editIndex, sv);
-                    JOptionPane.showMessageDialog(this, "Cập nhật sinh viên: " + sv.getHoTen() + " thành công!");
-                    editIndex = -1;
-                }
-
-                tableModel.addRow(new Object[]{
-                        sv.getHoTen(),
-                        sv.getNgaySinh(),
-                        sv.getDiaChi(),
-                        sv.getGioiTinh(),
-                        sv.getMaSinhVien(),
-                        sv.getEmail(),
-                        sv.getDiemTongKet()
-                });
-
-                sv.xuat();
-                System.out.println("------------------------------------");
-            }
-
-            System.out.println("Loaded " + students.size() + " students from file.");
-        } catch (IOException e) {
-            System.out.println("Error in loadStudentsFromFile: " + e.getMessage());
+            editIndex = row; // đánh dấu dòng đang edit
         }
     }
 
+    // ==================== XÓA MỤC CHỌN ====================
     private void onDeleteSelectedStudent() {
-
         int selectedRow = table.getSelectedRow();
         if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this,
@@ -270,18 +206,22 @@ public class StudentTableFrame extends JFrame {
 
         if (confirm != JOptionPane.YES_OPTION) {
             return;
-        } else {
-            students.remove(selectedRow);
-            tableModel.removeRow(selectedRow);
-            JOptionPane.showMessageDialog(this,
-                    "Xóa sinh viên thành công!",
-                    "Thông báo",
-                    JOptionPane.INFORMATION_MESSAGE);
         }
+
+        students.remove(selectedRow);
+        saveAllStudentsToFile();
+        loadStudentsFromFile();
+        clearForm();
+        editIndex = -1;
+
+        JOptionPane.showMessageDialog(this,
+                "Xóa sinh viên thành công!",
+                "Thông báo",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 
+    // ==================== XÓA TOÀN BỘ ====================
     private void onDeleteAllStudents() {
-
         int confirm = JOptionPane.showConfirmDialog(this,
                 "Bạn có chắc chắn muốn xóa toàn bộ sinh viên?",
                 "Xác nhận xóa toàn bộ",
@@ -289,13 +229,85 @@ public class StudentTableFrame extends JFrame {
 
         if (confirm != JOptionPane.YES_OPTION) {
             return;
-        } else {
-            students.clear();
-            tableModel.setRowCount(0);
-            JOptionPane.showMessageDialog(this,
-                    "Xóa toàn bộ sinh viên thành công!",
-                    "Thông báo",
-                    JOptionPane.INFORMATION_MESSAGE);
+        }
+
+        students.clear();
+        saveAllStudentsToFile();   // ghi file rỗng
+        loadStudentsFromFile();
+        clearForm();
+        editIndex = -1;
+
+        JOptionPane.showMessageDialog(this,
+                "Xóa toàn bộ sinh viên thành công!",
+                "Thông báo",
+                JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    // ==================== LOAD & SAVE FILE ====================
+    private void loadStudentsFromFile() {
+        students.clear();
+        tableModel.setRowCount(0);
+
+        try (BufferedReader br = new BufferedReader(new FileReader(StudentTableFrame.FILE_NAME))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+
+                String[] parts = line.split("\\$");
+                if (parts.length < 7) continue;
+
+                String hoTen = parts[0].trim();
+                String ngaySinh = parts[1].trim();
+                String diaChi = parts[2].trim();
+                String gioiTinh = parts[3].trim();
+                String maSV = parts[4].trim();
+                String email = parts[5].trim();
+                String diemStr = parts[6].trim();
+
+                double diemTongKet;
+                try {
+                    diemTongKet = Double.parseDouble(diemStr);
+                } catch (NumberFormatException e) {
+                    continue;
+                }
+
+                Student sv = new Student(hoTen, ngaySinh, diaChi, gioiTinh, maSV, email, diemTongKet);
+                students.add(sv);
+
+                tableModel.addRow(new Object[]{
+                        students.size(),
+                        sv.getHoTen(),
+                        sv.getNgaySinh(),
+                        sv.getDiaChi(),
+                        sv.getGioiTinh(),
+                        sv.getMaSinhVien(),
+                        sv.getEmail(),
+                        sv.getDiemTongKet()
+                });
+            }
+
+            System.out.println("Loaded " + students.size() + " students from file.");
+        } catch (IOException e) {
+            System.out.println("Error in loadStudentsFromFile: " + e.getMessage());
+        }
+    }
+
+    // ghi lại toàn bộ list vào file (overwrite)
+    private void saveAllStudentsToFile() {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(StudentTableFrame.FILE_NAME, false))) {
+            for (Student sv : students) {
+                String line = sv.getHoTen() + "$"
+                        + sv.getNgaySinh() + "$"
+                        + sv.getDiaChi() + "$"
+                        + sv.getGioiTinh() + "$"
+                        + sv.getMaSinhVien() + "$"
+                        + sv.getEmail() + "$"
+                        + sv.getDiemTongKet();
+                bw.write(line);
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Error in saveAllStudentsToFile: " + e.getMessage());
         }
     }
 
@@ -308,10 +320,4 @@ public class StudentTableFrame extends JFrame {
         txtEmail.setText("");
         txtDiemTongKet.setText("");
     }
-
-//    public static void main(String[] args) {
-//        SwingUtilities.invokeLater(() -> {
-//            new StudentTableFrame().setVisible(true);
-//        });
-//    }
 }
