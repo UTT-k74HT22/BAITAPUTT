@@ -1,25 +1,23 @@
 package org.example.view;
 
 import org.example.entity.Student;
+import org.example.service.StudentService;
+import org.example.service.impl.StudentServiceImpl;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
 public class StudentTableFrame extends JFrame {
 
-    private static final String FILE_NAME = "sinhvien.dat";
-
-    // load data
+    // UI
     private JTable table;
     private DefaultTableModel tableModel;
-    private List<Student> students = new ArrayList<>();
-
-    // field insert
     private JTextField txtHoTen;
     private JTextField txtNgaySinh;
     private JTextField txtDiaChi;
@@ -27,23 +25,32 @@ public class StudentTableFrame extends JFrame {
     private JTextField txtMaSV;
     private JTextField txtEmail;
     private JTextField txtDiemTongKet;
+    private JTextField txtSearch;
 
-    // index đang edit, -1 = thêm mới
+    // service
+    private final StudentService studentService;
+
+    // index đang edit trong list gốc, -1 = thêm mới
     private int editIndex = -1;
 
     public StudentTableFrame() {
+        this.studentService = new StudentServiceImpl(); // inject service
+
         setTitle("Danh sách sinh viên");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1000, 500);
+        setSize(1000, 600);
         setLocationRelativeTo(null);
 
+        // ====== TABLE ======
         String[] columnNames = {
-                "STT", "Họ tên", "Ngày sinh", "Địa chỉ", "Giới tính", "Mã SV", "Email", "Điểm tổng kết"
+                "STT", "Họ tên", "Ngày sinh", "Địa chỉ",
+                "Giới tính", "Mã SV", "Email", "Điểm tổng kết"
         };
         tableModel = new DefaultTableModel(columnNames, 0);
         table = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(table);
 
+        // ====== INPUT FORM ======
         JPanel inputPanel = new JPanel(new GridLayout(0, 4, 5, 5));
 
         txtHoTen = new JTextField();
@@ -74,31 +81,56 @@ public class StudentTableFrame extends JFrame {
         inputPanel.add(new JLabel(""));
         inputPanel.add(new JLabel(""));
 
-        // ========== ACTION BUTTONS ============== //
+        // ====== BUTTONS ======
         JButton btnSave = new JButton("Lưu (Thêm/Update)");
         btnSave.addActionListener(e -> onSaveOrUpdateStudent());
-
-        JButton btnDeleteAll = new JButton("Xóa toàn bộ");
-        btnDeleteAll.addActionListener(e -> onDeleteAllStudents());
 
         JButton btnDeleteSelected = new JButton("Xóa mục chọn");
         btnDeleteSelected.addActionListener(e -> onDeleteSelectedStudent());
 
+        JButton btnDeleteAll = new JButton("Xóa toàn bộ");
+        btnDeleteAll.addActionListener(e -> onDeleteAllStudents());
+
         JButton btnExit = new JButton("Thoát");
         btnExit.addActionListener(e -> {
-            this.dispose(); //close form current
+            StudentTableFrame.this.dispose();
             new LoginForm().setVisible(true);
-
         });
+
+        JButton btnSort = new JButton("Sắp xếp theo điểm ↓");
+        btnSort.addActionListener(e -> onSortByScore());
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         buttonPanel.add(btnSave);
         buttonPanel.add(btnDeleteSelected);
         buttonPanel.add(btnDeleteAll);
+        buttonPanel.add(btnSort);
         buttonPanel.add(btnExit);
 
-        // Layout
+        // ====== SEARCH / FILTER ======
+        txtSearch = new JTextField(20);
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        searchPanel.add(new JLabel("Tìm theo Mã SV:"));
+        searchPanel.add(txtSearch);
+
+        txtSearch.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                String keyword = txtSearch.getText().trim();
+                if (keyword.isEmpty()) {
+                    reloadTableFromService(); // hết filter -> full
+                } else {
+                    filterStudents(keyword);
+                }
+                // mỗi lần tìm thì reset editIndex
+                editIndex = -1;
+                clearForm();
+            }
+        });
+
+        // ====== TOP WRAPPER ======
         JPanel topPanel = new JPanel(new BorderLayout(5, 5));
+        topPanel.add(searchPanel, BorderLayout.NORTH);
         topPanel.add(inputPanel, BorderLayout.CENTER);
         topPanel.add(buttonPanel, BorderLayout.SOUTH);
 
@@ -106,6 +138,7 @@ public class StudentTableFrame extends JFrame {
         add(topPanel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
 
+        // ====== TABLE CLICK => LOAD FORM ======
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -113,7 +146,14 @@ public class StudentTableFrame extends JFrame {
             }
         });
 
-        loadStudentsFromFile();
+        // Load dữ liệu từ service (file) lần đầu
+        reloadTableFromService();
+    }
+
+    // ==================== FILTER ====================
+    private void filterStudents(String keyWord) {
+        List<Student> filtered = studentService.searchByMaSV(keyWord);
+        reloadTable(filtered);
     }
 
     // ==================== THÊM / UPDATE ====================
@@ -147,35 +187,70 @@ public class StudentTableFrame extends JFrame {
             return;
         }
 
+        // Không cho edit khi đang filter (để tránh lệch index)
+        if (!txtSearch.getText().trim().isEmpty() && editIndex != -1) {
+            JOptionPane.showMessageDialog(this,
+                    "Không thể cập nhật khi đang lọc. Vui lòng xóa ô tìm kiếm rồi thử lại.",
+                    "Đang lọc dữ liệu",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // validate trùng mã SV & email qua service
+        if (studentService.existsMaSV(maSV, editIndex)) {
+            JOptionPane.showMessageDialog(this,
+                    "Mã sinh viên đã tồn tại!",
+                    "Lỗi trùng mã SV",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (studentService.existsEmail(email, editIndex)) {
+            JOptionPane.showMessageDialog(this,
+                    "Email đã tồn tại!",
+                    "Lỗi trùng email",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         Student sv = new Student(hoTen, ngaySinh, diaChi, gioiTinh, maSV, email, diem);
 
         if (editIndex == -1) {
-            // thêm mới
-            students.add(sv);
+            studentService.addStudent(sv);
             JOptionPane.showMessageDialog(this,
                     "Thêm sinh viên thành công!",
                     "Thông báo",
                     JOptionPane.INFORMATION_MESSAGE);
         } else {
-            // update
-            students.set(editIndex, sv);
+            studentService.updateStudent(editIndex, sv);
             JOptionPane.showMessageDialog(this,
                     "Cập nhật sinh viên thành công!",
                     "Thông báo",
                     JOptionPane.INFORMATION_MESSAGE);
         }
 
-        saveAllStudentsToFile();   // ghi lại toàn bộ list ra file
-        loadStudentsFromFile();    // reload table
+        reloadTableFromService();
         clearForm();
-        editIndex = -1;            // reset trạng thái
+        editIndex = -1;
     }
 
-    // ==================== CLICK TABLE => LOAD LÊN FORM ====================
+    // ==================== CLICK TABLE => LOAD FORM ====================
     private void onTableRowClicked() {
         int row = table.getSelectedRow();
-        if (row >= 0 && row < students.size()) {
-            Student sv = students.get(row);
+        if (row < 0) return;
+
+        // Nếu đang filter, không cho sửa (đơn giản, an toàn)
+        if (!txtSearch.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Đang ở chế độ lọc, không thể sửa. Xóa ô tìm kiếm rồi chọn lại.",
+                    "Đang lọc dữ liệu",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        List<Student> list = studentService.getAllStudents();
+        if (row >= 0 && row < list.size()) {
+            Student sv = list.get(row);
             txtHoTen.setText(sv.getHoTen());
             txtNgaySinh.setText(sv.getNgaySinh());
             txtDiaChi.setText(sv.getDiaChi());
@@ -184,7 +259,7 @@ public class StudentTableFrame extends JFrame {
             txtEmail.setText(sv.getEmail());
             txtDiemTongKet.setText(String.valueOf(sv.getDiemTongKet()));
 
-            editIndex = row; // đánh dấu dòng đang edit
+            editIndex = row; // index trong list gốc
         }
     }
 
@@ -199,6 +274,15 @@ public class StudentTableFrame extends JFrame {
             return;
         }
 
+        // Không cho xóa khi đang filter, để tránh lệch index
+        if (!txtSearch.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Không thể xóa khi đang lọc. Vui lòng xóa ô tìm kiếm rồi thử lại.",
+                    "Đang lọc dữ liệu",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         int confirm = JOptionPane.showConfirmDialog(this,
                 "Bạn có chắc chắn muốn xóa sinh viên đã chọn?",
                 "Xác nhận xóa",
@@ -208,9 +292,8 @@ public class StudentTableFrame extends JFrame {
             return;
         }
 
-        students.remove(selectedRow);
-        saveAllStudentsToFile();
-        loadStudentsFromFile();
+        studentService.deleteStudent(selectedRow);
+        reloadTableFromService();
         clearForm();
         editIndex = -1;
 
@@ -231,9 +314,8 @@ public class StudentTableFrame extends JFrame {
             return;
         }
 
-        students.clear();
-        saveAllStudentsToFile();   // ghi file rỗng
-        loadStudentsFromFile();
+        studentService.deleteAll();
+        reloadTableFromService();
         clearForm();
         editIndex = -1;
 
@@ -243,71 +325,32 @@ public class StudentTableFrame extends JFrame {
                 JOptionPane.INFORMATION_MESSAGE);
     }
 
-    // ==================== LOAD & SAVE FILE ====================
-    private void loadStudentsFromFile() {
-        students.clear();
-        tableModel.setRowCount(0);
-
-        try (BufferedReader br = new BufferedReader(new FileReader(StudentTableFrame.FILE_NAME))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                if (line.trim().isEmpty()) continue;
-
-                String[] parts = line.split("\\$");
-                if (parts.length < 7) continue;
-
-                String hoTen = parts[0].trim();
-                String ngaySinh = parts[1].trim();
-                String diaChi = parts[2].trim();
-                String gioiTinh = parts[3].trim();
-                String maSV = parts[4].trim();
-                String email = parts[5].trim();
-                String diemStr = parts[6].trim();
-
-                double diemTongKet;
-                try {
-                    diemTongKet = Double.parseDouble(diemStr);
-                } catch (NumberFormatException e) {
-                    continue;
-                }
-
-                Student sv = new Student(hoTen, ngaySinh, diaChi, gioiTinh, maSV, email, diemTongKet);
-                students.add(sv);
-
-                tableModel.addRow(new Object[]{
-                        students.size(),
-                        sv.getHoTen(),
-                        sv.getNgaySinh(),
-                        sv.getDiaChi(),
-                        sv.getGioiTinh(),
-                        sv.getMaSinhVien(),
-                        sv.getEmail(),
-                        sv.getDiemTongKet()
-                });
-            }
-
-            System.out.println("Loaded " + students.size() + " students from file.");
-        } catch (IOException e) {
-            System.out.println("Error in loadStudentsFromFile: " + e.getMessage());
-        }
+    // ==================== SẮP XẾP THEO ĐIỂM ====================
+    private void onSortByScore() {
+        studentService.sortByScoreDesc();
+        reloadTableFromService();
     }
 
-    // ghi lại toàn bộ list vào file (overwrite)
-    private void saveAllStudentsToFile() {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(StudentTableFrame.FILE_NAME, false))) {
-            for (Student sv : students) {
-                String line = sv.getHoTen() + "$"
-                        + sv.getNgaySinh() + "$"
-                        + sv.getDiaChi() + "$"
-                        + sv.getGioiTinh() + "$"
-                        + sv.getMaSinhVien() + "$"
-                        + sv.getEmail() + "$"
-                        + sv.getDiemTongKet();
-                bw.write(line);
-                bw.newLine();
-            }
-        } catch (IOException e) {
-            System.out.println("Error in saveAllStudentsToFile: " + e.getMessage());
+    // ==================== RENDER TABLE ====================
+    private void reloadTableFromService() {
+        List<Student> list = studentService.getAllStudents();
+        reloadTable(list);
+    }
+
+    private void reloadTable(List<Student> list) {
+        tableModel.setRowCount(0);
+        int stt = 1;
+        for (Student sv : list) {
+            tableModel.addRow(new Object[]{
+                    stt++,
+                    sv.getHoTen(),
+                    sv.getNgaySinh(),
+                    sv.getDiaChi(),
+                    sv.getGioiTinh(),
+                    sv.getMaSinhVien(),
+                    sv.getEmail(),
+                    sv.getDiemTongKet()
+            });
         }
     }
 
@@ -320,4 +363,8 @@ public class StudentTableFrame extends JFrame {
         txtEmail.setText("");
         txtDiemTongKet.setText("");
     }
+
+//    public static void main(String[] args) {
+//        SwingUtilities.invokeLater(() -> new StudentTableFrame().setVisible(true));
+//    }
 }
