@@ -1,6 +1,8 @@
 package org.example;
 
 import org.example.view.LoginForm;
+import org.example.view.RegisterForm;
+
 import javax.swing.*;
 
 public class Main {
@@ -8,8 +10,11 @@ public class Main {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                LoginForm loginForm = new LoginForm();
-                loginForm.setVisible(true);
+//                LoginForm loginForm = new LoginForm();
+//                loginForm.setVisible(true);
+
+                RegisterForm registerForm = new RegisterForm();
+                registerForm.setVisible(true);
             }
         });
     }
