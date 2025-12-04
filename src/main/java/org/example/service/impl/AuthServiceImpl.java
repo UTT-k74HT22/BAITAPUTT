@@ -1,16 +1,18 @@
 package org.example.service.impl;
 
 import org.example.entity.Account;
-import org.example.entity.dto.RegisterRequest;
-import org.example.service.AccountService;
+import org.example.dto.LoginRequest;
+import org.example.dto.RegisterRequest;
+import org.example.repository.AccountRepository;
+import org.example.repository.impl.AccountRepositoryImpl;
 import org.example.service.AuthService;
 
 public class AuthServiceImpl implements AuthService {
 
-    private final AccountService accountService;
+    private final AccountRepository accountRepository;
 
     public AuthServiceImpl() {
-        this.accountService = new AccountServiceImpl();
+        this.accountRepository = new AccountRepositoryImpl();
     }
 
     /**
@@ -18,30 +20,30 @@ public class AuthServiceImpl implements AuthService {
      * @return true nếu username/password hợp lệ
      */
     @Override
-    public boolean login(String username, String password) {
-        System.out.println("Login running with username: "  + username);
+    public boolean login(LoginRequest request) {
+        System.out.println("Login running with username: "  + request.getUsername());
 
-        if (username == null || password == null) {
+        if (request.getUsername() == null || request.getPassword() == null) {
             System.out.println("Login failed: username or password is null");
             return false;
         }
 
-        Account account = accountService.findByUsername(username);
+        Account account = accountRepository.findByUsername(request.getUsername());
         if (account != null) {
             if (!account.isActive()) {
-                System.out.println("Login failed: account is inactive for username: " + username);
+                System.out.println("Login failed: account is inactive for username: " + request.getUsername());
                 return false;
             } else {
-                if (account.getPassword().equals(password)) {
-                    System.out.println("Login successful for username: " + username);
+                if (account.getPassword().equals(request.getPassword())) {
+                    System.out.println("Login successful for username: " + request.getUsername());
                     return true;
                 } else {
-                    System.out.println("Login failed: incorrect password for username: " + username);
+                    System.out.println("Login failed: incorrect password for username: " + request.getUsername());
                     return false;
                 }
             }
         } else {
-            System.out.println("Login failed: invalid credentials for username: " + username);
+            System.out.println("Login failed: invalid credentials for username: " + request.getUsername());
             return false;
         }
     }
@@ -63,7 +65,7 @@ public class AuthServiceImpl implements AuthService {
                 true
         );
 
-        accountService.create(account);
+        accountRepository.save(account);
         System.out.println("Registration successful for username: " + request.getUsername());
     }
 
@@ -82,7 +84,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // Check duplicate username
-        if (accountService.existsByUsername(request.getUsername())) {
+        if (accountRepository.existsByUsername(request.getUsername())) {
             throw new RuntimeException("Username đã tồn tại!");
         }
 

@@ -1,4 +1,4 @@
-package org.example.entity.dto;
+package org.example.dto;
 
 public class LoginRequest {
     private String username;

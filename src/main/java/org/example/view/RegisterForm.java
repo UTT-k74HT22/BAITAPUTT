@@ -1,11 +1,13 @@
 package org.example.view;
 
-import org.example.entity.dto.RegisterRequest;
+import org.example.dto.RegisterRequest;
 import org.example.service.AuthService;
 import org.example.service.impl.AuthServiceImpl;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class RegisterForm extends JFrame {
 
@@ -13,7 +15,7 @@ public class RegisterForm extends JFrame {
     private JPasswordField txtPassword;
     private JPasswordField txtConfirmPassword;
     private JButton btnRegister;
-    private JButton btnCancel;
+    private JLabel linkLogin;
 
     private final AuthService authService;
 
@@ -21,8 +23,8 @@ public class RegisterForm extends JFrame {
         this.authService = new AuthServiceImpl();
 
         setTitle("Đăng kí tài khoản");
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE); // chỉ đóng form này, không tắt app
-        setSize(400, 260);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setSize(400, 280);
         setLocationRelativeTo(null);
 
         initUI();
@@ -72,20 +74,60 @@ public class RegisterForm extends JFrame {
         txtConfirmPassword = new JPasswordField(18);
         formPanel.add(txtConfirmPassword, gbc);
 
-        // ===== BUTTONS =====
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        buttonPanel.setBackground(new Color(245, 245, 250));
-        container.add(buttonPanel, BorderLayout.SOUTH);
-
+        // ===== REGISTER BUTTON =====
         btnRegister = new JButton("Đăng ký");
-        btnCancel = new JButton("Hủy");
+        btnRegister.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnRegister.setBackground(new Color(70, 130, 180));
+        btnRegister.setForeground(Color.WHITE);
+        btnRegister.setFocusPainted(false);
+        btnRegister.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        buttonPanel.add(btnRegister);
-        buttonPanel.add(btnCancel);
+        // hover effect
+        btnRegister.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent evt) {
+                btnRegister.setBackground(new Color(60, 120, 170));
+            }
+            public void mouseExited(MouseEvent evt) {
+                btnRegister.setBackground(new Color(70, 130, 180));
+            }
+        });
+
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        gbc.anchor = GridBagConstraints.CENTER;
+        formPanel.add(btnRegister, gbc);
+
+        // ===== LOGIN LINK =====
+        linkLogin = new JLabel("<html><u>Đã có tài khoản? Đăng nhập ngay</u></html>");
+        linkLogin.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        linkLogin.setForeground(new Color(70, 130, 180));
+        linkLogin.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // hover effect for link
+        linkLogin.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                dispose(); // đóng form đăng ký
+                new LoginForm().setVisible(true); // mở form đăng nhập
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                linkLogin.setForeground(new Color(50, 100, 150));
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                linkLogin.setForeground(new Color(70, 130, 180));
+            }
+        });
+
+        gbc.gridy = 4;
+        gbc.insets = new Insets(10, 8, 15, 8);
+        formPanel.add(linkLogin, gbc);
 
         // Events
         btnRegister.addActionListener(e -> onRegister());
-        btnCancel.addActionListener(e -> dispose());
 
         // Enter = đăng ký
         getRootPane().setDefaultButton(btnRegister);
@@ -110,6 +152,7 @@ public class RegisterForm extends JFrame {
                     JOptionPane.INFORMATION_MESSAGE
             );
             dispose(); // đóng form đăng ký
+            new LoginForm().setVisible(true); // tự động mở form login
         } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(
                     this,
