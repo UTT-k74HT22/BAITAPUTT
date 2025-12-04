@@ -1,6 +1,7 @@
 package org.example.view;
 
 import org.example.dto.LoginRequest;
+import org.example.entity.Account;
 import org.example.service.AuthService;
 import org.example.service.impl.AuthServiceImpl;
 import javax.swing.*;
@@ -150,15 +151,15 @@ public class LoginForm extends JFrame {
             return;
         }
 
-        boolean ok = authService.login(new LoginRequest(user, pass));
+        Account account = authService.login(new LoginRequest(user, pass));
 
-        if (ok) {
+        if (account != null) {
             JOptionPane.showMessageDialog(this,
                     "Đăng nhập thành công!",
                     "Thông báo",
                     JOptionPane.INFORMATION_MESSAGE);
 
-            new StudentTableFrame().setVisible(true);
+            new MainFrame(account.getUsername(), account.getRole()).setVisible(true);
             this.dispose();
         } else {
             JOptionPane.showMessageDialog(this,

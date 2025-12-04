@@ -2,6 +2,7 @@ package org.example.service;
 
 import org.example.dto.LoginRequest;
 import org.example.dto.RegisterRequest;
+import org.example.entity.Account;
 
 public interface AuthService {
 
@@ -9,7 +10,7 @@ public interface AuthService {
      * Kiểm tra đăng nhập.
      * @return true nếu username/password hợp lệ
      */
-    boolean login(LoginRequest request);
+    Account login(LoginRequest request);
 
     /**
      * Đăng ký tài khoản mới.

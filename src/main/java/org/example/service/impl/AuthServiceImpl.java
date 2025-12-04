@@ -20,32 +20,32 @@ public class AuthServiceImpl implements AuthService {
      * @return true nếu username/password hợp lệ
      */
     @Override
-    public boolean login(LoginRequest request) {
+    public Account login(LoginRequest request) {
         System.out.println("Login running with username: "  + request.getUsername());
 
         if (request.getUsername() == null || request.getPassword() == null) {
             System.out.println("Login failed: username or password is null");
-            return false;
+            return null;
         }
 
         Account account = accountRepository.findByUsername(request.getUsername());
-        if (account != null) {
-            if (!account.isActive()) {
-                System.out.println("Login failed: account is inactive for username: " + request.getUsername());
-                return false;
-            } else {
-                if (account.getPassword().equals(request.getPassword())) {
-                    System.out.println("Login successful for username: " + request.getUsername());
-                    return true;
-                } else {
-                    System.out.println("Login failed: incorrect password for username: " + request.getUsername());
-                    return false;
-                }
-            }
-        } else {
-            System.out.println("Login failed: invalid credentials for username: " + request.getUsername());
-            return false;
+        if (account == null) {
+            System.out.println("Login failed: account not found");
+            return null;
         }
+
+        if (!account.isActive()) {
+            System.out.println("Login failed: account is inactive");
+            return null;
+        }
+
+        if (!account.getPassword().equals(request.getPassword())) {
+            System.out.println("Login failed: incorrect password");
+            return null;
+        }
+
+        System.out.println("Login successful: " + account.getUsername());
+        return account;
     }
 
     /**
