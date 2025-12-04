@@ -67,35 +67,65 @@ public class SideBar extends JPanel {
     }
 
     private JButton createMenuButton(String text) {
-        JButton btn = new JButton(text);
+        // Custom JButton với paintComponent tự vẽ nền
+        JButton btn = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                        RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // Kiểm tra trạng thái từ ClientProperty
+                Boolean isActive = (Boolean) getClientProperty("isActive");
+                Boolean isHovered = (Boolean) getClientProperty("isHovered");
+
+                // Vẽ nền với bo góc
+                if (isActive != null && isActive) {
+                    g2.setColor(new Color(255, 255, 255, 80));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                } else if (isHovered != null && isHovered) {
+                    g2.setColor(new Color(255, 255, 255, 40));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                }
+
+                g2.dispose();
+
+                // Vẽ text và icon
+                super.paintComponent(g);
+            }
+        };
+
         btn.setHorizontalAlignment(SwingConstants.LEFT);
         btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         btn.setPreferredSize(new Dimension(190, 40));
 
         btn.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         btn.setForeground(Color.WHITE);
-        btn.setBackground(new Color(0, 0, 0, 0));
         btn.setFocusPainted(false);
         btn.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 10));
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.setContentAreaFilled(false);
         btn.setOpaque(false);
 
+        // Khởi tạo client properties
+        btn.putClientProperty("isActive", false);
+        btn.putClientProperty("isHovered", false);
+
         // Hover + click -> active
         btn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
                 if (!text.equals(activeKey)) {
-                    btn.setOpaque(true);
-                    btn.setBackground(new Color(255, 255, 255, 40));
+                    btn.putClientProperty("isHovered", true);
+                    btn.repaint();
                 }
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
                 if (!text.equals(activeKey)) {
-                    btn.setOpaque(false);
-                    btn.setBackground(new Color(0, 0, 0, 0));
+                    btn.putClientProperty("isHovered", false);
+                    btn.repaint();
                 }
             }
 
@@ -113,17 +143,21 @@ public class SideBar extends JPanel {
         activeKey = key;
         for (Map.Entry<String, JButton> entry : menuButtons.entrySet()) {
             JButton btn = entry.getValue();
-            if (entry.getKey().equals(key)) {
-                btn.setOpaque(true);
-                btn.setBackground(new Color(255, 255, 255, 80));
+            boolean isActive = entry.getKey().equals(key);
+
+            // Cập nhật trạng thái
+            btn.putClientProperty("isActive", isActive);
+            btn.putClientProperty("isHovered", false);
+
+            // Cập nhật font
+            if (isActive) {
                 btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
             } else {
-                btn.setOpaque(false);
-                btn.setBackground(new Color(0, 0, 0, 0));
                 btn.setFont(new Font("Segoe UI", Font.PLAIN, 13));
             }
+
+            btn.repaint();
         }
-        repaint();
     }
 
     public JButton getMenu(String name) {
