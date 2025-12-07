@@ -23,7 +23,7 @@ public class Header extends JPanel {
         // ===== Module title (trái) =====
         moduleLabel = new JLabel("Lễ Tân & Tiếp Đón");
         moduleLabel.setForeground(new Color(72, 69, 130));
-        moduleLabel.setFont(new Font("Inter", Font.BOLD, 20));
+        moduleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
         moduleLabel.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
 
         // ===== Cụm nút + user info (phải) =====
