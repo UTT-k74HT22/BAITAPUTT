@@ -1,5 +1,9 @@
 package org.example.view;
 
+import org.example.entity.Account;
+import org.example.export.student.AccountPdfExporter;
+import org.example.repository.AccountRepository;
+import org.example.repository.impl.AccountRepositoryImpl;
 import org.example.view.layout.Footer;
 import org.example.view.layout.Header;
 import org.example.view.layout.SideBar;
@@ -7,6 +11,9 @@ import org.example.view.layout.SideBar;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
 
 public class MainFrame extends JFrame {
 
@@ -16,6 +23,9 @@ public class MainFrame extends JFrame {
     private final CardLayout cardLayout;
 
     private String currentModuleTitle = "Lễ Tân & Tiếp Đón";
+
+    private final String username;
+    private final String role;
 
     // Card keys
     private static final String SCREEN_RECEPTION = "reception";
@@ -28,6 +38,9 @@ public class MainFrame extends JFrame {
     private static final String SCREEN_DOCTOR = "doctor";
 
     public MainFrame(String username, String role) {
+        this.username = username;
+        this.role = role;
+
         setTitle("Hospital Management System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1300, 750);
@@ -138,8 +151,18 @@ public class MainFrame extends JFrame {
 
         btn = sideBar.getMenu("Bác Sĩ");
         if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_DOCTOR, "Bác Sĩ"));
+            btn.addActionListener(e -> {
+                if (!"ADMIN".equalsIgnoreCase(role)) {
+                    JOptionPane.showMessageDialog(this,
+                            "Chỉ tài khoản ADMIN mới được xem danh sách nhân sự.",
+                            "Không có quyền",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                showScreen(SCREEN_DOCTOR, "Bác Sĩ");
+                new StudentTableFrame().setVisible(true);
+            });
         }
 
         // Logout
@@ -165,10 +188,54 @@ public class MainFrame extends JFrame {
                         "Thực hiện chức năng [Sửa] tại module: " + currentModuleTitle,
                         "Action", JOptionPane.INFORMATION_MESSAGE));
 
-        header.getBtnExport().addActionListener(e ->
-                JOptionPane.showMessageDialog(this,
-                        "Thực hiện chức năng [Xuất Excel] tại module: " + currentModuleTitle,
-                        "Action", JOptionPane.INFORMATION_MESSAGE));
+        header.getBtnExport().addActionListener(e -> onExportAccounts());
+    }
+
+    private void onExportAccounts() {
+        if (!"ADMIN".equalsIgnoreCase(role)) {
+            JOptionPane.showMessageDialog(this,
+                    "Chỉ tài khoản ADMIN mới được phép xuất danh sách tài khoản.",
+                    "Không có quyền",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        AccountRepository accountRepository = new AccountRepositoryImpl();
+        List<Account> accounts = accountRepository.findAll();
+
+        if (accounts.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Không có tài khoản nào để xuất.",
+                    "Thông báo",
+                    JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Chọn nơi lưu file PDF tài khoản");
+        fileChooser.setSelectedFile(new File("accounts.pdf"));
+
+        int userSelection = fileChooser.showSaveDialog(this);
+        if (userSelection != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        File fileToSave = fileChooser.getSelectedFile();
+
+        try {
+            AccountPdfExporter exporter = new AccountPdfExporter();
+            exporter.export(accounts, fileToSave.getAbsolutePath());
+
+            JOptionPane.showMessageDialog(this,
+                    "Xuất PDF tài khoản thành công:\n" + fileToSave.getAbsolutePath(),
+                    "Thành công",
+                    JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Lỗi khi xuất PDF tài khoản: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     // ===== Đổi màn hình + cập nhật header + sidebar =====

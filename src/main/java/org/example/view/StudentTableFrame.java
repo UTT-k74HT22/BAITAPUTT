@@ -1,6 +1,8 @@
 package org.example.view;
 
 import org.example.entity.Student;
+import org.example.export.student.StudentPdfExporter;
+
 import org.example.service.StudentService;
 import org.example.service.impl.StudentServiceImpl;
 import java.awt.*;
@@ -8,7 +10,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -36,7 +39,7 @@ public class StudentTableFrame extends JFrame {
     public StudentTableFrame() {
         this.studentService = new StudentServiceImpl(); // inject service
 
-        setTitle("Danh sách sinh viên");
+        setTitle("Danh sách nhân viên");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 600);
         setLocationRelativeTo(null);
@@ -44,7 +47,7 @@ public class StudentTableFrame extends JFrame {
         // ====== TABLE ======
         String[] columnNames = {
                 "STT", "Họ tên", "Ngày sinh", "Địa chỉ",
-                "Giới tính", "Mã SV", "Email", "Điểm tổng kết"
+                "Giới tính", "Mã NV", "Email", "Điểm tổng kết"
         };
         tableModel = new DefaultTableModel(columnNames, 0);
         table = new JTable(tableModel);
@@ -71,7 +74,7 @@ public class StudentTableFrame extends JFrame {
         inputPanel.add(new JLabel("Giới tính:"));
         inputPanel.add(txtGioiTinh);
 
-        inputPanel.add(new JLabel("Mã SV:"));
+        inputPanel.add(new JLabel("Mã NV:"));
         inputPanel.add(txtMaSV);
         inputPanel.add(new JLabel("Email:"));
         inputPanel.add(txtEmail);
@@ -100,17 +103,21 @@ public class StudentTableFrame extends JFrame {
         JButton btnSort = new JButton("Sắp xếp theo điểm ↓");
         btnSort.addActionListener(e -> onSortByScore());
 
+        JButton btnExportPdf = new JButton("Xuất PDF");
+        btnExportPdf.addActionListener(e -> onExportPdf());
+
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         buttonPanel.add(btnSave);
         buttonPanel.add(btnDeleteSelected);
         buttonPanel.add(btnDeleteAll);
         buttonPanel.add(btnSort);
+        buttonPanel.add(btnExportPdf);
         buttonPanel.add(btnExit);
 
         // ====== SEARCH / FILTER ======
         txtSearch = new JTextField(20);
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        searchPanel.add(new JLabel("Tìm theo Mã SV:"));
+        searchPanel.add(new JLabel("Tìm theo Mã NV:"));
         searchPanel.add(txtSearch);
 
         txtSearch.addKeyListener(new KeyAdapter() {
@@ -196,11 +203,11 @@ public class StudentTableFrame extends JFrame {
             return;
         }
 
-        // validate trùng mã SV & email qua service
+        // validate trùng mã NV (SV) & email qua service
         if (studentService.existsMaSV(maSV, editIndex)) {
             JOptionPane.showMessageDialog(this,
-                    "Mã sinh viên đã tồn tại!",
-                    "Lỗi trùng mã SV",
+                    "Mã nhân viên đã tồn tại!",
+                    "Lỗi trùng mã NV",
                     JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -218,13 +225,13 @@ public class StudentTableFrame extends JFrame {
         if (editIndex == -1) {
             studentService.addStudent(sv);
             JOptionPane.showMessageDialog(this,
-                    "Thêm sinh viên thành công!",
+                    "Thêm nhân viên thành công!",
                     "Thông báo",
                     JOptionPane.INFORMATION_MESSAGE);
         } else {
             studentService.updateStudent(editIndex, sv);
             JOptionPane.showMessageDialog(this,
-                    "Cập nhật sinh viên thành công!",
+                    "Cập nhật nhân viên thành công!",
                     "Thông báo",
                     JOptionPane.INFORMATION_MESSAGE);
         }
@@ -268,7 +275,7 @@ public class StudentTableFrame extends JFrame {
         int selectedRow = table.getSelectedRow();
         if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this,
-                    "Vui lòng chọn một sinh viên để xóa.",
+                    "Vui lòng chọn một nhân viên để xóa.",
                     "Chưa chọn mục",
                     JOptionPane.WARNING_MESSAGE);
             return;
@@ -284,7 +291,7 @@ public class StudentTableFrame extends JFrame {
         }
 
         int confirm = JOptionPane.showConfirmDialog(this,
-                "Bạn có chắc chắn muốn xóa sinh viên đã chọn?",
+                "Bạn có chắc chắn muốn xóa nhân viên đã chọn?",
                 "Xác nhận xóa",
                 JOptionPane.YES_NO_OPTION);
 
@@ -298,7 +305,7 @@ public class StudentTableFrame extends JFrame {
         editIndex = -1;
 
         JOptionPane.showMessageDialog(this,
-                "Xóa sinh viên thành công!",
+                "Xóa nhân viên thành công!",
                 "Thông báo",
                 JOptionPane.INFORMATION_MESSAGE);
     }
@@ -306,7 +313,7 @@ public class StudentTableFrame extends JFrame {
     // ==================== XÓA TOÀN BỘ ====================
     private void onDeleteAllStudents() {
         int confirm = JOptionPane.showConfirmDialog(this,
-                "Bạn có chắc chắn muốn xóa toàn bộ sinh viên?",
+                "Bạn có chắc chắn muốn xóa toàn bộ nhân viên?",
                 "Xác nhận xóa toàn bộ",
                 JOptionPane.YES_NO_OPTION);
 
@@ -320,7 +327,7 @@ public class StudentTableFrame extends JFrame {
         editIndex = -1;
 
         JOptionPane.showMessageDialog(this,
-                "Xóa toàn bộ sinh viên thành công!",
+                "Xóa toàn bộ nhân viên thành công!",
                 "Thông báo",
                 JOptionPane.INFORMATION_MESSAGE);
     }
@@ -329,6 +336,44 @@ public class StudentTableFrame extends JFrame {
     private void onSortByScore() {
         studentService.sortByScoreDesc();
         reloadTableFromService();
+    }
+
+    // ==================== XUẤT PDF ====================
+    private void onExportPdf() {
+        List<Student> list = studentService.getAllStudents();
+        if (list.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Không có dữ liệu để xuất PDF",
+                    "Thông báo",
+                    JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Chọn nơi lưu file PDF");
+        fileChooser.setSelectedFile(new File("students.pdf"));
+
+        int userSelection = fileChooser.showSaveDialog(this);
+        if (userSelection != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        File fileToSave = fileChooser.getSelectedFile();
+
+        try {
+            StudentPdfExporter exporter = new StudentPdfExporter();
+            exporter.export(list, fileToSave.getAbsolutePath());
+
+            JOptionPane.showMessageDialog(this,
+                    "Xuất PDF thành công:\n" + fileToSave.getAbsolutePath(),
+                    "Thành công",
+                    JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Lỗi khi xuất PDF: " + ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     // ==================== RENDER TABLE ====================

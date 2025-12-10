@@ -20,5 +20,19 @@
             <artifactId>mysql-connector-j</artifactId>
             <version>8.0.33</version>
         </dependency>
-    </dependencies>
+
+            <!-- iText Core -->
+            <dependency>
+                <groupId>com.itextpdf</groupId>
+                <artifactId>kernel</artifactId>
+                <version>7.2.5</version>
+            </dependency>
+
+            <!-- iText Layout -->
+            <dependency>
+                <groupId>com.itextpdf</groupId>
+                <artifactId>layout</artifactId>
+                <version>7.2.5</version>
+            </dependency>
+        </dependencies>
 </project>
