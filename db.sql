@@ -10,6 +10,22 @@ CREATE TABLE IF NOT EXISTS accounts (
                                         is_active TINYINT(1) NOT NULL DEFAULT 1
 );
 
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    account_id INT NOT NULL,
+    phone VARCHAR(20),
+    email VARCHAR(100),
+    gender ENUM('Male', 'Female', 'Other'),
+    date_of_birth DATE,
+    address VARCHAR(255),
+    position VARCHAR(50),          -- bác sĩ, y tá, lễ tân, admin,...
+    department VARCHAR(100),       -- khoa khám bệnh, khoa cấp cứu, nội, ngoại,...
+
+    CONSTRAINT fk_account_user
+        FOREIGN KEY (account_id) REFERENCES accounts(id)
+        ON DELETE CASCADE
+);
+
 -- Insert user admin nếu chưa tồn tại
 INSERT INTO accounts (username, password, full_name, role, is_active)
 SELECT 'admin', '123456', 'Quản trị viên', 'ADMIN', 1
