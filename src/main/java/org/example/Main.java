@@ -17,5 +17,9 @@ public class Main {
                 registerForm.setVisible(true);
             }
         });
+
+
+//        System.out.println(org.mindrot.jbcrypt.BCrypt.hashpw("123456789", org.mindrot.jbcrypt.BCrypt.gensalt(12)));
+
     }
 }

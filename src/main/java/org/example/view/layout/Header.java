@@ -1,5 +1,7 @@
 package org.example.view.layout;
 
+import org.example.entity.enums.Role;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -12,7 +14,7 @@ public class Header extends JPanel {
     private final JButton btnEdit;
     private final JButton btnExport;
 
-    public Header(String username, String role) {
+    public Header(String username, Role role) {
         setPreferredSize(new Dimension(0, 70));
         setBackground(new Color(248, 249, 255));
         setLayout(new BorderLayout());

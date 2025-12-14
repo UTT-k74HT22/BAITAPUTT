@@ -336,37 +336,85 @@ SET FOREIGN_KEY_CHECKS = 1;
 --  SEED ADMIN ACCOUNT (unchanged)
 -- =========================================================
 
+-- =====================================================
+-- BCrypt hash cho mật khẩu: 123456789
+-- =====================================================
+SET @PWD_HASH = '$2a$12$ltxmVlsIC/5USUdIDbIhLefxW8AGkOfP8jngkAgZL7lMoDNk9ko/G';
+
+-- ===================== ADMIN =========================
 INSERT INTO accounts (username, password, email, phone, role, is_active)
-SELECT 'admin', '123456789', 'admin@example.com', '0123456789', 'ADMIN', 1
+SELECT 'admin', @PWD_HASH, 'admin@example.com', '0123456789', 'ADMIN', 1
 WHERE NOT EXISTS (
     SELECT 1 FROM accounts WHERE username = 'admin'
 );
 
+-- migrate nếu trước đó lỡ seed plain password
+UPDATE accounts
+SET password = @PWD_HASH
+WHERE username = 'admin' AND password = '123456789';
+
+-- =================== EMPLOYEE ========================
 INSERT INTO accounts (username, password, email, phone, role, is_active)
-SELECT 'employee01', '123456789', 'employee01@example.com', '0900000001', 'EMPLOYEE', 1
+SELECT 'employee01', @PWD_HASH, 'employee01@example.com', '0900000001', 'EMPLOYEE', 1
 WHERE NOT EXISTS (
     SELECT 1 FROM accounts WHERE username = 'employee01'
 );
 
-SET @EMP_ACC_ID = (SELECT id FROM accounts WHERE username = 'employee01');
+UPDATE accounts
+SET password = @PWD_HASH
+WHERE username = 'employee01' AND password = '123456789';
 
-INSERT INTO employees (account_id, code, full_name, position, department, phone, email, is_active, hired_date)
-SELECT @EMP_ACC_ID, 'EMP001', 'Nguyen Van A', 'Dược sĩ', 'Kho thuốc', '0900000001', 'employee01@example.com', 1, '2022-01-01'
+SET @EMP_ACC_ID = (
+    SELECT id FROM accounts WHERE username = 'employee01'
+);
+
+INSERT INTO employees (
+    account_id, code, full_name, position, department,
+    phone, email, is_active, hired_date
+)
+SELECT
+    @EMP_ACC_ID,
+    'EMP001',
+    'Nguyen Van A',
+    'Dược sĩ',
+    'Kho thuốc',
+    '0900000001',
+    'employee01@example.com',
+    1,
+    '2022-01-01'
 WHERE NOT EXISTS (
     SELECT 1 FROM employees WHERE code = 'EMP001'
 );
 
+-- =================== CUSTOMER ========================
 INSERT INTO accounts (username, password, email, phone, role, is_active)
-SELECT 'customer01', '123456789', 'customer01@example.com', '0900000002', 'CUSTOMER', 1
+SELECT 'customer01', @PWD_HASH, 'customer01@example.com', '0900000002', 'CUSTOMER', 1
 WHERE NOT EXISTS (
     SELECT 1 FROM accounts WHERE username = 'customer01'
 );
 
-SET @CUS_ACC_ID = (SELECT id FROM accounts WHERE username = 'customer01');
+UPDATE accounts
+SET password = @PWD_HASH
+WHERE username = 'customer01' AND password = '123456789';
 
-INSERT INTO customers (account_id, code, name, type, phone, email, address, tax_code, status)
-SELECT @CUS_ACC_ID, 'CUS001', 'Tran Thi B', 'RETAIL', '0900000002', 'customer01@example.com',
-       '123 Lê Lợi, Quận 1, TP.HCM', '1234567890', 'ACTIVE'
+SET @CUS_ACC_ID = (
+    SELECT id FROM accounts WHERE username = 'customer01'
+);
+
+INSERT INTO customers (
+    account_id, code, name, type, phone, email,
+    address, tax_code, status
+)
+SELECT
+    @CUS_ACC_ID,
+    'CUS001',
+    'Tran Thi B',
+    'RETAIL',
+    '0900000002',
+    'customer01@example.com',
+    '123 Lê Lợi, Quận 1, TP.HCM',
+    '1234567890',
+    'ACTIVE'
 WHERE NOT EXISTS (
     SELECT 1 FROM customers WHERE code = 'CUS001'
 );

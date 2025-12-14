@@ -1,5 +1,6 @@
 package org.example.view;
 
+import org.example.entity.enums.Role;
 import org.example.view.layout.Footer;
 import org.example.view.layout.Header;
 import org.example.view.layout.SideBar;
@@ -7,6 +8,9 @@ import org.example.view.layout.SideBar;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
 
 public class MainFrame extends JFrame {
 
@@ -14,21 +18,23 @@ public class MainFrame extends JFrame {
     private final SideBar sideBar;
     private final JPanel contentPanel;
     private final CardLayout cardLayout;
+    private String currentModuleTitle = "Dashboard";
 
-    private String currentModuleTitle = "Lễ Tân & Tiếp Đón";
+    // ===================== Screen Spec =====================
+    private static class ScreenSpec {
+        final String cardKey;
+        final String title;
 
-    // Card keys
-    private static final String SCREEN_RECEPTION = "reception";
-    private static final String SCREEN_EXAM = "exam";
-    private static final String SCREEN_ADMISSION = "admission";
-    private static final String SCREEN_TREATMENT = "treatment";
-    private static final String SCREEN_BILLING = "billing";
-    private static final String SCREEN_SUMMARY = "summary";
-    private static final String SCREEN_DETAIL = "detail";
-    private static final String SCREEN_DOCTOR = "doctor";
+        ScreenSpec(String cardKey, String title) {
+            this.cardKey = cardKey;
+            this.title = title;
+        }
+    }
 
-    public MainFrame(String username, String role) {
-        setTitle("Hospital Management System");
+    private final Map<String, ScreenSpec> routes = new LinkedHashMap<>();
+
+    public MainFrame(String username, Role role) {
+        setTitle("HMS - Minh Châu");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1300, 750);
         setLocationRelativeTo(null);
@@ -38,7 +44,7 @@ public class MainFrame extends JFrame {
         header = new Header(username, role);
         sideBar = new SideBar(role);
 
-        // Background content
+        // Background content (giữ nguyên UI)
         JPanel bgContent = new JPanel(new BorderLayout());
         bgContent.setBackground(new Color(237, 239, 252));
         bgContent.setBorder(new EmptyBorder(18, 24, 18, 24));
@@ -47,33 +53,84 @@ public class MainFrame extends JFrame {
         contentPanel = new JPanel(cardLayout);
         contentPanel.setOpaque(false);
 
-        initScreens();
-        bgContent.add(contentPanel, BorderLayout.CENTER);
+        initRoutes();      // khai báo route: menuKey -> (cardKey,title)
+        initScreens();     // add card panels theo routes
 
-        Footer footer = new Footer();
+        bgContent.add(contentPanel, BorderLayout.CENTER);
 
         add(sideBar, BorderLayout.WEST);
         add(header, BorderLayout.NORTH);
         add(bgContent, BorderLayout.CENTER);
-        add(footer, BorderLayout.SOUTH);
+        add(new Footer(), BorderLayout.SOUTH);
 
-        initMenuActions();
+        initMenuActions(role);
         initHeaderActions();
     }
 
-    // ===== Tạo các màn hình mock =====
-    private void initScreens() {
-        contentPanel.add(createModuleScreen("Khu vực Lễ Tân & Tiếp Đón"), SCREEN_RECEPTION);
-        contentPanel.add(createModuleScreen("Khu vực Khám Bệnh & Xét Nghiệm"), SCREEN_EXAM);
-        contentPanel.add(createModuleScreen("Khu vực Nhập Viện & Xếp Giường"), SCREEN_ADMISSION);
-        contentPanel.add(createModuleScreen("Khu vực Điều Trị & Phát Thuốc"), SCREEN_TREATMENT);
-        contentPanel.add(createModuleScreen("Khu vực Kê Hóa Đơn & Xuất Viện"), SCREEN_BILLING);
-        contentPanel.add(createModuleScreen("Báo Cáo Tóm Tắt"), SCREEN_SUMMARY);
-        contentPanel.add(createModuleScreen("Thống Kê Chi Tiết"), SCREEN_DETAIL);
-        contentPanel.add(createModuleScreen("Quản lý Bác Sĩ"), SCREEN_DOCTOR);
+    // ===================== ROUTES =====================
+    private void initRoutes() {
+        // Dashboard
+        routes.put(SideBar.MENU_DASHBOARD, new ScreenSpec("screen_dashboard", "Dashboard"));
 
-        // Default
-        showScreen(SCREEN_RECEPTION, "Lễ Tân & Tiếp Đón");
+        // Admin-only
+        routes.put(SideBar.MENU_ACCOUNTS, new ScreenSpec("screen_accounts", "Tài khoản"));
+        routes.put(SideBar.MENU_EMPLOYEES, new ScreenSpec("screen_employees", "Nhân viên"));
+        routes.put(SideBar.MENU_CUSTOMERS, new ScreenSpec("screen_customers", "Khách hàng"));
+
+        // Catalog
+        routes.put(SideBar.MENU_CATEGORIES, new ScreenSpec("screen_categories", "Danh mục sản phẩm"));
+        routes.put(SideBar.MENU_MANUFACTURERS, new ScreenSpec("screen_manufacturers", "Nhà sản xuất"));
+        routes.put(SideBar.MENU_PRODUCTS, new ScreenSpec("screen_products", "Sản phẩm"));
+
+        // Inventory
+        routes.put(SideBar.MENU_WAREHOUSES, new ScreenSpec("screen_warehouses", "Kho hàng"));
+        routes.put(SideBar.MENU_BATCHES, new ScreenSpec("screen_batches", "Lô hàng"));
+        routes.put(SideBar.MENU_INVENTORY, new ScreenSpec("screen_inventory", "Tồn kho"));
+        routes.put(SideBar.MENU_STOCK_MOVEMENTS, new ScreenSpec("screen_stock_movements", "Xuất/Nhập kho"));
+
+        // Sales/Billing
+        routes.put(SideBar.MENU_ORDERS, new ScreenSpec("screen_orders", "Đơn hàng"));
+        routes.put(SideBar.MENU_INVOICES, new ScreenSpec("screen_invoices", "Hóa đơn"));
+        routes.put(SideBar.MENU_PAYMENTS, new ScreenSpec("screen_payments", "Thanh toán"));
+
+        // Reports
+        routes.put(SideBar.MENU_REPORT_SUMMARY, new ScreenSpec("screen_report_summary", "Báo cáo tóm tắt"));
+        routes.put(SideBar.MENU_REPORT_DETAIL, new ScreenSpec("screen_report_detail", "Thống kê chi tiết"));
+
+        // Customer
+        routes.put(SideBar.MENU_SHOP_PRODUCTS, new ScreenSpec("screen_shop_products", "Sản phẩm"));
+        routes.put(SideBar.MENU_MY_ORDERS, new ScreenSpec("screen_my_orders", "Đơn hàng của tôi"));
+        routes.put(SideBar.MENU_MY_INVOICES, new ScreenSpec("screen_my_invoices", "Hóa đơn của tôi"));
+        routes.put(SideBar.MENU_MY_PAYMENTS, new ScreenSpec("screen_my_payments", "Thanh toán của tôi"));
+
+        // Logout: không phải screen, xử lý riêng
+        routes.put(SideBar.MENU_LOGOUT, new ScreenSpec(null, "Đăng xuất"));
+    }
+
+    // ===================== SCREENS =====================
+    private void initScreens() {
+        // Tạo card cho tất cả route có cardKey
+        for (ScreenSpec spec : routes.values()) {
+            if (spec.cardKey != null) {
+                contentPanel.add(createModuleScreen(spec.title), spec.cardKey);
+            }
+        }
+
+        // Default screen theo role (giữ behavior hợp lý)
+        if (header != null) {
+            if (isCustomerRole()) {
+                showByMenuKey(SideBar.MENU_SHOP_PRODUCTS);
+            } else {
+                showByMenuKey(SideBar.MENU_DASHBOARD);
+            }
+        }
+    }
+
+    private boolean isCustomerRole() {
+        // Header đang giữ role; nếu Header bạn chưa expose role, bạn có thể truyền role vào field riêng.
+        // Tạm thời suy luận: nếu sidebar có menu SHOP_PRODUCTS thì coi như customer.
+        return sideBar.getMenu(SideBar.MENU_SHOP_PRODUCTS) != null
+                && sideBar.getMenu(SideBar.MENU_ACCOUNTS) == null;
     }
 
     private JPanel createModuleScreen(String title) {
@@ -89,71 +146,36 @@ public class MainFrame extends JFrame {
         return card;
     }
 
-    // ===== Gán action cho sidebar =====
-    private void initMenuActions() {
+    // ===================== MENU ACTIONS =====================
+    private void initMenuActions(Role role) {
+        // Bind tự động theo các nút hiện có trong sidebar
+        for (String menuKey : routes.keySet()) {
+            JButton btn = sideBar.getMenu(menuKey);
+            if (btn == null) continue; // role không có menu này
 
-        JButton btn;
+            if (Objects.equals(menuKey, SideBar.MENU_LOGOUT)) {
+                btn.addActionListener(e -> doLogout());
+                continue;
+            }
 
-        btn = sideBar.getMenu("Lễ Tân & Tiếp Đón");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_RECEPTION, "Lễ Tân & Tiếp Đón"));
+            btn.addActionListener(e -> showByMenuKey(menuKey));
         }
 
-        btn = sideBar.getMenu("Khám Bệnh & Xét Nghiệm");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_EXAM, "Khám Bệnh & Xét Nghiệm"));
-        }
-
-        btn = sideBar.getMenu("Nhập Viện & Xếp Giường");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_ADMISSION, "Nhập Viện & Xếp Giường"));
-        }
-
-        btn = sideBar.getMenu("Điều Trị & Phát Thuốc");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_TREATMENT, "Điều Trị & Phát Thuốc"));
-        }
-
-        btn = sideBar.getMenu("Kê Hóa Đơn & Xuất Viện");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_BILLING, "Kê Hóa Đơn & Xuất Viện"));
-        }
-
-        btn = sideBar.getMenu("Báo Cáo Tóm Tắt");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_SUMMARY, "Báo Cáo Tóm Tắt"));
-        }
-
-        btn = sideBar.getMenu("Thống Kê Chi Tiết");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_DETAIL, "Thống Kê Chi Tiết"));
-        }
-
-        btn = sideBar.getMenu("Bác Sĩ");
-        if (btn != null) {
-            btn.addActionListener(e ->
-                    showScreen(SCREEN_DOCTOR, "Bác Sĩ"));
-        }
-
-        // Logout
-        btn = sideBar.getMenu("Đăng xuất");
-        if (btn != null) {
-            btn.addActionListener(e -> {
-                // TODO: mở lại màn Login của bạn
-                // new LoginFrame().setVisible(true);
-                dispose();
-            });
+        // Default screen đảm bảo đúng role
+        if (role == Role.CUSTOMER) {
+            showByMenuKey(SideBar.MENU_SHOP_PRODUCTS);
+        } else {
+            showByMenuKey(SideBar.MENU_DASHBOARD);
         }
     }
 
-    // ===== Hành vi nút Thêm/Sửa/Export trên header (tạm mock) =====
+    private void doLogout() {
+        // TODO: mở lại LoginFrame của bạn nếu có
+        // new LoginFrame().setVisible(true);
+        dispose();
+    }
+
+    // ===================== HEADER ACTIONS =====================
     private void initHeaderActions() {
         header.getBtnAdd().addActionListener(e ->
                 JOptionPane.showMessageDialog(this,
@@ -171,15 +193,28 @@ public class MainFrame extends JFrame {
                         "Action", JOptionPane.INFORMATION_MESSAGE));
     }
 
-    // ===== Đổi màn hình + cập nhật header + sidebar =====
-    private void showScreen(String cardKey, String moduleTitle) {
+    // ===================== ROUTER =====================
+    private void showByMenuKey(String menuKey) {
+        ScreenSpec spec = routes.get(menuKey);
+        if (spec == null || spec.cardKey == null) {
+            // fallback
+            ScreenSpec fallback = routes.get(SideBar.MENU_DASHBOARD);
+            if (fallback != null) {
+                showScreen(fallback.cardKey, fallback.title, SideBar.MENU_DASHBOARD);
+            }
+            return;
+        }
+        showScreen(spec.cardKey, spec.title, menuKey);
+    }
+
+    private void showScreen(String cardKey, String moduleTitle, String activeMenuKey) {
         currentModuleTitle = moduleTitle;
         header.setModuleTitle(moduleTitle);
-        sideBar.setActiveMenu(moduleTitle);
+        sideBar.setActiveMenu(activeMenuKey);
         cardLayout.show(contentPanel, cardKey);
     }
 
-    // Panel bo tròn có bóng nhẹ dùng cho mọi màn hình
+    // ===================== RoundedPanel giữ nguyên UI =====================
     static class RoundedPanel extends JPanel {
         private final int cornerRadius;
         private final Color backgroundColor;
@@ -213,10 +248,10 @@ public class MainFrame extends JFrame {
         }
     }
 
-    // Test nhanh (chạy riêng, không qua login)
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() ->
-                new MainFrame("admin", "ADMIN").setVisible(true)
-        );
+        SwingUtilities.invokeLater(() -> {
+            MainFrame mainFrame = new MainFrame("john_doe", Role.CUSTOMER);
+            mainFrame.setVisible(true);
+        });
     }
 }
