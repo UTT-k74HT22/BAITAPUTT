@@ -1,96 +1,201 @@
 package org.example.view.layout;
 
+import org.example.entity.enums.Role;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
+/**
+ * SideBar hiển thị menu theo Role:
+ * - ADMIN: full quyền
+ * - EMPLOYEE: nghiệp vụ vận hành
+ * - CUSTOMER: xem/mua hàng + theo dõi đơn/hóa đơn của mình
+ */
 public class SideBar extends JPanel {
+
+    // Key ổn định để route màn hình (khuyến nghị dùng key thay vì text)
+    public static final String MENU_DASHBOARD = "DASHBOARD";
+    public static final String MENU_ACCOUNTS = "ACCOUNTS";
+    public static final String MENU_EMPLOYEES = "EMPLOYEES";
+    public static final String MENU_CUSTOMERS = "CUSTOMERS";
+
+    public static final String MENU_CATEGORIES = "CATEGORIES";
+    public static final String MENU_MANUFACTURERS = "MANUFACTURERS";
+    public static final String MENU_PRODUCTS = "PRODUCTS";
+
+    public static final String MENU_WAREHOUSES = "WAREHOUSES";
+    public static final String MENU_BATCHES = "BATCHES";
+    public static final String MENU_INVENTORY = "INVENTORY";
+    public static final String MENU_STOCK_MOVEMENTS = "STOCK_MOVEMENTS";
+
+    public static final String MENU_ORDERS = "ORDERS";
+    public static final String MENU_INVOICES = "INVOICES";
+    public static final String MENU_PAYMENTS = "PAYMENTS";
+
+    public static final String MENU_REPORT_SUMMARY = "REPORT_SUMMARY";
+    public static final String MENU_REPORT_DETAIL = "REPORT_DETAIL";
+
+    // Customer-side
+    public static final String MENU_SHOP_PRODUCTS = "SHOP_PRODUCTS";
+    public static final String MENU_MY_ORDERS = "MY_ORDERS";
+    public static final String MENU_MY_INVOICES = "MY_INVOICES";
+    public static final String MENU_MY_PAYMENTS = "MY_PAYMENTS";
+
+    public static final String MENU_LOGOUT = "LOGOUT";
 
     private final Map<String, JButton> menuButtons = new LinkedHashMap<>();
     private String activeKey = null;
 
-    public SideBar(String role) {
+    public SideBar(Role role) {
         setOpaque(false);
         setPreferredSize(new Dimension(240, 0));
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBorder(BorderFactory.createEmptyBorder(20, 18, 18, 18));
 
         // ===== Logo / tên hệ thống =====
-        JLabel appLabel = new JLabel("NL  Bệnh Viện");
+        JLabel appLabel = new JLabel("HMS - Minh Châu");
         appLabel.setForeground(Color.WHITE);
         appLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
         appLabel.setAlignmentX(LEFT_ALIGNMENT);
         add(appLabel);
         add(Box.createVerticalStrut(20));
 
-        // ===== Menu chính =====
-        addMenu("Lễ Tân & Tiếp Đón");
-        addMenu("Khám Bệnh & Xét Nghiệm");
-        addMenu("Nhập Viện & Xếp Giường");
-        addMenu("Điều Trị & Phát Thuốc");
-        addMenu("Kê Hóa Đơn & Xuất Viện");
-
-        // ===== Nhóm Thống kê =====
-        add(Box.createVerticalStrut(14));
-        JLabel statsLabel = new JLabel("Thống kê");
-        statsLabel.setForeground(new Color(215, 215, 245));
-        statsLabel.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        statsLabel.setAlignmentX(LEFT_ALIGNMENT);
-        add(statsLabel);
-        add(Box.createVerticalStrut(6));
-
-        addMenu("Báo Cáo Tóm Tắt");
-        addMenu("Thống Kê Chi Tiết");
-        addMenu("Bác Sĩ");
+        // ===== Render menu theo role =====
+        buildMenus(role);
 
         // Đẩy logout xuống dưới
         add(Box.createVerticalGlue());
 
-        JButton logoutBtn = createMenuButton("Đăng xuất");
+        JButton logoutBtn = createMenuButton("Đăng xuất", MENU_LOGOUT);
         logoutBtn.setAlignmentX(LEFT_ALIGNMENT);
-        menuButtons.put("Đăng xuất", logoutBtn);
+        menuButtons.put(MENU_LOGOUT, logoutBtn);
         add(logoutBtn);
 
-        // Mặc định active là Lễ Tân & Tiếp Đón
-        setActiveMenu("Lễ Tân & Tiếp Đón");
+        // Set menu active mặc định (tùy theo role)
+        String defaultMenu = getDefaultMenu(role);
+        setActiveMenu(defaultMenu);
     }
 
-    private void addMenu(String text) {
-        JButton btn = createMenuButton(text);
+    private void buildMenus(Role role) {
+        // ADMIN = full quyền
+        if (role == Role.ADMIN) {
+            addSection("Tổng quan");
+            addMenu("Dashboard", MENU_DASHBOARD);
+
+            addSection("Quản trị hệ thống");
+            addMenu("Tài khoản", MENU_ACCOUNTS);
+            addMenu("Nhân viên", MENU_EMPLOYEES);
+            addMenu("Khách hàng", MENU_CUSTOMERS);
+
+            addSection("Danh mục");
+            addMenu("Danh mục sản phẩm", MENU_CATEGORIES);
+            addMenu("Nhà sản xuất", MENU_MANUFACTURERS);
+            addMenu("Sản phẩm", MENU_PRODUCTS);
+
+            addSection("Kho & Tồn");
+            addMenu("Kho hàng", MENU_WAREHOUSES);
+            addMenu("Lô hàng", MENU_BATCHES);
+            addMenu("Tồn kho", MENU_INVENTORY);
+            addMenu("Xuất/Nhập kho", MENU_STOCK_MOVEMENTS);
+
+            addSection("Bán hàng & Thanh toán");
+            addMenu("Đơn hàng", MENU_ORDERS);
+            addMenu("Hóa đơn", MENU_INVOICES);
+            addMenu("Thanh toán", MENU_PAYMENTS);
+
+            addSection("Thống kê");
+            addMenu("Báo cáo tóm tắt", MENU_REPORT_SUMMARY);
+            addMenu("Thống kê chi tiết", MENU_REPORT_DETAIL);
+            return;
+        }
+
+        // EMPLOYEE = nghiệp vụ vận hành
+        if (role == Role.EMPLOYEE) {
+            addSection("Tổng quan");
+            addMenu("Dashboard", MENU_DASHBOARD);
+
+            addSection("Danh mục");
+            addMenu("Danh mục sản phẩm", MENU_CATEGORIES);
+            addMenu("Nhà sản xuất", MENU_MANUFACTURERS);
+            addMenu("Sản phẩm", MENU_PRODUCTS);
+
+            addSection("Kho & Tồn");
+            addMenu("Kho hàng", MENU_WAREHOUSES);
+            addMenu("Lô hàng", MENU_BATCHES);
+            addMenu("Tồn kho", MENU_INVENTORY);
+            addMenu("Xuất/Nhập kho", MENU_STOCK_MOVEMENTS);
+
+            addSection("Bán hàng & Thanh toán");
+            addMenu("Đơn hàng", MENU_ORDERS);
+            addMenu("Hóa đơn", MENU_INVOICES);
+            addMenu("Thanh toán", MENU_PAYMENTS);
+
+            // Nhân viên vẫn cần tra cứu khách hàng để bán hàng/CSKH
+            addSection("Khách hàng");
+            addMenu("Tra cứu khách hàng", MENU_CUSTOMERS);
+
+            addSection("Thống kê");
+            addMenu("Báo cáo tóm tắt", MENU_REPORT_SUMMARY);
+            addMenu("Thống kê chi tiết", MENU_REPORT_DETAIL);
+            return;
+        }
+
+        // CUSTOMER = mua hàng + theo dõi đơn/hóa đơn của mình
+        if (role == Role.CUSTOMER) {
+            addSection("Mua hàng");
+            addMenu("Sản phẩm", MENU_SHOP_PRODUCTS);
+
+            addSection("Đơn của tôi");
+            addMenu("Đơn hàng của tôi", MENU_MY_ORDERS);
+            addMenu("Hóa đơn của tôi", MENU_MY_INVOICES);
+            addMenu("Thanh toán của tôi", MENU_MY_PAYMENTS);
+
+            addSection("Thống kê");
+            addMenu("Báo cáo tóm tắt", MENU_REPORT_SUMMARY); // nếu bạn không muốn customer thấy report -> xóa dòng này
+            // hoặc bỏ hẳn report cho customer
+        }
+    }
+
+    private void addSection(String title) {
+        add(Box.createVerticalStrut(14));
+        JLabel label = new JLabel(title);
+        label.setForeground(new Color(215, 215, 245));
+        label.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        label.setAlignmentX(LEFT_ALIGNMENT);
+        add(label);
+        add(Box.createVerticalStrut(6));
+    }
+
+    private void addMenu(String text, String key) {
+        JButton btn = createMenuButton(text, key);
         btn.setAlignmentX(LEFT_ALIGNMENT);
-        menuButtons.put(text, btn);
+        menuButtons.put(key, btn);
         add(btn);
         add(Box.createVerticalStrut(6));
     }
 
-    private JButton createMenuButton(String text) {
-        // Custom JButton với paintComponent tự vẽ nền
+    private JButton createMenuButton(String text, String key) {
         JButton btn = new JButton(text) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                        RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                // Kiểm tra trạng thái từ ClientProperty
                 Boolean isActive = (Boolean) getClientProperty("isActive");
                 Boolean isHovered = (Boolean) getClientProperty("isHovered");
 
-                // Vẽ nền với bo góc
-                if (isActive != null && isActive) {
+                if (Boolean.TRUE.equals(isActive)) {
                     g2.setColor(new Color(255, 255, 255, 80));
                     g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
-                } else if (isHovered != null && isHovered) {
+                } else if (Boolean.TRUE.equals(isHovered)) {
                     g2.setColor(new Color(255, 255, 255, 40));
                     g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
                 }
 
                 g2.dispose();
-
-                // Vẽ text và icon
                 super.paintComponent(g);
             }
         };
@@ -107,15 +212,14 @@ public class SideBar extends JPanel {
         btn.setContentAreaFilled(false);
         btn.setOpaque(false);
 
-        // Khởi tạo client properties
         btn.putClientProperty("isActive", false);
         btn.putClientProperty("isHovered", false);
+        btn.putClientProperty("menuKey", key); // để MainFrame lấy key nếu cần
 
-        // Hover + click -> active
         btn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                if (!text.equals(activeKey)) {
+                if (!key.equals(activeKey)) {
                     btn.putClientProperty("isHovered", true);
                     btn.repaint();
                 }
@@ -123,7 +227,7 @@ public class SideBar extends JPanel {
 
             @Override
             public void mouseExited(MouseEvent e) {
-                if (!text.equals(activeKey)) {
+                if (!key.equals(activeKey)) {
                     btn.putClientProperty("isHovered", false);
                     btn.repaint();
                 }
@@ -131,37 +235,43 @@ public class SideBar extends JPanel {
 
             @Override
             public void mouseClicked(MouseEvent e) {
-                setActiveMenu(text);
+                setActiveMenu(key);
+                // MainFrame có thể addActionListener/getMenu(key) để switch panel
             }
         });
 
         return btn;
     }
 
-    /** Đổi trạng thái menu đang chọn (gọi từ MainFrame sau này) */
+    /** Đổi trạng thái menu đang chọn */
     public void setActiveMenu(String key) {
         activeKey = key;
         for (Map.Entry<String, JButton> entry : menuButtons.entrySet()) {
             JButton btn = entry.getValue();
             boolean isActive = entry.getKey().equals(key);
 
-            // Cập nhật trạng thái
             btn.putClientProperty("isActive", isActive);
             btn.putClientProperty("isHovered", false);
 
-            // Cập nhật font
-            if (isActive) {
-                btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
-            } else {
-                btn.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-            }
-
+            btn.setFont(new Font("Segoe UI", isActive ? Font.BOLD : Font.PLAIN, 13));
             btn.repaint();
         }
     }
 
-    public JButton getMenu(String name) {
-        return menuButtons.get(name);
+    public JButton getMenu(String key) {
+        return menuButtons.get(key);
+    }
+
+    public String getActiveKey() {
+        return activeKey;
+    }
+
+    private String getDefaultMenu(Role role) {
+        if (role == null) return MENU_DASHBOARD;
+        return switch (role) {
+            case ADMIN, EMPLOYEE -> MENU_DASHBOARD;
+            case CUSTOMER -> MENU_SHOP_PRODUCTS;
+        };
     }
 
     // Gradient tím → xanh cho sidebar
@@ -169,8 +279,7 @@ public class SideBar extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         Color c1 = new Color(142, 105, 255); // tím
         Color c2 = new Color(83, 163, 255);  // xanh

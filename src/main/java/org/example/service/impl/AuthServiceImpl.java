@@ -1,50 +1,58 @@
 package org.example.service.impl;
 
-import org.example.entity.Account;
 import org.example.dto.LoginRequest;
 import org.example.dto.RegisterRequest;
+import org.example.entity.Account;
+import org.example.entity.enums.Role;
 import org.example.repository.AccountRepository;
 import org.example.repository.impl.AccountRepositoryImpl;
 import org.example.service.AuthService;
+import org.mindrot.jbcrypt.BCrypt;
+
+import java.time.LocalDateTime;
+import java.util.logging.Logger;
 
 public class AuthServiceImpl implements AuthService {
 
+    private static final Logger log = Logger.getLogger(AuthServiceImpl.class.getName());
     private final AccountRepository accountRepository;
 
     public AuthServiceImpl() {
-        this.accountRepository = new AccountRepositoryImpl();
+        this(new AccountRepositoryImpl());
+    }
+
+    // Dùng constructor này để test / inject repo
+    public AuthServiceImpl(AccountRepository accountRepository) {
+        this.accountRepository = accountRepository;
     }
 
     /**
      * Kiểm tra đăng nhập.
-     * @return true nếu username/password hợp lệ
+     * @return Account nếu username/password hợp lệ, ngược lại trả null
      */
     @Override
     public Account login(LoginRequest request) {
-        System.out.println("Login running with username: "  + request.getUsername());
+        if (request == null) return null;
 
-        if (request.getUsername() == null || request.getPassword() == null) {
-            System.out.println("Login failed: username or password is null");
+        String username = request.getUsername();
+        String password = request.getPassword();
+
+        if (username == null || username.isBlank() || password == null || password.isBlank()) {
             return null;
         }
 
-        Account account = accountRepository.findByUsername(request.getUsername());
-        if (account == null) {
-            System.out.println("Login failed: account not found");
+        Account account = accountRepository.findByUsername(username);
+        if (account == null) return null;
+
+        if (!account.isActive()) return null;
+
+        if (!BCrypt.checkpw(password, account.getPassword())) {
             return null;
         }
 
-        if (!account.isActive()) {
-            System.out.println("Login failed: account is inactive");
-            return null;
-        }
-
-        if (!account.getPassword().equals(request.getPassword())) {
-            System.out.println("Login failed: incorrect password");
-            return null;
-        }
-
-        System.out.println("Login successful: " + account.getUsername());
+        account.setLastLoginAt(LocalDateTime.now());
+        accountRepository.update(account);
+        log.info("Login successful: " + username);
         return account;
     }
 
@@ -55,18 +63,24 @@ public class AuthServiceImpl implements AuthService {
      */
     @Override
     public void register(RegisterRequest request) {
-        System.out.println("Registering new account with username: " + request.getUsername());
+        if (request == null) throw new RuntimeException("Request không được null");
+
         validateInfo(request);
 
-        Account account = new Account(
-                request.getUsername(),
+        String hashedPassword = BCrypt.hashpw(
                 request.getPassword(),
-                "USER",
-                true
+                BCrypt.gensalt(12) // cost factor = 12 (khuyến nghị)
         );
 
+        Account account = new Account();
+        account.setUsername(request.getUsername().trim());
+        account.setPassword(hashedPassword);
+        account.setRole(Role.CUSTOMER);            // hoặc Role.EMPLOYEE tùy hệ thống
+        account.setActive(true);
+        account.setLastLoginAt(null);
+
         accountRepository.save(account);
-        System.out.println("Registration successful for username: " + request.getUsername());
+        log.info("Registration successful for username: " + account.getUsername());
     }
 
     // ===================== PRIVATE METHODS =====================
@@ -83,13 +97,12 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Confirm Password không được để trống");
         }
 
-        // Check duplicate username
-        if (accountRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username đã tồn tại!");
-        }
-
         if (!request.isPasswordConfirmed()) {
             throw new RuntimeException("Password và Confirm Password không khớp!");
+        }
+
+        if (accountRepository.existsByUsername(request.getUsername().trim())) {
+            throw new RuntimeException("Username đã tồn tại!");
         }
     }
 }
