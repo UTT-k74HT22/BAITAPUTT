@@ -24,9 +24,8 @@ public class RegisterForm extends JFrame {
 
         setTitle("Đăng kí tài khoản");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(400, 280);
+        setSize(420, 300);
         setLocationRelativeTo(null);
-
         initUI();
     }
 

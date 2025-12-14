@@ -51,7 +51,7 @@ public class SideBar extends JPanel {
 
     public SideBar(Role role) {
         setOpaque(false);
-        setPreferredSize(new Dimension(240, 0));
+        setPreferredSize(new Dimension(240, 1000));
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBorder(BorderFactory.createEmptyBorder(20, 18, 18, 18));
 
@@ -67,7 +67,7 @@ public class SideBar extends JPanel {
         buildMenus(role);
 
         // Đẩy logout xuống dưới
-        add(Box.createVerticalGlue());
+        add(Box.createVerticalStrut(12));
 
         JButton logoutBtn = createMenuButton("Đăng xuất", MENU_LOGOUT);
         logoutBtn.setAlignmentX(LEFT_ALIGNMENT);

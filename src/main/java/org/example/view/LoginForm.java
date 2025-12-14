@@ -169,3 +169,27 @@ public class LoginForm extends JFrame {
         }
     }
 }
+
+
+--Nguyễn Toản:
+--fix hardcode trong SideBar -> tách thành utils/SideBarConstraint
+--Fix UI/UX thanh scoll
+
+=> checkout nhánh fix ui/ux
+--Create table call logic get all account => checkout nhánh call logic get all
+
+fixbug/nguyentoan/UI-UX(MainFrame)
+refactor/nguyentoan/...
+feature/nguyentoan/...
+
+//Kéo code: git fetch -> git pull
+//Commit: 
+-feature: feat: tính năng phát triển
+-refactor: refac: tái cấu trúc phần nafo
+-fixbug: fix: lỗi gì
+
+//git push: tạo pull request nếu chưa có
+//tag vào Project HMS-JAVA
+//request review Hoang Dinh Dung
+
+//NOTE: không push file config nếu chưa hỏi và file db.sql
