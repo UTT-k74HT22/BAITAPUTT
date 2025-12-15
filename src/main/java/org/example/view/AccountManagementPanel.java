@@ -2,7 +2,10 @@ package org.example.view;
 
 import org.example.controller.AccountController;
 import org.example.entity.Account;
+import org.example.entity.enums.Role;
 import org.example.service.impl.AccountServiceImpl;
+import org.mindrot.jbcrypt.BCrypt;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -15,7 +18,7 @@ import java.util.stream.Collectors;
 public class AccountManagementPanel extends JPanel {
 
     // ===================== DEPENDENCY =====================
-    private final AccountController controller;
+    private final AccountController accountController;
 
     // ===================== UI COMPONENTS =====================
     private JTable accountTable;
@@ -43,8 +46,8 @@ public class AccountManagementPanel extends JPanel {
         this(new AccountController(new AccountServiceImpl()));
     }
 
-    public AccountManagementPanel(AccountController controller) {
-        this.controller = controller;
+    public AccountManagementPanel(AccountController accountController) {
+        this.accountController = accountController;
         setLayout(new BorderLayout(0, 12));
         setOpaque(false);
 
@@ -196,7 +199,7 @@ public class AccountManagementPanel extends JPanel {
 
     // ===================== DATA =====================
     private void reloadAccountTable() {
-        renderTable(controller.getAllAccounts());
+        renderTable(accountController.getAllAccounts());
     }
 
     private void searchByUsername() {
@@ -205,12 +208,12 @@ public class AccountManagementPanel extends JPanel {
             reloadAccountTable();
             return;
         }
-        Account a = controller.findByUsername(keyword);
+        Account a = accountController.findByUsername(keyword);
         renderTable(a == null ? List.of() : List.of(a));
     }
 
     private void applyFilters() {
-        List<Account> data = controller.getAllAccounts();
+        List<Account> data = accountController.getAllAccounts();
 
         String role = (String) roleFilter.getSelectedItem();
         String status = (String) statusFilter.getSelectedItem();
@@ -252,11 +255,75 @@ public class AccountManagementPanel extends JPanel {
     }
 
     // ===================== CRUD =====================
-    private void openCreateDialog() { JOptionPane.showMessageDialog(this,"TODO: Create"); }
+
+    /**
+     * Create account, form account
+     */
+    private void openCreateDialog() {
+        JTextField username = new JTextField();
+        JPasswordField password = new JPasswordField();
+        JTextField email = new JTextField();
+        JTextField phone = new JTextField();
+        JComboBox<Role> role = new JComboBox<>(Role.values());
+        JCheckBox status = new JCheckBox("ACTIVE", true);
+
+        JPanel formPanel = new JPanel(new GridLayout(6, 2, 10, 10));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        formPanel.add(new JLabel("Username:"));
+        formPanel.add(username);
+        formPanel.add(new JLabel("Email:"));
+        formPanel.add(email);
+        formPanel.add(new JLabel("Phone:"));
+        formPanel.add(phone);
+        formPanel.add(new JLabel("Password:"));
+        formPanel.add(password);
+        formPanel.add(new JLabel("Role:"));
+        formPanel.add(role);
+        formPanel.add(new JLabel("Status:"));
+        formPanel.add(status);
+
+        formPanel.setPreferredSize(new Dimension(500, 250));
+
+        int option = JOptionPane.showConfirmDialog(this, formPanel, "Thêm tài khoản", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (option != JOptionPane.OK_OPTION) return;
+
+        try {
+            Account account = new Account();
+            account.setUsername(username.getText());
+            account.setEmail(email.getText());
+            account.setPhone(phone.getText());
+            account.setPassword(BCrypt.hashpw(new String(password.getPassword()), BCrypt.gensalt(12)));
+            account.setRole((Role) role.getSelectedItem());
+            account.setActive(status.isSelected());
+
+            accountController.createAccount(account);
+
+            JOptionPane.showMessageDialog(this, "Thêm tài khoản thành công", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            reloadAccountTable();
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Lỗi hệ thống, vui lòng thử lại",
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+
+    }
     private void openEditDialog()   { JOptionPane.showMessageDialog(this,"TODO: Edit"); }
     private void deleteSelectedAccount() { JOptionPane.showMessageDialog(this,"TODO: Delete"); }
 
     // ===================== EXPORT =====================
+    //TODO:Base exprot
     private void exportExcel() { JOptionPane.showMessageDialog(this,"TODO: Export Excel"); }
     private void exportPdf()   { JOptionPane.showMessageDialog(this,"TODO: Export PDF"); }
 

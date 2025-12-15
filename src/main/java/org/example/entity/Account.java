@@ -16,9 +16,11 @@ public class Account extends BaseEntity {
 
     public Account() {}
 
-    public Account(String username, String password, Role role, boolean active) {
+    public Account(String username, String password, String email, String phone, Role role, boolean active) {
         this.username = username;
         this.password = password;
+        this.email = email;
+        this.phone = phone;
         this.role = role;
         this.active = active;
     }
