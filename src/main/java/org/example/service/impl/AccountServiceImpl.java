@@ -45,43 +45,11 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     public void create(Account account) {
-        System.out.println("[Service] Tạo tài khoản mới: " + (account != null ? account.getUsername() : "null"));
-
-        if (account == null) throw new IllegalArgumentException("Account không được null");
-
-        String username = account.getUsername() == null ? "" : account.getUsername().trim();
-        String password = account.getPassword() == null ? "" : account.getPassword().trim();
-        String email = account.getEmail() == null ? "" : account.getEmail().trim();
-        String phone = account.getPhone() == null ? "" : account.getPhone().trim();
-
-        if (username.isEmpty()) throw new IllegalArgumentException("Username không được để trống");
-        if (password.isEmpty()) throw new IllegalArgumentException("Password không được để trống");
-
-        if (accountRepository.existsByUsername(username)) {
-            throw new RuntimeException("Username đã tồn tại!");
+        System.out.println("Tạo tài khoản mới: " + account.getUsername());
+        if (account == null) {
+            throw new IllegalArgumentException("Account không được null");
         }
-
-        if (!email.isEmpty() && accountRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email đã tồn tại!");
-        }
-
-        account.setUsername(username);
-        account.setPassword(password);
-        account.setEmail(email.isEmpty() ? null : email);
-        account.setPhone(phone.isEmpty() ? null : phone);
-
-        if (account.getRole() == null) {
-            account.setRole(org.example.entity.enums.Role.EMPLOYEE);
-        }
-
-        try {
-            accountRepository.save(account);
-        } catch (Exception ex) {
-            if (isDuplicateKey(ex)) {
-                throw new RuntimeException("Username hoặc Email đã tồn tại!");
-            }
-            throw new RuntimeException("Lỗi khi tạo tài khoản: " + ex.getMessage(), ex);
-        }
+        accountRepository.save(account);
     }
 
     /**
@@ -116,23 +84,5 @@ public class AccountServiceImpl implements AccountService {
     public boolean existsByUsername(String username) {
         System.out.println("Check exists username: " + username);
         return accountRepository.existsByUsername(username);
-    }
-
-    /**
-     * Kiểm tra xem ngoại lệ có phải do vi phạm khóa trùng lặp không.
-     *
-     * @param ex ngoại lệ cần kiểm tra
-     * @return true nếu là lỗi khóa trùng lặp, false nếu không
-     */
-    private boolean isDuplicateKey(Exception ex) {
-        Throwable t = ex;
-        while (t != null) {
-            if (t instanceof java.sql.SQLIntegrityConstraintViolationException) return true;
-            if (t instanceof java.sql.SQLException sqlEx) {
-                if ("23000".equals(sqlEx.getSQLState())) return true;
-            }
-            t = t.getCause();
-        }
-        return false;
     }
 }
