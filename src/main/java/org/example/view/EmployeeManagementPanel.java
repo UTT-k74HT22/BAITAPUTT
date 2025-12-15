@@ -1,16 +1,23 @@
 package org.example.view;
 
+import org.example.controller.EmployeeController;
+import org.example.dto.response.EmployeeResponse;
+import org.example.service.impl.EmployeeServiceImpl;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 /**
  * Employee Management Screen
- * Author: HMS
+ * Author: Hoang Dinh Dung
  */
 public class EmployeeManagementPanel extends JPanel {
+
+    private final EmployeeController controller;
 
     // ===================== UI =====================
     private JTable employeeTable;
@@ -24,8 +31,16 @@ public class EmployeeManagementPanel extends JPanel {
 
     // ===================== TABLE =====================
     private static final String[] COLUMNS = {
-            "STT", "Code", "Full Name", "Position", "Department",
-            "Phone", "Email", "Status", "Hired Date"
+            "STT",
+            "Account Username",
+            "Code",
+            "Full Name",
+            "Position",
+            "Department",
+            "Phone",
+            "Email",
+            "Status",
+            "Hired Date"
     };
 
     // ===================== THEME =====================
@@ -36,6 +51,11 @@ public class EmployeeManagementPanel extends JPanel {
     private static final Color COLOR_TEXT    = new Color(45, 45, 70);
 
     public EmployeeManagementPanel() {
+        this(new EmployeeController(new EmployeeServiceImpl()));
+    }
+
+    public EmployeeManagementPanel(EmployeeController controller) {
+        this.controller = controller;
         setLayout(new BorderLayout(0, 12));
         setOpaque(false);
 
@@ -160,32 +180,43 @@ public class EmployeeManagementPanel extends JPanel {
     }
 
     private void configureColumns() {
-        int[] widths = {50, 90, 180, 120, 120, 120, 180, 100, 120};
+        int[] widths = {50, 140, 90, 180, 120, 120, 120, 180, 100, 120};
         for (int i = 0; i < widths.length; i++) {
             employeeTable.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
         }
     }
 
     private void configureRenderers() {
-        DefaultTableCellRenderer base = new DefaultTableCellRenderer() {
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer() {
             @Override
-            public Component getTableCellRendererComponent(JTable t, Object v,
-                                                           boolean sel, boolean focus, int r, int c) {
-                super.getTableCellRendererComponent(t, v, sel, focus, r, c);
+            public Component getTableCellRendererComponent(
+                    JTable table, Object value,
+                    boolean isSelected, boolean hasFocus,
+                    int row, int column
+            ) {
+                super.getTableCellRendererComponent(
+                        table, value, isSelected, hasFocus, row, column
+                );
+
+                setHorizontalAlignment(CENTER);
                 setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
                 setForeground(COLOR_TEXT);
-                setBackground(sel ? COLOR_SELECT : (r % 2 == 0 ? Color.WHITE : COLOR_ROW_ALT));
-                setHorizontalAlignment(c == 0 || c == 7 ? CENTER : LEFT);
+                setBackground(
+                        isSelected
+                                ? COLOR_SELECT
+                                : (row % 2 == 0 ? Color.WHITE : COLOR_ROW_ALT)
+                );
                 return this;
             }
         };
 
         for (int i = 0; i < employeeTable.getColumnCount(); i++) {
-            employeeTable.getColumnModel().getColumn(i).setCellRenderer(base);
+            employeeTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
 
-        // Status badge
-        employeeTable.getColumnModel().getColumn(7).setCellRenderer(createStatusBadge());
+        employeeTable.getColumnModel()
+                .getColumn(8) // Status column
+                .setCellRenderer(createStatusBadge());
     }
 
     private DefaultTableCellRenderer createStatusBadge() {
@@ -217,17 +248,30 @@ public class EmployeeManagementPanel extends JPanel {
 
     // ===================== DATA =====================
     private void loadEmployees() {
-        // TODO: replace by controller.getAllEmployees()
         tableModel.setRowCount(0);
 
-        // Demo row
-        tableModel.addRow(new Object[]{
-                1, "EMP001", "Nguyễn Văn A", "Developer", "IT",
-                "0909123456", "a@gmail.com", "ACTIVE", "01/03/2023"
-        });
+        List<EmployeeResponse> employees = controller.getAllEmployees();
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-        totalLabel.setText("Tổng số nhân viên: 1");
+        int stt = 1;
+        for (EmployeeResponse e : employees) {
+            tableModel.addRow(new Object[]{
+                    stt++,
+                    e.getAccountUsername() != null ? e.getAccountUsername() : "",
+                    e.getCode(),
+                    e.getFullName(),
+                    e.getPosition(),
+                    e.getDepartment(),
+                    e.getPhone(),
+                    e.getEmail(),
+                    e.isActive() ? "ACTIVE" : "INACTIVE",
+                    e.getHiredDate() != null ? e.getHiredDate().format(df) : ""
+            });
+        }
+
+        totalLabel.setText("Tổng số nhân viên: " + employees.size());
     }
+
 
     private void searchEmployees() {
         JOptionPane.showMessageDialog(this, "TODO: search employees");
@@ -252,7 +296,17 @@ public class EmployeeManagementPanel extends JPanel {
 
     // ===================== EXPORT =====================
     private void exportExcel() {
-        JOptionPane.showMessageDialog(this, "TODO: export excel");
+        int choice = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có muốn xuất danh sách nhân viên ra file Excel không?",
+                "Xác nhận xuất Excel",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (choice != JOptionPane.YES_OPTION) return;
+
+        controller.exportExcel(this);
     }
 
     private void exportPdf() {
