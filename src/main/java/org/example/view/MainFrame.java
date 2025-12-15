@@ -4,6 +4,7 @@ import org.example.entity.enums.Role;
 import org.example.view.layout.Footer;
 import org.example.view.layout.Header;
 import org.example.view.layout.SideBar;
+import static org.example.utils.SideBarConstraint.*;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -74,41 +75,41 @@ public class MainFrame extends JFrame {
     // ===================== ROUTES =====================
     private void initRoutes() {
         // Dashboard
-        routes.put(SideBar.MENU_DASHBOARD, new ScreenSpec("screen_dashboard", "Dashboard"));
+        routes.put(MENU_DASHBOARD, new ScreenSpec("screen_dashboard", "Dashboard"));
 
         // Admin-only
-        routes.put(SideBar.MENU_ACCOUNTS, new ScreenSpec("screen_accounts", "Tài khoản"));
-        routes.put(SideBar.MENU_EMPLOYEES, new ScreenSpec("screen_employees", "Nhân viên"));
-        routes.put(SideBar.MENU_CUSTOMERS, new ScreenSpec("screen_customers", "Khách hàng"));
+        routes.put(MENU_ACCOUNTS, new ScreenSpec("screen_accounts", "Tài khoản"));
+        routes.put(MENU_EMPLOYEES, new ScreenSpec("screen_employees", "Nhân viên"));
+        routes.put(MENU_CUSTOMERS, new ScreenSpec("screen_customers", "Khách hàng"));
 
         // Catalog
-        routes.put(SideBar.MENU_CATEGORIES, new ScreenSpec("screen_categories", "Danh mục sản phẩm"));
-        routes.put(SideBar.MENU_MANUFACTURERS, new ScreenSpec("screen_manufacturers", "Nhà sản xuất"));
-        routes.put(SideBar.MENU_PRODUCTS, new ScreenSpec("screen_products", "Sản phẩm"));
+        routes.put(MENU_CATEGORIES, new ScreenSpec("screen_categories", "Danh mục sản phẩm"));
+        routes.put(MENU_MANUFACTURERS, new ScreenSpec("screen_manufacturers", "Nhà sản xuất"));
+        routes.put(MENU_PRODUCTS, new ScreenSpec("screen_products", "Sản phẩm"));
 
         // Inventory
-        routes.put(SideBar.MENU_WAREHOUSES, new ScreenSpec("screen_warehouses", "Kho hàng"));
-        routes.put(SideBar.MENU_BATCHES, new ScreenSpec("screen_batches", "Lô hàng"));
-        routes.put(SideBar.MENU_INVENTORY, new ScreenSpec("screen_inventory", "Tồn kho"));
-        routes.put(SideBar.MENU_STOCK_MOVEMENTS, new ScreenSpec("screen_stock_movements", "Xuất/Nhập kho"));
+        routes.put(MENU_WAREHOUSES, new ScreenSpec("screen_warehouses", "Kho hàng"));
+        routes.put(MENU_BATCHES, new ScreenSpec("screen_batches", "Lô hàng"));
+        routes.put(MENU_INVENTORY, new ScreenSpec("screen_inventory", "Tồn kho"));
+        routes.put(MENU_STOCK_MOVEMENTS, new ScreenSpec("screen_stock_movements", "Xuất/Nhập kho"));
 
         // Sales/Billing
-        routes.put(SideBar.MENU_ORDERS, new ScreenSpec("screen_orders", "Đơn hàng"));
-        routes.put(SideBar.MENU_INVOICES, new ScreenSpec("screen_invoices", "Hóa đơn"));
-        routes.put(SideBar.MENU_PAYMENTS, new ScreenSpec("screen_payments", "Thanh toán"));
+        routes.put(MENU_ORDERS, new ScreenSpec("screen_orders", "Đơn hàng"));
+        routes.put(MENU_INVOICES, new ScreenSpec("screen_invoices", "Hóa đơn"));
+        routes.put(MENU_PAYMENTS, new ScreenSpec("screen_payments", "Thanh toán"));
 
         // Reports
-        routes.put(SideBar.MENU_REPORT_SUMMARY, new ScreenSpec("screen_report_summary", "Báo cáo tóm tắt"));
-        routes.put(SideBar.MENU_REPORT_DETAIL, new ScreenSpec("screen_report_detail", "Thống kê chi tiết"));
+        routes.put(MENU_REPORT_SUMMARY, new ScreenSpec("screen_report_summary", "Báo cáo tóm tắt"));
+        routes.put(MENU_REPORT_DETAIL, new ScreenSpec("screen_report_detail", "Thống kê chi tiết"));
 
         // Customer
-        routes.put(SideBar.MENU_SHOP_PRODUCTS, new ScreenSpec("screen_shop_products", "Sản phẩm"));
-        routes.put(SideBar.MENU_MY_ORDERS, new ScreenSpec("screen_my_orders", "Đơn hàng của tôi"));
-        routes.put(SideBar.MENU_MY_INVOICES, new ScreenSpec("screen_my_invoices", "Hóa đơn của tôi"));
-        routes.put(SideBar.MENU_MY_PAYMENTS, new ScreenSpec("screen_my_payments", "Thanh toán của tôi"));
+        routes.put(MENU_SHOP_PRODUCTS, new ScreenSpec("screen_shop_products", "Sản phẩm"));
+        routes.put(MENU_MY_ORDERS, new ScreenSpec("screen_my_orders", "Đơn hàng của tôi"));
+        routes.put(MENU_MY_INVOICES, new ScreenSpec("screen_my_invoices", "Hóa đơn của tôi"));
+        routes.put(MENU_MY_PAYMENTS, new ScreenSpec("screen_my_payments", "Thanh toán của tôi"));
 
         // Logout: không phải screen, xử lý riêng
-        routes.put(SideBar.MENU_LOGOUT, new ScreenSpec(null, "Đăng xuất"));
+        routes.put(MENU_LOGOUT, new ScreenSpec(null, "Đăng xuất"));
     }
 
     // ===================== SCREENS =====================
@@ -123,9 +124,9 @@ public class MainFrame extends JFrame {
         // Default screen theo role (giữ behavior hợp lý)
         if (header != null) {
             if (isCustomerRole()) {
-                showByMenuKey(SideBar.MENU_SHOP_PRODUCTS);
+                showByMenuKey(MENU_SHOP_PRODUCTS);
             } else {
-                showByMenuKey(SideBar.MENU_DASHBOARD);
+                showByMenuKey(MENU_DASHBOARD);
             }
         }
     }
@@ -133,8 +134,8 @@ public class MainFrame extends JFrame {
     private boolean isCustomerRole() {
         // Header đang giữ role; nếu Header bạn chưa expose role, bạn có thể truyền role vào field riêng.
         // Tạm thời suy luận: nếu sidebar có menu SHOP_PRODUCTS thì coi như customer.
-        return sideBar.getMenu(SideBar.MENU_SHOP_PRODUCTS) != null
-                && sideBar.getMenu(SideBar.MENU_ACCOUNTS) == null;
+        return sideBar.getMenu(MENU_SHOP_PRODUCTS) != null
+                && sideBar.getMenu(MENU_ACCOUNTS) == null;
     }
 
     private JPanel createModuleScreen(String title) {
@@ -157,7 +158,7 @@ public class MainFrame extends JFrame {
             JButton btn = sideBar.getMenu(menuKey);
             if (btn == null) continue; // role không có menu này
 
-            if (Objects.equals(menuKey, SideBar.MENU_LOGOUT)) {
+            if (Objects.equals(menuKey, MENU_LOGOUT)) {
                 btn.addActionListener(e -> doLogout());
                 continue;
             }
@@ -167,9 +168,9 @@ public class MainFrame extends JFrame {
 
         // Default screen đảm bảo đúng role
         if (role == Role.CUSTOMER) {
-            showByMenuKey(SideBar.MENU_SHOP_PRODUCTS);
+            showByMenuKey(MENU_SHOP_PRODUCTS);
         } else {
-            showByMenuKey(SideBar.MENU_DASHBOARD);
+            showByMenuKey(MENU_DASHBOARD);
         }
     }
 
@@ -202,9 +203,9 @@ public class MainFrame extends JFrame {
         ScreenSpec spec = routes.get(menuKey);
         if (spec == null || spec.cardKey == null) {
             // fallback
-            ScreenSpec fallback = routes.get(SideBar.MENU_DASHBOARD);
+            ScreenSpec fallback = routes.get(MENU_DASHBOARD);
             if (fallback != null) {
-                showScreen(fallback.cardKey, fallback.title, SideBar.MENU_DASHBOARD);
+                showScreen(fallback.cardKey, fallback.title, MENU_DASHBOARD);
             }
             return;
         }
