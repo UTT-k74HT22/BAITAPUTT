@@ -2,6 +2,7 @@ package org.example.view;
 
 import org.example.controller.AccountController;
 import org.example.entity.Account;
+import org.example.entity.enums.Role;
 import org.example.service.impl.AccountServiceImpl;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -252,9 +253,54 @@ public class AccountManagementPanel extends JPanel {
     }
 
     // ===================== CRUD =====================
-    private void openCreateDialog() { JOptionPane.showMessageDialog(this,"TODO: Create"); }
-    private void openEditDialog()   { JOptionPane.showMessageDialog(this,"TODO: Edit"); }
-    private void deleteSelectedAccount() { JOptionPane.showMessageDialog(this,"TODO: Delete"); }
+    private void openCreateDialog() {
+        showAccountDialog(null);
+    }
+
+    private void openEditDialog() {
+        int selectedRow = accountTable.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn tài khoản cần sửa", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Account account = buildAccountFromTableRow(selectedRow);
+        showAccountDialog(account);
+    }
+
+    private void deleteSelectedAccount() {
+        int selectedRow = accountTable.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn tài khoản cần xóa", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có chắc muốn xóa tài khoản này?",
+                "Xác nhận",
+                JOptionPane.YES_NO_OPTION
+        );
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        Object idValue = tableModel.getValueAt(selectedRow, 1);
+        int id;
+        if (idValue instanceof Number) {
+            id = ((Number) idValue).intValue();
+        } else {
+            try {
+                id = Integer.parseInt(String.valueOf(idValue));
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "ID tài khoản không hợp lệ", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+
+        controller.deleteAccountById(id);
+        reloadAccountTable();
+    }
 
     // ===================== EXPORT =====================
     private void exportExcel() { JOptionPane.showMessageDialog(this,"TODO: Export Excel"); }
@@ -281,5 +327,165 @@ public class AccountManagementPanel extends JPanel {
         b.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 14));
         b.addActionListener(action);
         return b;
+    }
+
+    // ===================== FORM DIALOG =====================
+
+    private void showAccountDialog(Account accountToEdit) {
+        boolean isEdit = accountToEdit != null;
+
+        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this),
+                isEdit ? "Cập nhật tài khoản" : "Tạo tài khoản mới",
+                Dialog.ModalityType.APPLICATION_MODAL);
+
+        JPanel form = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(6, 6, 6, 6);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JTextField usernameField = createTextField(20);
+        JPasswordField passwordField = new JPasswordField(20);
+        JTextField emailField = createTextField(20);
+        JTextField phoneField = createTextField(20);
+        JComboBox<Role> roleBox = new JComboBox<>(Role.values());
+        JCheckBox activeCheck = new JCheckBox("Hoạt động");
+
+        if (isEdit) {
+            usernameField.setText(accountToEdit.getUsername());
+            emailField.setText(accountToEdit.getEmail());
+            phoneField.setText(accountToEdit.getPhone());
+            roleBox.setSelectedItem(accountToEdit.getRole());
+            activeCheck.setSelected(accountToEdit.isActive());
+        } else {
+            activeCheck.setSelected(true);
+        }
+
+        int row = 0;
+
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        form.add(new JLabel("Username"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0;
+        form.add(usernameField, gbc);
+        row++;
+
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        form.add(new JLabel(isEdit ? "Password (để trống nếu không đổi)" : "Password"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0;
+        form.add(passwordField, gbc);
+        row++;
+
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        form.add(new JLabel("Email"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0;
+        form.add(emailField, gbc);
+        row++;
+
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        form.add(new JLabel("Số điện thoại"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0;
+        form.add(phoneField, gbc);
+        row++;
+
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        form.add(new JLabel("Role"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0;
+        form.add(roleBox, gbc);
+        row++;
+
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        form.add(new JLabel("Trạng thái"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0;
+        form.add(activeCheck, gbc);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton btnOk = new JButton(isEdit ? "Cập nhật" : "Tạo mới");
+        JButton btnCancel = new JButton("Hủy");
+        buttonPanel.add(btnOk);
+        buttonPanel.add(btnCancel);
+
+        btnCancel.addActionListener(e -> dialog.dispose());
+
+        btnOk.addActionListener(e -> {
+            String username = usernameField.getText().trim();
+            String password = new String(passwordField.getPassword()).trim();
+            String email = emailField.getText().trim();
+            String phone = phoneField.getText().trim();
+            Role role = (Role) roleBox.getSelectedItem();
+            boolean active = activeCheck.isSelected();
+
+            if (username.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Username không được để trống", "Thông báo", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            if (!isEdit && password.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Password không được để trống", "Thông báo", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            Account acc = isEdit ? accountToEdit : new Account();
+            acc.setUsername(username);
+            if (!password.isEmpty()) {
+                acc.setPassword(password);
+            }
+            acc.setEmail(email.isEmpty() ? null : email);
+            acc.setPhone(phone.isEmpty() ? null : phone);
+            acc.setRole(role);
+            acc.setActive(active);
+
+            try {
+                if (isEdit) {
+                    controller.updateAccount(acc);
+                } else {
+                    controller.createAccount(acc);
+                }
+                reloadAccountTable();
+                dialog.dispose();
+            } catch (RuntimeException ex) {
+                JOptionPane.showMessageDialog(dialog, ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        JPanel content = new JPanel(new BorderLayout(0, 10));
+        content.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        content.add(form, BorderLayout.CENTER);
+        content.add(buttonPanel, BorderLayout.SOUTH);
+
+        dialog.setContentPane(content);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
+    private Account buildAccountFromTableRow(int rowIndex) {
+        Account a = new Account();
+
+        Object idValue = tableModel.getValueAt(rowIndex, 1);
+        if (idValue instanceof Number) {
+            a.setId(((Number) idValue).longValue());
+        } else {
+            try {
+                a.setId(Long.parseLong(String.valueOf(idValue)));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        a.setUsername(String.valueOf(tableModel.getValueAt(rowIndex, 2)));
+        a.setEmail(String.valueOf(tableModel.getValueAt(rowIndex, 3)));
+        a.setPhone(String.valueOf(tableModel.getValueAt(rowIndex, 4)));
+
+        Object roleValue = tableModel.getValueAt(rowIndex, 5);
+        if (roleValue instanceof Role) {
+            a.setRole((Role) roleValue);
+        } else if (roleValue != null) {
+            try {
+                a.setRole(Role.valueOf(roleValue.toString()));
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+
+        Object statusValue = tableModel.getValueAt(rowIndex, 6);
+        a.setActive("ACTIVE".equalsIgnoreCase(String.valueOf(statusValue)));
+
+        return a;
     }
 }
