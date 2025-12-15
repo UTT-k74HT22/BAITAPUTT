@@ -12,6 +12,7 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.Map;
 import java.util.Objects;
+import static org.example.utils.SideBarConstraint.*;
 
 public class MainFrame extends JFrame {
 
@@ -73,8 +74,8 @@ public class MainFrame extends JFrame {
         }
 
         // default screen theo role
-        if (role == Role.CUSTOMER) showByMenuKey(SideBar.MENU_SHOP_PRODUCTS);
-        else showByMenuKey(SideBar.MENU_DASHBOARD);
+        if (role == Role.CUSTOMER) showByMenuKey(MENU_SHOP_PRODUCTS);
+        else showByMenuKey(MENU_DASHBOARD);
     }
 
     private JPanel createPlaceholder(String title) {
@@ -103,7 +104,7 @@ public class MainFrame extends JFrame {
             JButton btn = sideBar.getMenu(menuKey);
             if (btn == null) continue; // role không có menu đó
 
-            if (Objects.equals(menuKey, SideBar.MENU_LOGOUT)) {
+            if (Objects.equals(menuKey, MENU_LOGOUT)) {
                 btn.addActionListener(e -> doLogout());
             } else {
                 btn.addActionListener(e -> showByMenuKey(menuKey));
@@ -111,8 +112,8 @@ public class MainFrame extends JFrame {
         }
 
         // đảm bảo đúng role
-        if (role == Role.CUSTOMER) showByMenuKey(SideBar.MENU_SHOP_PRODUCTS);
-        else showByMenuKey(SideBar.MENU_DASHBOARD);
+        if (role == Role.CUSTOMER) showByMenuKey(MENU_SHOP_PRODUCTS);
+        else showByMenuKey(MENU_DASHBOARD);
     }
 
     private void doLogout() {
