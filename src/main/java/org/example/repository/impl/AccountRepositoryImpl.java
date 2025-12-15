@@ -125,6 +125,22 @@ public class AccountRepositoryImpl extends BaseRepository implements AccountRepo
     }
 
     /**
+     * Kiểm tra tài khoản tồn tại theo email.
+     * @param email email của tài khoản
+     * @return true nếu tồn tại, false nếu không
+     */
+    @Override
+    public boolean existsByEmail(String email) {
+        String sql  = """
+            SELECT 1
+            FROM accounts
+            WHERE email = ?
+            LIMIT 1
+        """;
+        return exists(sql, params(email));
+    }
+
+    /**
      * Map ResultSet to Entity.
      */
     private Account mapRow(ResultSet rs) throws SQLException {
