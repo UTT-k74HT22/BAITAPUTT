@@ -60,8 +60,7 @@ public class SideBar extends JPanel {
 
             addSection("Quản trị hệ thống");
             addMenu("Tài khoản", MENU_ACCOUNTS);
-            addMenu("Nhân viên", MENU_EMPLOYEES);
-            addMenu("Khách hàng", MENU_CUSTOMERS);
+            addMenu("Quản lí thông tin người dùng", MENU_INFO_USERS);
 
             addSection("Danh mục");
             addMenu("Danh mục sản phẩm", MENU_CATEGORIES);
@@ -108,7 +107,7 @@ public class SideBar extends JPanel {
 
             // Nhân viên vẫn cần tra cứu khách hàng để bán hàng/CSKH
             addSection("Khách hàng");
-            addMenu("Tra cứu khách hàng", MENU_CUSTOMERS);
+            addMenu("Tra cứu khách hàng", MENU_INFO_USERS);
 
             addSection("Thống kê");
             addMenu("Báo cáo tóm tắt", MENU_REPORT_SUMMARY);

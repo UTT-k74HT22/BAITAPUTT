@@ -17,8 +17,7 @@ public class AppRoutes {
         routes.put(MENU_DASHBOARD, new ScreenSpec("screen_dashboard", "Dashboard"));
 
         routes.put(MENU_ACCOUNTS, new ScreenSpec("screen_accounts", "Tài khoản"));
-        routes.put(MENU_EMPLOYEES, new ScreenSpec("screen_employees", "Nhân viên"));
-        routes.put(MENU_CUSTOMERS, new ScreenSpec("screen_customers", "Khách hàng"));
+        routes.put(MENU_INFO_USERS, new ScreenSpec("screen_users", "Thông tin cá nhân"));
 
         routes.put(MENU_CATEGORIES, new ScreenSpec("screen_categories", "Danh mục sản phẩm"));
         routes.put(MENU_MANUFACTURERS, new ScreenSpec("screen_manufacturers", "Nhà sản xuất"));
