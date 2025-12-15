@@ -1,77 +1,53 @@
 package org.example.dto.response;
 
 public class CustomerResponse {
-    private Integer customerId;
-    private String customerCode;
-    private String customerName;
+
+    // ===== customer =====
+    private Integer id;
+    private Integer accountId;
+    private String code;
+    private String name;
+    private String type;
     private String phone;
     private String email;
-
-    private Integer accountId;
-    private String username;
+    private String address;
+    private String taxCode;
     private String status;
 
-    public Integer getCustomerId() {
-        return customerId;
-    }
+    // ===== account =====
+    private String username;
 
-    public void setCustomerId(Integer customerId) {
-        this.customerId = customerId;
-    }
+    // ===== getter / setter =====
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
 
-    public String getCustomerCode() {
-        return customerCode;
-    }
+    public Integer getAccountId() { return accountId; }
+    public void setAccountId(Integer accountId) { this.accountId = accountId; }
 
-    public void setCustomerCode(String customerCode) {
-        this.customerCode = customerCode;
-    }
+    public String getCode() { return code; }
+    public void setCode(String code) { this.code = code; }
 
-    public String getCustomerName() {
-        return customerName;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
-    }
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
 
-    public String getPhone() {
-        return phone;
-    }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public String getEmail() {
-        return email;
-    }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public String getTaxCode() { return taxCode; }
+    public void setTaxCode(String taxCode) { this.taxCode = taxCode; }
 
-    public Integer getAccountId() {
-        return accountId;
-    }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
-    public void setAccountId(Integer accountId) {
-        this.accountId = accountId;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getStatus(){
-        return status;
-    }
-
-    public void setStatus(String status){
-        this.status = status;
-    }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 }

@@ -5,10 +5,7 @@ import org.example.dto.response.CustomerResponse;
 import org.example.entity.Customer;
 import org.example.repository.CustomerRepository;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,14 +14,17 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     @Override
     public List<CustomerResponse> findAllWithAccount() {
         String sql = """
-        SELECT 
-            c.id            AS customer_id,
-            c.code          AS customer_code,
-            c.name          AS customer_name,
+        SELECT
+            c.id,
+            c.account_id,
+            c.code,
+            c.name,
+            c.type,
             c.phone,
             c.email,
+            c.address,
+            c.tax_code,
             c.status,
-            a.id            AS account_id,
             a.username
         FROM customers c
         LEFT JOIN accounts a ON c.account_id = a.id
@@ -37,17 +37,21 @@ public class CustomerRepositoryImpl implements CustomerRepository {
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                CustomerResponse dto = new CustomerResponse();
-                dto.setCustomerId(rs.getInt("customer_id"));
-                dto.setCustomerCode(rs.getString("customer_code"));
-                dto.setCustomerName(rs.getString("customer_name"));
-                dto.setPhone(rs.getString("phone"));
-                dto.setEmail(rs.getString("email"));
+                CustomerResponse r = new CustomerResponse();
 
-                dto.setAccountId(rs.getInt("account_id"));
-                dto.setUsername(rs.getString("username"));
-                dto.setStatus(rs.getString("status"));
-                list.add(dto);
+                r.setId(rs.getInt("id"));
+                r.setAccountId(rs.getObject("account_id", Integer.class));
+                r.setCode(rs.getString("code"));
+                r.setName(rs.getString("name"));
+                r.setType(rs.getString("type"));
+                r.setPhone(rs.getString("phone"));
+                r.setEmail(rs.getString("email"));
+                r.setAddress(rs.getString("address"));
+                r.setTaxCode(rs.getString("tax_code"));
+                r.setStatus(rs.getString("status"));
+                r.setUsername(rs.getString("username"));
+
+                list.add(r);
             }
 
         } catch (SQLException e) {
@@ -56,6 +60,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
         return list;
     }
+
 
     @Override
     public void save(Customer c) {
@@ -102,7 +107,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
             ps.setString(6, c.getAddress());
             ps.setString(7, c.getTaxCode());
             ps.setString(8, c.getStatus().name());
-            ps.setLong(9,c.getId());
+            ps.setLong(9, c.getId());
             ps.executeUpdate();
 
         } catch (SQLException e) {
@@ -112,10 +117,9 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
     @Override
     public void updateStatus(int id, String status) {
-        String sql = "UPDATE customers SET status=? WHERE id=?";
-
         try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(
+                     "UPDATE customers SET status=? WHERE id=?")) {
 
             ps.setString(1, status);
             ps.setInt(2, id);
@@ -128,6 +132,6 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
     @Override
     public Customer findById(int id) {
-        return null; // optional
+        return null;
     }
 }
