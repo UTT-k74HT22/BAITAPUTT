@@ -16,7 +16,7 @@ public class EmployeeProfileRepositoryImpl extends BaseRepository implements Emp
     @Override
     public void insert(Connection conn, long profileId, String position, String department, LocalDate hiredDate, BigDecimal baseSalary) {
         String sql = """
-                INSERT INTO employee_profile (profile_id, position, department, hired_date, base_salary)
+                INSERT INTO employee_profiles (profile_id, position, department, hired_date, base_salary)
                 VALUES (?, ?, ?, ?, ?)
                 """;
         try {
