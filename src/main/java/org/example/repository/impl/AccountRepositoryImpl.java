@@ -18,7 +18,7 @@ public class AccountRepositoryImpl extends BaseRepository implements AccountRepo
     @Override
     public List<Account> findAll() {
         String sql = """
-            SELECT id, username, password, email, phone, role, is_active, last_login_at
+            SELECT id, username, password, role, is_active, last_login_at
             FROM accounts
         """;
 
@@ -34,7 +34,7 @@ public class AccountRepositoryImpl extends BaseRepository implements AccountRepo
     @Override
     public Account findByUsername(String username) {
         String sql = """
-            SELECT id, username, password, email, phone, role, is_active, last_login_at
+            SELECT id, username, password, role, is_active, last_login_at
             FROM accounts
             WHERE username = ?
         """;
@@ -65,6 +65,32 @@ public class AccountRepositoryImpl extends BaseRepository implements AccountRepo
     }
 
     /**
+     * Chèn tài khoản mới và trả về ID đã chèn.
+     *
+     * @param conn kết nối cơ sở dữ liệu
+     * @param a    tài khoản cần chèn
+     * @return ID của tài khoản đã chèn
+     */
+    @Override
+    public long insert(Connection conn, Account a) {
+        String sql = """
+                INSERT INTO accounts(username, password, role, is_active, last_login_at)
+                VALUES (?, ?, ?, ?, ?)
+                """;
+        try {
+            return executeInsertAndReturnId(conn, sql, ps -> {
+                ps.setString(1, a.getUsername());
+                ps.setString(2, a.getPassword());
+                ps.setString(3, a.getRole().name());
+                ps.setInt(4, a.isActive() ? 1 : 0);
+                ps.setObject(5, null); // last_login_at
+            });
+        } catch (Exception e) {
+            throw new RuntimeException("Insert account failed: " + e.getMessage(), e);
+        }
+    }
+
+    /**
      * Cập nhật tài khoản.
      *
      * @param account tài khoản cần cập nhật
@@ -74,8 +100,6 @@ public class AccountRepositoryImpl extends BaseRepository implements AccountRepo
         String sql = """
             UPDATE accounts
             SET password = ?,
-                email = ?,
-                phone = ?,
                 role = ?,
                 is_active = ?,
                 last_login_at = ?
@@ -83,12 +107,10 @@ public class AccountRepositoryImpl extends BaseRepository implements AccountRepo
         """;
         executeUpdate(sql, ps -> {
             ps.setString(1, account.getPassword());
-            ps.setString(2, account.getEmail());
-            ps.setString(3, account.getPhone());
-            ps.setString(4, account.getRole() != null ? account.getRole().name() : null);
-            ps.setBoolean(5, account.isActive());
-            ps.setTimestamp(6, toTimestamp(account.getLastLoginAt()));
-            ps.setLong(7, account.getId());
+            ps.setString(2, account.getRole() != null ? account.getRole().name() : null);
+            ps.setBoolean(3, account.isActive());
+            ps.setTimestamp(4, toTimestamp(account.getLastLoginAt()));
+            ps.setLong(5, account.getId());
         });
     }
 
@@ -148,8 +170,6 @@ public class AccountRepositoryImpl extends BaseRepository implements AccountRepo
         acc.setId(rs.getLong("id"));
         acc.setUsername(rs.getString("username"));
         acc.setPassword(rs.getString("password"));
-        acc.setEmail(rs.getString("email"));
-        acc.setPhone(rs.getString("phone"));
         String roleStr = rs.getString("role");
         if (roleStr != null && !roleStr.isBlank()) {
             acc.setRole(Role.valueOf(roleStr));

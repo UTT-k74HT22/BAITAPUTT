@@ -1,6 +1,8 @@
 package org.example.repository;
 
 import org.example.entity.Account;
+
+import java.sql.Connection;
 import java.util.List;
 
 public interface AccountRepository {
@@ -23,6 +25,14 @@ public interface AccountRepository {
      * @param account tài khoản cần lưu
      */
     void save(Account account);
+
+    /**
+     * Chèn tài khoản mới và trả về ID đã chèn.
+     * @param conn kết nối cơ sở dữ liệu
+     * @param a tài khoản cần chèn
+     * @return ID của tài khoản đã chèn
+     */
+    long insert(Connection conn, Account a);
 
     /**
      * Cập nhật tài khoản.
