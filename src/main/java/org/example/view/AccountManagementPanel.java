@@ -429,7 +429,19 @@ public class AccountManagementPanel extends JPanel {
     }
 
     // ===================== EXPORT =====================
-    private void exportExcel() { JOptionPane.showMessageDialog(this,"TODO: Export Excel"); }
+    private void exportExcel() {
+        int choice = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có muốn xuất danh sách nhân viên ra file Excel không?",
+                "Xác nhận xuất Excel",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (choice != JOptionPane.YES_OPTION) return;
+
+        controller.getAllAccountResponses(this);
+    }
     private void exportPdf()   { JOptionPane.showMessageDialog(this,"TODO: Export PDF"); }
 
     // ===================== UTIL =====================

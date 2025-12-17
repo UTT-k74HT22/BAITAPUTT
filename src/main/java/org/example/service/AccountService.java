@@ -1,5 +1,6 @@
 package org.example.service;
 
+import org.example.dto.response.AccountResponse;
 import org.example.entity.Account;
 import org.example.entity.enums.Role;
 
@@ -12,6 +13,8 @@ public interface AccountService {
      * @return danh sách tài khoản
      */
     List<Account> getAll();
+
+    List<AccountResponse> getAllAccount();
 
     /**
      * Tìm tài khoản theo tên đăng nhập.

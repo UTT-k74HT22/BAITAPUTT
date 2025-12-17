@@ -1,5 +1,6 @@
 package org.example.service.impl;
 
+import org.example.dto.response.AccountResponse;
 import org.example.entity.Account;
 import org.example.entity.enums.Role;
 import org.example.repository.AccountRepository;
@@ -25,6 +26,20 @@ public class AccountServiceImpl implements AccountService {
     public List<Account> getAll() {
         System.out.println("Lấy danh sách tài khoản");
         return accountRepository.findAll();
+    }
+
+    @Override
+    public List<AccountResponse> getAllAccount() {
+        List<AccountResponse> responses = this.getAll().stream()
+                .map(account -> new AccountResponse(
+                        account.getId(),
+                        account.getUsername(),
+                        account.getRole(),
+                        account.isActive(),
+                        account.getLastLoginAt()
+                ))
+                .toList();
+        return  responses;
     }
 
     /**

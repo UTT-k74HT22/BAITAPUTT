@@ -1,11 +1,16 @@
 package org.example.controller;
 
 import org.example.dto.request.CreateAccountRequest;
+import org.example.dto.response.AccountResponse;
 import org.example.entity.Account;
 import org.example.entity.enums.Role;
 import org.example.service.AccountService;
 import org.example.service.UserCreationService;
+import org.example.utils.excel.AccountExcelWriter;
+import org.example.utils.excel.EmployeeExcelWriter;
+import org.example.utils.excel.ExcelExporter;
 
+import java.awt.*;
 import java.util.List;
 
 /**
@@ -28,6 +33,20 @@ public class AccountController {
     public List<Account> getAllAccounts() {
         return accountService.getAll();
     }
+
+    /**
+     * Lấy tất cả tài khoản dưới dạng AccountResponse.
+     * @return danh sách AccountResponse
+     */
+    public void getAllAccountResponses(Component component) {
+        System.out.println("[Controller] Lấy tất cả tài khoản dưới dạng AccountResponse");
+        ExcelExporter.exportWithDialog(
+                accountService.getAllAccount(),
+                new AccountExcelWriter(),
+                component
+        );
+    }
+
 
     /**
      * Tìm tài khoản theo tên đăng nhập.
