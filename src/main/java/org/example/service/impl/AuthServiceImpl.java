@@ -54,9 +54,6 @@ public class AuthServiceImpl implements AuthService {
             log.info("Login failed: incorrect password - " + username);
             return null;
         }
-
-        account.setLastLoginAt(LocalDateTime.now());
-        accountRepository.update(account);
         log.info("Login successful: " + username);
         return account;
     }

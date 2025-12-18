@@ -1,6 +1,7 @@
 package org.example.repository;
 
 import org.example.entity.Account;
+import org.example.entity.enums.Role;
 
 import java.sql.Connection;
 import java.util.List;
@@ -21,10 +22,11 @@ public interface AccountRepository {
     Account findByUsername(String username);
 
     /**
-     * Lưu tài khoản mới.
-     * @param account tài khoản cần lưu
+     * Tìm tài khoản theo ID.
+     * @param id ID của tài khoản
+     * @return tài khoản hoặc null nếu không tìm thấy
      */
-    void save(Account account);
+    Account findById(Long id);
 
     /**
      * Chèn tài khoản mới và trả về ID đã chèn.
@@ -34,17 +36,20 @@ public interface AccountRepository {
      */
     long insert(Connection conn, Account a);
 
+
     /**
-     * Cập nhật tài khoản.
-     * @param account tài khoản cần cập nhật
+     * Cập nhật vai trò và trạng thái kích hoạt của tài khoản.
+     * @param id ID của tài khoản cần cập nhật
+     * @param role vai trò mới
+     * @param active trạng thái kích hoạt mới
      */
-    void update(Account account);
+    void updateRoleAndStatus(long id, Role role, boolean active);
 
     /**
      * Xóa tài khoản theo ID.
      * @param id ID của tài khoản cần xóa
      */
-    void deleteById(int id);
+    void deleteById(Long id);
 
     /**
      * Kiểm tra tài khoản tồn tại theo tên đăng nhập.

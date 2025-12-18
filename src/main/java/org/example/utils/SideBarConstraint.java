@@ -5,7 +5,8 @@ public class SideBarConstraint {
     public static final String MENU_DASHBOARD = "DASHBOARD";
 
     public static final String MENU_ACCOUNTS = "ACCOUNTS";
-    public static final String MENU_INFO_USERS = "INFO_USERS";
+    public static final String MENU_EMPLOYEE = "EMPLOYEE";
+    public static final String MENU_CUSTOMER = "CUSTOMER";
 
     public static final String MENU_CATEGORIES = "CATEGORIES";
     public static final String MENU_MANUFACTURERS = "MANUFACTURERS";

@@ -1,6 +1,9 @@
 package org.example.service;
 
+import org.example.dto.response.AccountResponse;
 import org.example.entity.Account;
+import org.example.entity.enums.Role;
+
 import java.util.List;
 
 public interface AccountService {
@@ -11,6 +14,8 @@ public interface AccountService {
      */
     List<Account> getAll();
 
+    List<AccountResponse> getAllAccount();
+
     /**
      * Tìm tài khoản theo tên đăng nhập.
      * @param username tên đăng nhập
@@ -19,22 +24,25 @@ public interface AccountService {
     Account findByUsername(String username);
 
     /**
-     * Tạo tài khoản mới.
-     * @param account tài khoản cần tạo
+     * Tìm tài khoản theo ID.
+     * @param id ID của tài khoản
+     * @return tài khoản hoặc null nếu không tìm thấy
      */
-    void create(Account account);
+    Account findById(Long id);
 
     /**
      * Cập nhật tài khoản.
-     * @param account tài khoản cần cập nhật
+     * @param accountId ID của tài khoản cần cập nhật
+     * @param role vai trò mới
+     * @param active trạng thái kích hoạt mới
      */
-    void update(Account account);
+    void update(Long accountId, Role role, Boolean active);
 
     /**
      * Xóa tài khoản theo ID.
      * @param id ID của tài khoản cần xóa
      */
-    void deleteById(int id);
+    void deleteById(Long id);
 
     /**
      * Kiểm tra tài khoản tồn tại theo tên đăng nhập.

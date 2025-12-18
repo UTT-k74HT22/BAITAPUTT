@@ -7,6 +7,7 @@ public class ScreenRegistry {
 
     public static void registerAll(ScreenFactory factory) {
         factory.register("screen_accounts", AccountManagementPanel::new);
+        factory.register("screen_employee", EmployeeManagementPanel::new);
 
         // TODO sau này:
         // factory.register("screen_employees", EmployeeManagementPanel::new);
