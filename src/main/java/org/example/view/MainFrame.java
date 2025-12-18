@@ -37,6 +37,11 @@ public class MainFrame extends JFrame {
         header = new Header(username, role);
         sideBar = new SideBar(role);
 
+        JScrollPane sideBarScroll = new JScrollPane(sideBar);
+        sideBarScroll.setBorder(null);
+        sideBarScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        sideBarScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+
         JPanel bgContent = new JPanel(new BorderLayout());
         bgContent.setBackground(new Color(237, 239, 252));
         bgContent.setBorder(new EmptyBorder(18, 24, 18, 24));
@@ -52,7 +57,7 @@ public class MainFrame extends JFrame {
 
         bgContent.add(contentPanel, BorderLayout.CENTER);
 
-        add(sideBar, BorderLayout.WEST);
+        add(new JScrollPane(sideBar), BorderLayout.WEST);
         add(header, BorderLayout.NORTH);
         add(bgContent, BorderLayout.CENTER);
         add(new Footer(), BorderLayout.SOUTH);
