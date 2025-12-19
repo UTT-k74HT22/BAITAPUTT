@@ -37,7 +37,6 @@ public abstract class BaseManagementPanel<T> extends JPanel {
         add(buildTablePanel(), BorderLayout.CENTER);
         add(buildFooter(), BorderLayout.SOUTH);
 
-        reload();
     }
 
     private JPanel buildToolbar() {
