@@ -6,7 +6,7 @@ public class EmployeeProfileResponse {
     private Long id;
     private Long accountId;
     private String accountUsername;
-    private String profileId;
+    private Long profileId;
     private String code;
     private String fullName;
     private String phone;
@@ -17,7 +17,7 @@ public class EmployeeProfileResponse {
     public EmployeeProfileResponse() {
     }
 
-    public EmployeeProfileResponse(Long accountId, String accountUsername, String profileId, String code, String fullName, String phone, String position, ProfileStatus status) {
+    public EmployeeProfileResponse(Long accountId, String accountUsername, Long profileId, String code, String fullName, String phone, String position, ProfileStatus status) {
         this.accountId = accountId;
         this.accountUsername = accountUsername;
         this.profileId = profileId;
@@ -52,11 +52,11 @@ public class EmployeeProfileResponse {
         this.accountUsername = accountUsername;
     }
 
-    public String getProfileId() {
+    public Long getProfileId() {
         return profileId;
     }
 
-    public void setProfileId(String profileId) {
+    public void setProfileId(Long profileId) {
         this.profileId = profileId;
     }
 

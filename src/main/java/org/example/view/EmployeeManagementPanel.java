@@ -2,7 +2,9 @@ package org.example.view;
 
 import org.example.controller.EmployeeController;
 import org.example.dto.request.UpdateProfileEmployeeRequest;
+import org.example.dto.response.EmployeeProfileDetailResponse;
 import org.example.dto.response.EmployeeProfileResponse;
+import org.example.entity.enums.ProfileStatus;
 import org.example.service.impl.EmployeeServiceImpl;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -135,12 +137,12 @@ public class EmployeeManagementPanel extends JPanel {
         JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         row.setOpaque(false);
 
-        row.add(createButton("➕ Thêm", new Color(40,167,69), e -> openCreateDialog()));
+        row.add(createButton("👁 Xem chi tiết", new Color(23,162,184), e -> openDetailDialog()));
         row.add(createButton("✏️ Sửa", new Color(255,193,7), e -> openEditDialog()));
         row.add(createButton("🗑️ Xóa", new Color(220,53,69), e -> deleteEmployee()));
         row.add(createButton("🔄 Refresh", new Color(108,117,125), e -> loadEmployees()));
         row.add(Box.createHorizontalStrut(20));
-        row.add(createButton("📄 PDF", new Color(111,66,193), e -> exportPdf()));
+        row.add(createButton("📄 Excel", new Color(111,66,193), e -> exportExcel()));
 
         return row;
     }
@@ -342,8 +344,129 @@ public class EmployeeManagementPanel extends JPanel {
     }
 
     // ===================== CRUD =====================
-    private void openCreateDialog() {
-        JOptionPane.showMessageDialog(this, "TODO: create employee");
+    private void openDetailDialog() {
+        String code = getSelectedEmployeeCode();
+        if (code == null) return;
+
+        EmployeeProfileDetailResponse d =
+                controller.getEmployeeDetailByCode(code);
+
+        JDialog dialog = new JDialog(
+                SwingUtilities.getWindowAncestor(this),
+                "Employee Detail",
+                Dialog.ModalityType.APPLICATION_MODAL
+        );
+        dialog.setSize(600, 620);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setBackground(Color.WHITE);
+        form.setBorder(new EmptyBorder(20, 24, 20, 24));
+
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.insets = new Insets(10, 10, 10, 10);
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.weightx = 1;
+
+        // ===== READ ONLY =====
+        JTextField tfAccountId = roField(String.valueOf(d.getAccountId()));
+        JTextField tfUsername  = roField(d.getAccountUsername());
+        JTextField tfProfileId = roField(String.valueOf(d.getProfileId()));
+        JTextField tfCode      = roField(d.getCode());
+
+        // ===== EDITABLE =====
+        JTextField tfFullName  = editField(d.getFullName());
+        JTextField tfPhone     = editField(d.getPhone());
+        JTextField tfEmail     = editField(d.getEmail());
+        JTextField tfAddress   = editField(d.getAddress());
+        JTextField tfPosition  = editField(d.getPosition());
+        JTextField tfDepartment= editField(d.getDepartment());
+        JTextField tfSalary    = editField(
+                d.getSalary() == null ? "" : d.getSalary().toString()
+        );
+
+        JComboBox<String> cbStatus = new JComboBox<>(new String[]{"ACTIVE", "INACTIVE"});
+        cbStatus.setSelectedItem(d.getStatus().name());
+
+        // disable edit by default
+        for (JComponent c : new JComponent[]{
+                tfFullName, tfPhone, tfEmail, tfAddress,
+                tfPosition, tfDepartment, tfSalary, cbStatus
+        }) {
+            c.setEnabled(false);
+        }
+
+        int r = 0;
+        addRow(form, gc, r++, "Account ID", tfAccountId);
+        addRow(form, gc, r++, "Username", tfUsername);
+        addRow(form, gc, r++, "Profile ID", tfProfileId);
+        addRow(form, gc, r++, "Code", tfCode);
+
+        addRow(form, gc, r++, "Full Name", tfFullName);
+        addRow(form, gc, r++, "Phone", tfPhone);
+        addRow(form, gc, r++, "Email", tfEmail);
+        addRow(form, gc, r++, "Address", tfAddress);
+        addRow(form, gc, r++, "Position", tfPosition);
+        addRow(form, gc, r++, "Department", tfDepartment);
+        addRow(form, gc, r++, "Salary", tfSalary);
+        addRow(form, gc, r++, "Status", cbStatus);
+
+        // ===== ACTIONS =====
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 12));
+        actions.setBackground(Color.WHITE);
+
+        JButton btnClose = createOutlineButton("Close");
+        JButton btnEdit  = createButton("✏ Update", new Color(255,193,7), null);
+        JButton btnSave  = createButton("💾 Save", new Color(40,167,69), null);
+        btnSave.setVisible(false);
+
+        btnClose.addActionListener(e -> dialog.dispose());
+
+        btnEdit.addActionListener(e -> {
+            for (JComponent c : new JComponent[]{
+                    tfFullName, tfPhone, tfEmail, tfAddress,
+                    tfPosition, tfDepartment, tfSalary, cbStatus
+            }) {
+                c.setEnabled(true);
+            }
+            btnEdit.setVisible(false);
+            btnSave.setVisible(true);
+        });
+
+        btnSave.addActionListener(e -> {
+            UpdateProfileEmployeeRequest req = new UpdateProfileEmployeeRequest();
+            req.setFullName(tfFullName.getText().trim());
+            req.setPhone(tfPhone.getText().trim());
+            req.setPosition(tfPosition.getText().trim());
+            req.setStatus(ProfileStatus.valueOf(cbStatus.getSelectedItem().toString()));
+
+            controller.updateProfile(tfCode.getText(), req);
+
+            JOptionPane.showMessageDialog(dialog, "Updated successfully!");
+            dialog.dispose();
+            loadEmployees();
+        });
+
+        actions.add(btnClose);
+        actions.add(btnEdit);
+        actions.add(btnSave);
+
+        dialog.add(new JScrollPane(form), BorderLayout.CENTER);
+        dialog.add(actions, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
+
+    private JButton createOutlineButton(String text) {
+        JButton b = new JButton(text);
+        b.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        b.setForeground(COLOR_PRIMARY);
+        b.setBackground(Color.WHITE);
+        b.setBorder(BorderFactory.createLineBorder(COLOR_PRIMARY));
+        b.setFocusPainted(false);
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.setPreferredSize(new Dimension(90, 36));
+        return b;
     }
 
     private void openEditDialog() {
@@ -377,7 +500,7 @@ public class EmployeeManagementPanel extends JPanel {
 
         JComboBox<String> cbStatus = new JComboBox<>(new String[]{"ACTIVE", "INACTIVE"});
         cbStatus.setSelectedItem(e.getStatus() == null ? "INACTIVE" : e.getStatus().toString());
-        cbStatus.setEnabled(false);
+//        cbStatus.setEnabled(false);
 
         // ===== Editable fields =====
         JTextField tfFullName = editField(e.getFullName());
@@ -408,7 +531,7 @@ public class EmployeeManagementPanel extends JPanel {
             req.setFullName(tfFullName.getText().trim());
             req.setPhone(tfPhone.getText().trim());
             req.setPosition(tfPosition.getText().trim());
-
+            req.setStatus(ProfileStatus.valueOf(cbStatus.getSelectedItem().toString()));
             String code = tfCode.getText().trim();
 
             controller.updateProfile(code, req);
@@ -428,12 +551,38 @@ public class EmployeeManagementPanel extends JPanel {
     }
 
     private void deleteEmployee() {
-        JOptionPane.showMessageDialog(this, "TODO: delete employee");
+        EmployeeProfileResponse e = getSelectedEmployee();
+        if (e == null) return;
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có chắc chắn muốn xoá nhân viên [" + e.getCode() + "] không?",
+                "Confirm delete",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        controller.delete(e.getCode(), ProfileStatus.INACTIVE);
+
+        JOptionPane.showMessageDialog(this, "Đã xoá nhân viên thành công!");
+        loadEmployees();
     }
 
+
     // ===================== EXPORT =====================
-    private void exportPdf() {
-        JOptionPane.showMessageDialog(this, "TODO: export pdf");
+    private void exportExcel() {
+        int choice = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có muốn xuất danh sách nhân viên ra file Excel không?",
+                "Xác nhận xuất Excel",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (choice != JOptionPane.YES_OPTION) return;
+
+        controller.exportExcel(this);
     }
 
     // ===================== FOOTER =====================
@@ -492,6 +641,8 @@ public class EmployeeManagementPanel extends JPanel {
             return null;
         }
         int modelRow = employeeTable.convertRowIndexToModel(viewRow);
+        System.out.println("Selected model row: " + modelRow);
+        System.out.println("Employee code: " + tableModel.getValueAt(modelRow, 3));
         return String.valueOf(tableModel.getValueAt(modelRow, 3)); // Code column = 3
     }
 

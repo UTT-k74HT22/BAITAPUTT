@@ -4,14 +4,15 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.example.dto.response.EmployeeResponse;
+import org.example.dto.response.EmployeeProfileResponse;
+
 import java.util.List;
 
 /**
- * Excel writer cho DTO EmployeeResponse.
+ * Excel writer cho DTO EmployeeProfileResponse.
  * @author Hoang Dinh Dung
  */
-public class EmployeeExcelWriter extends AbstractExcelWriter<EmployeeResponse> {
+public class EmployeeExcelWriter extends AbstractExcelWriter<EmployeeProfileResponse> {
 
     @Override
     public String sheetName() {
@@ -28,19 +29,17 @@ public class EmployeeExcelWriter extends AbstractExcelWriter<EmployeeResponse> {
         return new String[]{
                 "STT",
                 "Account Username",
+                "Profile ID",
                 "Mã nhân viên",
                 "Họ và tên",
-                "Chức vụ",
-                "Phòng ban",
                 "Số điện thoại",
-                "Email",
-                "Trạng thái",
-                "Ngày vào làm"
+                "Chức vụ",
+                "Trạng thái"
         };
     }
 
     @Override
-    public void create(Sheet sheet, ExcelStyles styles, List<EmployeeResponse> data) {
+    public void create(Sheet sheet, ExcelStyles styles, List<EmployeeProfileResponse> data) {
         // Title row
         Row titleRow = sheet.createRow(0);
         titleRow.setHeight((short) 600);
@@ -65,25 +64,25 @@ public class EmployeeExcelWriter extends AbstractExcelWriter<EmployeeResponse> {
         int rowNum = 2;
         int stt = 1;
 
-        for (EmployeeResponse e : data) {
+        for (EmployeeProfileResponse e : data) {
             Row r = sheet.createRow(rowNum++);
             r.setHeight((short) 380);
 
             cell(r, 0, stt++, styles.get(StyleKey.DATA_CENTER));
-            cell(r, 1, safe(e.getAccountUsername()), styles.get(StyleKey.DATA)); // account user
-            cell(r, 2, safe(e.getCode()), styles.get(StyleKey.DATA_CENTER));
-            cell(r, 3, safe(e.getFullName()), styles.get(StyleKey.DATA));
-            cell(r, 4, safe(e.getPosition()), styles.get(StyleKey.DATA));
-            cell(r, 5, safe(e.getDepartment()), styles.get(StyleKey.DATA));
-            cell(r, 6, safe(e.getPhone()), styles.get(StyleKey.DATA_CENTER));
-            cell(r, 7, safe(e.getEmail()), styles.get(StyleKey.DATA));
+            cell(r, 1, safe(e.getAccountUsername()), styles.get(StyleKey.DATA));
+            cell(r, 2, safe(String.valueOf(e.getProfileId())), styles.get(StyleKey.DATA_CENTER));
+            cell(r, 3, safe(e.getCode()), styles.get(StyleKey.DATA_CENTER));
+            cell(r, 4, safe(e.getFullName()), styles.get(StyleKey.DATA));
+            cell(r, 5, safe(e.getPhone()), styles.get(StyleKey.DATA_CENTER));
+            cell(r, 6, safe(e.getPosition()), styles.get(StyleKey.DATA));
 
-            cell(r, 8,
-                    e.isActive() ? "ACTIVE" : "INACTIVE",
-                    e.isActive() ? styles.get(StyleKey.BADGE_ACTIVE) : styles.get(StyleKey.BADGE_INACTIVE)
+            String statusText = e.getStatus() == null ? "" : e.getStatus().name();
+            cell(r, 7,
+                    statusText,
+                    "ACTIVE".equalsIgnoreCase(statusText)
+                            ? styles.get(StyleKey.BADGE_ACTIVE)
+                            : styles.get(StyleKey.BADGE_INACTIVE)
             );
-
-            cell(r, 9, e.getHiredDate(), styles.get(StyleKey.DATA_CENTER));
         }
     }
 }

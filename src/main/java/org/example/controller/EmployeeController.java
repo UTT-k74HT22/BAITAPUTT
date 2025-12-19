@@ -1,8 +1,10 @@
 package org.example.controller;
 
 import org.example.dto.request.UpdateProfileEmployeeRequest;
+import org.example.dto.response.EmployeeProfileDetailResponse;
 import org.example.dto.response.EmployeeProfileResponse;
 import org.example.dto.response.EmployeeResponse;
+import org.example.entity.enums.ProfileStatus;
 import org.example.service.EmployeeService;
 import org.example.utils.excel.EmployeeExcelWriter;
 import org.example.utils.excel.ExcelExporter;
@@ -31,6 +33,17 @@ public class EmployeeController {
     }
 
     /**
+     * Lấy chi tiết nhân viên theo mã nhân viên.
+     *
+     * @param code mã nhân viên
+     * @return chi tiết nhân viên
+     */
+    public EmployeeProfileDetailResponse getEmployeeDetailByCode(String code) {
+        System.out.println("[Controller] Lấy chi tiết nhân viên theo mã nhân viên");
+        return employeeService.getEmployeeDetailByCode(code);
+    }
+
+    /**
      * Cập nhật thông tin hồ sơ nhân viên.
      *
      * @param id      mã nhân viên
@@ -56,17 +69,28 @@ public class EmployeeController {
                 .orElse(null);
     }
 
-//    /**
-//     * Xuất danh sách nhân viên ra file Excel.
-//     *
-//     * @param parent thành phần cha để hiển thị hộp thoại
-//     */
-//    public void exportExcel(Component parent) {
-//        System.out.println("[Controller] Xuất danh sách nhân viên ra file Excel");
-//        ExcelExporter.exportWithDialog(
-//                employeeService.getAllEmployees(),
-//                new EmployeeExcelWriter(),
-//                parent
-//        );
-//    }
+    /**
+     * Xoá hồ sơ nhân viên (cập nhật trạng thái).
+     *
+     * @param code     ID hồ sơ nhân viên
+     * @param status trạng thái mới
+     */
+    public void delete(String code, ProfileStatus status) {
+        System.out.println("[Controller] Xoá hồ sơ nhân viên (cập nhật trạng thái)");
+        employeeService.delete(code, status);
+    }
+
+    /**
+     * Xuất danh sách nhân viên ra file Excel.
+     *
+     * @param parent thành phần cha để hiển thị hộp thoại
+     */
+    public void exportExcel(Component parent) {
+        System.out.println("[Controller] Xuất danh sách nhân viên ra file Excel");
+        ExcelExporter.exportWithDialog(
+                employeeService.getAllEmployees(),
+                new EmployeeExcelWriter(),
+                parent
+        );
+    }
 }

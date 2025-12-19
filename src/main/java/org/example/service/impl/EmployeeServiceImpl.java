@@ -1,7 +1,10 @@
 package org.example.service.impl;
 
 import org.example.dto.request.UpdateProfileEmployeeRequest;
+import org.example.dto.response.EmployeeProfileDetailResponse;
 import org.example.dto.response.EmployeeProfileResponse;
+import org.example.dto.response.EmployeeResponse;
+import org.example.entity.enums.ProfileStatus;
 import org.example.repository.EmployeeProfileRepository;
 import org.example.repository.impl.EmployeeProfileRepositoryImpl;
 import org.example.service.EmployeeService;
@@ -39,6 +42,22 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     /**
+     * Lấy chi tiết nhân viên theo mã nhân viên.
+     *
+     * @param code mã nhân viên
+     * @return chi tiết nhân viên
+     */
+    @Override
+    public EmployeeProfileDetailResponse getEmployeeDetailByCode(String code) {
+        System.out.println("[Service] Lấy chi tiết nhân viên theo mã nhân viên");
+        return employeeProfileRepository.getProfileDetailByCode(code)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Không tìm thấy nhân viên với mã: " + code)
+                );
+    }
+
+
+    /**
      * Cập nhật thông tin hồ sơ nhân viên.
      *
      * @param id      mã nhân viên
@@ -52,5 +71,18 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new IllegalArgumentException("Yêu cầu cập nhật không được null");
         }
         employeeProfileRepository.updateProfile(id, request);
+    }
+
+    /**
+     * Xoá hồ sơ nhân viên (cập nhật trạng thái).
+     *
+     * @param code     ID hồ sơ nhân viên
+     * @param status trạng thái mới
+     */
+    @Override
+    public void delete(String code, ProfileStatus status) {
+        System.out.println("[Service] Xoá hồ sơ nhân viên (cập nhật trạng thái)");
+        ProfileStatus newStatus = ProfileStatus.INACTIVE;
+        employeeProfileRepository.updateStatus(code, newStatus);
     }
 }
