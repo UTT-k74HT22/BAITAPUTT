@@ -84,6 +84,36 @@ public class EmployeeProfileRepositoryImpl extends BaseRepository implements Emp
         return queryForObject(sql, params(code), this::mapDetailResponse);
     }
 
+    /**
+     * Lấy tất cả chi tiết hồ sơ nhân viên.
+     *
+     * @return danh sách chi tiết hồ sơ nhân viên
+     */
+    @Override
+    public List<EmployeeProfileDetailResponse> getAllProfileDetails() {
+        String sql = """
+            SELECT
+                a.id AS accountId,
+                a.username AS accountUsername,
+                up.id AS profileId,
+                up.code AS code,
+                up.full_name AS fullName,
+                up.phone AS phone,
+                up.email AS email,
+                up.address AS address,
+                ep.position AS position,
+                ep.department AS department,
+                ep.hired_date AS hiredDate,
+                ep.base_salary AS salary,
+                up.status AS status
+            FROM employee_profiles ep
+            JOIN user_profiles up ON ep.profile_id = up.id
+            JOIN accounts a ON up.account_id = a.id
+            ORDER BY up.id DESC
+            """;
+        return queryForList(sql, this::mapDetailResponse);
+    }
+
     @Override
     public void updateProfile(String code, UpdateProfileEmployeeRequest request) {
         String sql = """

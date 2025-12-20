@@ -31,6 +31,12 @@ public interface EmployeeProfileRepository {
     Optional<EmployeeProfileDetailResponse> getProfileDetailByCode(String code);
 
     /**
+     * Lấy tất cả chi tiết hồ sơ nhân viên.
+     * @return danh sách chi tiết hồ sơ nhân viên
+     */
+    List<EmployeeProfileDetailResponse> getAllProfileDetails();
+
+    /**
      * Cập nhật thông tin hồ sơ nhân viên.
      * @param code mã nhân viên
      * @param request yêu cầu cập nhật hồ sơ nhân viên

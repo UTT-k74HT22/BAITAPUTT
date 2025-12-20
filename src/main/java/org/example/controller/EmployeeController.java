@@ -4,10 +4,10 @@ import org.example.dto.request.UpdateEmployeeProfileDetailRequest;
 import org.example.dto.request.UpdateProfileEmployeeRequest;
 import org.example.dto.response.EmployeeProfileDetailResponse;
 import org.example.dto.response.EmployeeProfileResponse;
-import org.example.dto.response.EmployeeResponse;
 import org.example.entity.enums.ProfileStatus;
 import org.example.service.EmployeeService;
-import org.example.utils.excel.EmployeeExcelWriter;
+import org.example.utils.excel.employees.EmployeeDetailExcelWriter;
+import org.example.utils.excel.employees.EmployeeExcelWriter;
 import org.example.utils.excel.ExcelExporter;
 import java.awt.Component;
 import java.util.List;
@@ -105,4 +105,30 @@ public class EmployeeController {
                 parent
         );
     }
+
+    /**
+     * Xuất chi tiết nhân viên ra file Excel.
+     *
+     * @param code   mã nhân viên
+     * @param parent thành phần cha để hiển thị hộp thoại
+     */
+    public void exportEmployeeDetailExcel(String code, Component parent) {
+        System.out.println("[Controller] Xuất Excel chi tiết nhân viên: " + code);
+
+        ExcelExporter.exportWithDialog(
+                List.of(employeeService.getEmployeeDetailByCode(code)),
+                new EmployeeDetailExcelWriter(),
+                parent
+        );
+    }
+
+    public void exportExcelDetailList(Component parent) {
+        System.out.println("[Controller] Xuất danh sách nhân viên (chi tiết) ra Excel");
+        ExcelExporter.exportWithDialog(
+                employeeService.getAllProfileDetails(),
+                new EmployeeDetailExcelWriter(),
+                parent
+        );
+    }
+
 }

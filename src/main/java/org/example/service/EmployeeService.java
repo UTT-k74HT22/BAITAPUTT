@@ -7,6 +7,7 @@ import org.example.dto.response.EmployeeProfileResponse;
 import org.example.dto.response.EmployeeResponse;
 import org.example.entity.enums.ProfileStatus;
 
+import java.awt.*;
 import java.util.List;
 
 public interface EmployeeService {
@@ -17,6 +18,13 @@ public interface EmployeeService {
      * @return danh sách nhân viên
      */
     List<EmployeeProfileResponse> getAllEmployees();
+
+    /**
+     * Lấy tất cả chi tiết hồ sơ nhân viên.
+     *
+     * @return danh sách chi tiết hồ sơ nhân viên
+     */
+    List<EmployeeProfileDetailResponse> getAllProfileDetails();
 
     /**
      * Lấy chi tiết nhân viên theo mã nhân viên.
@@ -49,6 +57,4 @@ public interface EmployeeService {
      * @param status trạng thái mới
      */
     void delete(String code, ProfileStatus status);
-
-
 }

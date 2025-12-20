@@ -1,27 +1,25 @@
-package org.example.utils.excel;
+package org.example.utils.excel.employees;
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.example.dto.response.EmployeeProfileResponse;
-
+import org.example.dto.response.EmployeeProfileDetailResponse;
+import org.example.utils.excel.AbstractExcelWriter;
+import org.example.utils.excel.ExcelStyles;
+import org.example.utils.excel.StyleKey;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
-/**
- * Excel writer cho DTO EmployeeProfileResponse.
- * @author Hoang Dinh Dung
- */
-public class EmployeeExcelWriter extends AbstractExcelWriter<EmployeeProfileResponse> {
+public class EmployeeDetailExcelWriter extends AbstractExcelWriter<EmployeeProfileDetailResponse> {
 
     @Override
     public String sheetName() {
-        return "Employees";
+        return "Employee Detail";
     }
 
     @Override
     public String title() {
-        return "DANH SÁCH NHÂN VIÊN";
+        return "THÔNG TIN CHI TIẾT NHÂN VIÊN";
     }
 
     @Override
@@ -33,13 +31,18 @@ public class EmployeeExcelWriter extends AbstractExcelWriter<EmployeeProfileResp
                 "Mã nhân viên",
                 "Họ và tên",
                 "Số điện thoại",
+                "Email",
+                "Địa chỉ",
                 "Chức vụ",
+                "Phòng ban",
+                "Ngày vào làm",
+                "Lương cơ bản",
                 "Trạng thái"
         };
     }
 
     @Override
-    public void create(Sheet sheet, ExcelStyles styles, List<EmployeeProfileResponse> data) {
+    public void create(Sheet sheet, ExcelStyles styles, List<EmployeeProfileDetailResponse> data) {
         // Title row
         Row titleRow = sheet.createRow(0);
         titleRow.setHeight((short) 600);
@@ -64,7 +67,7 @@ public class EmployeeExcelWriter extends AbstractExcelWriter<EmployeeProfileResp
         int rowNum = 2;
         int stt = 1;
 
-        for (EmployeeProfileResponse e : data) {
+        for (EmployeeProfileDetailResponse e : data) {
             Row r = sheet.createRow(rowNum++);
             r.setHeight((short) 380);
 
@@ -74,10 +77,21 @@ public class EmployeeExcelWriter extends AbstractExcelWriter<EmployeeProfileResp
             cell(r, 3, safe(e.getCode()), styles.get(StyleKey.DATA_CENTER));
             cell(r, 4, safe(e.getFullName()), styles.get(StyleKey.DATA));
             cell(r, 5, safe(e.getPhone()), styles.get(StyleKey.DATA_CENTER));
-            cell(r, 6, safe(e.getPosition()), styles.get(StyleKey.DATA));
+            cell(r, 6, safe(e.getEmail()), styles.get(StyleKey.DATA));
+            cell(r, 7, safe(e.getAddress()), styles.get(StyleKey.DATA));
+            cell(r, 8, safe(e.getPosition()), styles.get(StyleKey.DATA));
+            cell(r, 9, safe(e.getDepartment()), styles.get(StyleKey.DATA));
+
+            // hiredDate
+            LocalDate hd = e.getHiredDate();
+            cell(r, 10, hd == null ? "" : hd.toString(), styles.get(StyleKey.DATA_CENTER));
+
+            // salary
+            BigDecimal sal = e.getSalary();
+            cell(r, 11, sal == null ? "" : sal.toPlainString(), styles.get(StyleKey.DATA_CENTER));
 
             String statusText = e.getStatus() == null ? "" : e.getStatus().name();
-            cell(r, 7,
+            cell(r, 12,
                     statusText,
                     "ACTIVE".equalsIgnoreCase(statusText)
                             ? styles.get(StyleKey.BADGE_ACTIVE)

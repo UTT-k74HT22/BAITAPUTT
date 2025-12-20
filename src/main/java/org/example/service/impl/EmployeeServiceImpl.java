@@ -11,6 +11,10 @@ import org.example.repository.UserProfileRepository;
 import org.example.repository.impl.EmployeeProfileRepositoryImpl;
 import org.example.repository.impl.UserProfileRepositoryImpl;
 import org.example.service.EmployeeService;
+import org.example.utils.excel.ExcelExporter;
+import org.example.utils.excel.employees.EmployeeDetailExcelWriter;
+
+import java.awt.*;
 import java.util.List;
 
 public class EmployeeServiceImpl implements EmployeeService {
@@ -45,6 +49,18 @@ public class EmployeeServiceImpl implements EmployeeService {
                 ))
                 .toList();
     }
+
+    /**
+     * Lấy tất cả chi tiết hồ sơ nhân viên.
+     *
+     * @return danh sách chi tiết hồ sơ nhân viên
+     */
+    @Override
+    public List<EmployeeProfileDetailResponse> getAllProfileDetails() {
+        System.out.println("[Service] Lấy tất cả chi tiết hồ sơ nhân viên");
+        return employeeProfileRepository.getAllProfileDetails();
+    }
+
 
     /**
      * Lấy chi tiết nhân viên theo mã nhân viên.

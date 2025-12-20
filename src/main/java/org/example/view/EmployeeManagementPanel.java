@@ -147,7 +147,7 @@ public class EmployeeManagementPanel extends JPanel {
         row.add(createButton("🔄 Refresh", new Color(108,117,125), e -> loadEmployees()));
         row.add(Box.createHorizontalStrut(20));
         row.add(createButton("📄 Excel", new Color(111,66,193), e -> exportExcel()));
-
+        row.add(createButton("📄 Excel Detail List", new Color(111,66,193), e -> controller.exportExcelDetailList(this)));
         return row;
     }
 
@@ -379,7 +379,7 @@ public class EmployeeManagementPanel extends JPanel {
         JTextField tfProfileId = roField(String.valueOf(d.getProfileId()));
         JTextField tfCode      = roField(d.getCode());
 
-// ===== EDITABLE =====
+        // ===== EDITABLE =====
         JTextField tfFullName   = editField(d.getFullName());
         JTextField tfPhone      = editField(d.getPhone());
         JTextField tfEmail      = editField(d.getEmail());
@@ -425,6 +425,9 @@ public class EmployeeManagementPanel extends JPanel {
         JButton btnClose = createOutlineButton("Close");
         JButton btnEdit  = createButton("✏ Update", new Color(255,193,7), null);
         JButton btnSave  = createButton("💾 Save", new Color(40,167,69), null);
+        JButton btnExcel = createButton("📄 Excel", new Color(111,66,193), e -> {
+            controller.exportEmployeeDetailExcel(d.getCode(), dialog);
+        });
         btnSave.setVisible(false);
 
         btnClose.addActionListener(e -> dialog.dispose());
@@ -493,6 +496,7 @@ public class EmployeeManagementPanel extends JPanel {
         actions.add(btnClose);
         actions.add(btnEdit);
         actions.add(btnSave);
+        actions.add(btnExcel);
 
         dialog.add(new JScrollPane(form), BorderLayout.CENTER);
         dialog.add(actions, BorderLayout.SOUTH);
