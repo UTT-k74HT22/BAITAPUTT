@@ -2,7 +2,8 @@ package org.example.controller;
 
 import org.example.dto.request.Product.CreateProductRequest;
 import org.example.dto.request.Product.UpdateProductRequest;
-import org.example.dto.response.ProductResponse;
+import org.example.dto.response.Product.ProductDetailResponse;
+import org.example.dto.response.Product.ProductResponse;
 import org.example.service.ProductService;
 
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+
 
     public ProductController(ProductService productService) {
         this.productService = productService;
@@ -30,6 +32,13 @@ public class ProductController {
      */
     public ProductResponse getByCode(String code) {
         return productService.getByCode(code);
+    }
+
+    /**
+     * Lấy sản phẩm chi tiết theo mã.
+     */
+    public ProductDetailResponse getDetail(String code) {
+        return productService.getDetailByCode(code);
     }
 
     /**
@@ -52,4 +61,17 @@ public class ProductController {
     public void delete(String code) {
         productService.delete(code);
     }
+//    /**
+//     * Lấy danh sách tất cả danh mục.
+//     */
+//    public List<CategoryResponse> getAllCategories() { // khi có dữ liệu thật
+//        return service.getAllCategories();
+//    }
+//    /**
+//     * Lấy danh sách tất cả nhà sản xuất.
+//     */
+//    public List<ManufacturerResponse> getAllManufacturers() {
+//        return service.getAllManufacturers();
+//    }
+
 }

@@ -1,4 +1,4 @@
-package org.example.dto.response;
+package org.example.dto.response.Product;
 
 import org.example.entity.enums.ProductStatus;
 

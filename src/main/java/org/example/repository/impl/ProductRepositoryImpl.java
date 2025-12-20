@@ -2,7 +2,8 @@ package org.example.repository.impl;
 
 import org.example.dto.request.Product.CreateProductRequest;
 import org.example.dto.request.Product.UpdateProductRequest;
-import org.example.dto.response.ProductResponse;
+import org.example.dto.response.Product.ProductDetailResponse;
+import org.example.dto.response.Product.ProductResponse;
 import org.example.entity.enums.ProductStatus;
 import org.example.repository.BaseRepository;
 import org.example.repository.ProductRepository;
@@ -182,6 +183,61 @@ public class ProductRepositoryImpl extends BaseRepository implements ProductRepo
         return queryForObject(sql, params(id), this::mapToRow);
     }
 
+    @Override
+    public Optional<ProductDetailResponse> findDetailByCode(String code) {
+        String sql = """
+        SELECT
+            p.id,
+            p.code,
+            p.barcode,
+            p.name,
+            p.dosage_form,
+            p.unit,
+            p.description,
+            p.image_url,
+            p.standard_price,
+            p.requires_prescription,
+            p.status,
+
+            c.id   AS categoryId,
+            c.name AS categoryName,
+
+            m.id   AS manufacturerId,
+            m.code AS manufacturerCode,
+            m.name AS manufacturerName,
+            m.country AS manufacturerCountry
+        FROM products p
+        JOIN categories c ON p.category_id = c.id
+        LEFT JOIN manufacturers m ON p.manufacturer_id = m.id
+        WHERE p.code = ?
+    """;
+
+        return queryForObject(sql, params(code), rs -> {
+            ProductDetailResponse d = new ProductDetailResponse();
+            d.setId(rs.getLong("id"));
+            d.setCode(rs.getString("code"));
+            d.setBarcode(rs.getString("barcode"));
+            d.setName(rs.getString("name"));
+
+            d.setDosageForm(rs.getString("dosage_form"));
+            d.setUnit(rs.getString("unit"));
+            d.setDescription(rs.getString("description"));
+            d.setImageUrl(rs.getString("image_url"));
+
+            d.setStandardPrice(rs.getBigDecimal("standard_price"));
+            d.setRequiresPrescription(rs.getBoolean("requires_prescription"));
+            d.setStatus(ProductStatus.valueOf(rs.getString("status")));
+
+            d.setCategoryId(rs.getLong("categoryId"));
+            d.setCategoryName(rs.getString("categoryName"));
+
+            d.setManufacturerId(rs.getObject("manufacturerId", Long.class));
+            d.setManufacturerCode(rs.getString("manufacturerCode"));
+            d.setManufacturerName(rs.getString("manufacturerName"));
+            d.setManufacturerCountry(rs.getString("manufacturerCountry"));
+            return d;
+        });
+    }
 
     /**
      * Kiểm tra mã sản phẩm đã tồn tại chưa.

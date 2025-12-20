@@ -3,7 +3,8 @@ package org.example.view;
 import org.example.controller.ProductController;
 import org.example.dto.request.Product.CreateProductRequest;
 import org.example.dto.request.Product.UpdateProductRequest;
-import org.example.dto.response.ProductResponse;
+import org.example.dto.response.Product.ProductDetailResponse;
+import org.example.dto.response.Product.ProductResponse;
 import org.example.entity.enums.ProductStatus;
 import org.example.service.impl.ProductServiceImpl;
 import org.example.view.base.BaseManagementPanel;
@@ -17,8 +18,10 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * Màn hình quản lý sản phẩm.
- * Popup thêm/sửa được viết trực tiếp trong file (không tạo dialog riêng).
+ * Product Management Panel
+ * - Popup inline
+ * - Category giả lập (tránh conflict module)
+ * - Không dùng toString cho DTO
  */
 public class ProductManagementPanel extends BaseManagementPanel<ProductResponse> {
 
@@ -34,53 +37,63 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
             "Giá", "Toa thuốc", "Trạng thái"
     };
 
+    // ===== Category giả lập =====
+    private static class CategoryOption {
+        Long id;
+        String name;
+
+        CategoryOption(Long id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        @Override public String toString() {
+            return name;
+        }
+    }
+
+    private static final CategoryOption[] MOCK_CATEGORIES = {
+            new CategoryOption(1L, "Thuốc giảm đau"),
+            new CategoryOption(2L, "Kháng sinh"),
+            new CategoryOption(3L, "Vitamin")
+    };
+
     public ProductManagementPanel(JFrame parentFrame) {
         this.parentFrame = parentFrame;
         this.controller = new ProductController(new ProductServiceImpl());
         reload();
     }
 
-    // =========================
-    // Base overrides
-    // =========================
-
-    @Override
-    protected String titleTotal() {
+    @Override protected String titleTotal() {
         return "Tổng số sản phẩm";
     }
 
-    @Override
-    protected String[] columns() {
+    @Override protected String[] columns() {
         return COLS;
     }
 
-    @Override
-    protected int[] columnWidths() {
+    @Override protected int[] columnWidths() {
         return new int[]{60, 120, 220, 160, 160, 110, 100, 120};
     }
 
-    @Override
-    protected List<ProductResponse> fetchData() {
+    @Override protected List<ProductResponse> fetchData() {
         return controller.getAll();
     }
 
-    @Override
-    protected Object[] mapRow(ProductResponse p, int stt) {
+    @Override protected Object[] mapRow(ProductResponse p, int stt) {
         return new Object[]{
                 stt,
-                safe(p.getCode()),
-                safe(p.getName()),
-                safe(p.getCategoryName()),
-                safe(p.getManufacturerName()),
+                p.getCode(),
+                p.getName(),
+                p.getCategoryName(),
+                p.getManufacturerName(),
                 p.getStandardPrice(),
                 p.isRequiresPrescription() ? "Có" : "Không",
                 p.getStatus()
         };
     }
 
-    // =========================
-    // Filters
-    // =========================
+    // ================= FILTER =================
 
     @Override
     protected JPanel buildFilters() {
@@ -102,7 +115,6 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
         row.add(new JLabel("Từ khóa:"));
         row.add(keywordField);
         row.add(searchBtn);
-        row.add(Box.createHorizontalStrut(12));
         row.add(new JLabel("Trạng thái:"));
         row.add(statusFilter);
 
@@ -113,180 +125,192 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
     protected void applyFilters() {
         if (sorter == null) return;
 
-        String kw = keywordField == null ? "" : keywordField.getText().trim().toLowerCase();
-        String st = statusFilter == null ? "ALL" : String.valueOf(statusFilter.getSelectedItem());
+        String kw = keywordField.getText().trim().toLowerCase();
+        String st = String.valueOf(statusFilter.getSelectedItem());
 
-        sorter.setRowFilter(new RowFilter<>() {
+        sorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
             @Override
             public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> e) {
-                String code = val(e, 1);
-                String name = val(e, 2);
-                String category = val(e, 3);
-                String manufacturer = val(e, 4);
-                String status = val(e, 7);
+                String hay = (
+                        e.getValue(1) + " " +
+                                e.getValue(2) + " " +
+                                e.getValue(3) + " " +
+                                e.getValue(4)
+                ).toLowerCase();
 
-                if (!kw.isEmpty()) {
-                    String hay = (code + " " + name + " " + category + " " + manufacturer).toLowerCase();
-                    if (!hay.contains(kw)) return false;
-                }
-
-                if (!"ALL".equalsIgnoreCase(st)) {
-                    if (!status.equalsIgnoreCase(st)) return false;
-                }
+                if (!kw.isEmpty() && !hay.contains(kw)) return false;
+                if (!"ALL".equals(st) && !e.getValue(7).toString().equalsIgnoreCase(st)) return false;
                 return true;
-            }
-
-            private String val(Entry<? extends DefaultTableModel, ? extends Integer> e, int col) {
-                Object v = e.getModel().getValueAt(e.getIdentifier(), col);
-                return v == null ? "" : v.toString();
             }
         });
     }
 
-    // =========================
-    // Actions
-    // =========================
+    // ================= ACTIONS =================
 
     @Override
     protected JPanel buildActions() {
         JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         row.setOpaque(false);
 
-        row.add(UiFactory.button("➕ Thêm", new Color(40,167,69), e -> openCreate()));
+        row.add(UiFactory.button("➕ Thêm", new Color(40,167,69), e -> openProductDialog(null)));
         row.add(UiFactory.button("✏️ Sửa", new Color(255,193,7), e -> openEdit()));
         row.add(UiFactory.button("🗑️ Xóa", new Color(220,53,69), e -> deleteProduct()));
+        row.add(UiFactory.button("🔍 Chi tiết", new Color(108,117,125), e -> openDetail()));
         row.add(UiFactory.button("🔄 Refresh", new Color(108,117,125), e -> reload()));
 
         return row;
     }
 
-    private void openCreate() {
-        openProductDialog(null);
+    // ================= DETAIL =================
+
+    private void openDetail() {
+        int row = getSelectedModelRow();
+        if (row < 0) return;
+
+        String code = getCellString(row, 1);
+        ProductDetailResponse d = controller.getDetail(code);
+
+        JTextArea area = new JTextArea();
+        area.setEditable(false);
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
+
+        area.setText("""
+                Mã: %s
+                Barcode: %s
+                Tên: %s
+
+                Danh mục: %s
+                Nhà sản xuất: %s (%s)
+
+                Dạng bào chế: %s
+                Đơn vị: %s
+                Giá: %s
+                Toa thuốc: %s
+
+                Mô tả:
+                %s
+                """.formatted(
+                d.getCode(),
+                d.getBarcode(),
+                d.getName(),
+                d.getCategoryName(),
+                d.getManufacturerName(),
+                d.getManufacturerCountry(),
+                d.getDosageForm(),
+                d.getUnit(),
+                d.getStandardPrice(),
+                d.isRequiresPrescription() ? "Có" : "Không",
+                d.getDescription()
+        ));
+
+        JScrollPane sp = new JScrollPane(area);
+        sp.setPreferredSize(new Dimension(480, 420));
+
+        JOptionPane.showMessageDialog(this, sp, "Chi tiết sản phẩm", JOptionPane.INFORMATION_MESSAGE);
     }
+
+    // ================= ADD / EDIT =================
 
     private void openEdit() {
         int row = getSelectedModelRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn sản phẩm");
-            return;
-        }
-        String code = getCellString(row, 1);
-        openProductDialog(code);
+        if (row < 0) return;
+        openProductDialog(getCellString(row, 1));
     }
 
     private void deleteProduct() {
         int row = getSelectedModelRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn sản phẩm");
-            return;
-        }
+        if (row < 0) return;
+
         String code = getCellString(row, 1);
-
-        int c = JOptionPane.showConfirmDialog(
-                this,
-                "Bạn có chắc muốn xóa sản phẩm [" + code + "] ?",
-                "Xác nhận",
-                JOptionPane.YES_NO_OPTION
-        );
-
-        if (c == JOptionPane.YES_OPTION) {
+        if (JOptionPane.showConfirmDialog(this, "Xóa [" + code + "] ?",
+                "Xác nhận", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             controller.delete(code);
             reload();
         }
     }
 
-    // =========================
-    // Popup Add / Edit (INLINE)
-    // =========================
-
     private void openProductDialog(String editCode) {
-        boolean editMode = editCode != null;
+        boolean edit = editCode != null;
 
-        JDialog dialog = new JDialog(
-                parentFrame,
-                editMode ? "Sửa sản phẩm" : "Thêm sản phẩm",
-                true
-        );
+        JDialog d = new JDialog(parentFrame, edit ? "Sửa sản phẩm" : "Thêm sản phẩm", true);
+        d.setLayout(new BorderLayout());
 
-        JTextField txtCode = new JTextField();
-        JTextField txtName = new JTextField();
-        JTextField txtPrice = new JTextField();
-        JCheckBox chkRx = new JCheckBox("Cần toa thuốc");
-        JComboBox<ProductStatus> cboStatus =
-                new JComboBox<>(ProductStatus.values());
+        JTextField code = new JTextField();
+        JTextField name = new JTextField();
+        JTextField barcode = new JTextField();
+        JTextField dosage = new JTextField();
+        JTextField unit = new JTextField();
+        JTextField price = new JTextField();
+        JTextArea desc = new JTextArea(3, 20);
 
-        if (editMode) {
+        JCheckBox rx = new JCheckBox("Cần toa thuốc");
+        JComboBox<ProductStatus> status = new JComboBox<>(ProductStatus.values());
+        JComboBox<CategoryOption> category = new JComboBox<>(MOCK_CATEGORIES);
+
+        if (edit) {
             ProductResponse p = controller.getByCode(editCode);
-            txtCode.setText(p.getCode());
-            txtCode.setEnabled(false);
-            txtName.setText(p.getName());
-            txtPrice.setText(p.getStandardPrice().toString());
-            chkRx.setSelected(p.isRequiresPrescription());
-            cboStatus.setSelectedItem(p.getStatus());
+            code.setText(p.getCode());
+            code.setEnabled(false);
+            name.setText(p.getName());
+            price.setText(p.getStandardPrice().toString());
+            rx.setSelected(p.isRequiresPrescription());
+            status.setSelectedItem(p.getStatus());
         }
 
         JPanel form = new JPanel(new GridLayout(0, 2, 8, 8));
-        form.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        form.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 
-        form.add(new JLabel("Mã sản phẩm"));
-        form.add(txtCode);
-        form.add(new JLabel("Tên sản phẩm"));
-        form.add(txtName);
-        form.add(new JLabel("Giá"));
-        form.add(txtPrice);
-        form.add(new JLabel("Trạng thái"));
-        form.add(cboStatus);
-        form.add(new JLabel(""));
-        form.add(chkRx);
+        form.add(new JLabel("Mã")); form.add(code);
+        form.add(new JLabel("Tên")); form.add(name);
+        form.add(new JLabel("Barcode")); form.add(barcode);
+        form.add(new JLabel("Danh mục")); form.add(category);
+        form.add(new JLabel("Dạng bào chế")); form.add(dosage);
+        form.add(new JLabel("Đơn vị")); form.add(unit);
+        form.add(new JLabel("Giá")); form.add(price);
+        form.add(new JLabel("Trạng thái")); form.add(status);
+        form.add(new JLabel("")); form.add(rx);
+        form.add(new JLabel("Mô tả")); form.add(new JScrollPane(desc));
 
-        JButton btnSave = new JButton("Lưu");
-        JButton btnCancel = new JButton("Hủy");
-
-        btnSave.addActionListener(e -> {
+        JButton save = new JButton("Lưu");
+        save.addActionListener(e -> {
             try {
-                if (editMode) {
-                    UpdateProductRequest req = new UpdateProductRequest();
-                    req.setName(txtName.getText().trim());
-                    req.setStandardPrice(new BigDecimal(txtPrice.getText().trim()));
-                    req.setRequiresPrescription(chkRx.isSelected());
-                    req.setStatus((ProductStatus) cboStatus.getSelectedItem());
-//                  req.setCategoryId(old.getCategoryId());
-                    req.setCategoryId(1L);
+                CategoryOption c = (CategoryOption) category.getSelectedItem();
 
-                    controller.update(editCode, req);
+                if (edit) {
+                    UpdateProductRequest r = new UpdateProductRequest();
+                    r.setName(name.getText());
+                    r.setStandardPrice(new BigDecimal(price.getText()));
+                    r.setRequiresPrescription(rx.isSelected());
+                    r.setStatus((ProductStatus) status.getSelectedItem());
+                    r.setCategoryId(c.id);
+                    controller.update(editCode, r);
                 } else {
-                    CreateProductRequest req = new CreateProductRequest();
-                    req.setCode(txtCode.getText().trim());
-                    req.setName(txtName.getText().trim());
-                    req.setStandardPrice(new BigDecimal(txtPrice.getText().trim()));
-                    req.setRequiresPrescription(chkRx.isSelected());
-                    req.setStatus((ProductStatus) cboStatus.getSelectedItem());
-                    req.setCategoryId(1L); // demo nhanh
-                    controller.create(req);
+                    CreateProductRequest r = new CreateProductRequest();
+                    r.setCode(code.getText());
+                    r.setName(name.getText());
+                    r.setStandardPrice(new BigDecimal(price.getText()));
+                    r.setRequiresPrescription(rx.isSelected());
+                    r.setStatus((ProductStatus) status.getSelectedItem());
+                    r.setCategoryId(c.id);
+                    controller.create(r);
                 }
-                dialog.dispose();
+                d.dispose();
                 reload();
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(dialog, ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(d, ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        btnCancel.addActionListener(e -> dialog.dispose());
-
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        actions.add(btnSave);
-        actions.add(btnCancel);
+        actions.add(save);
+        actions.add(new JButton("Hủy") {{ addActionListener(e -> d.dispose()); }});
 
-        dialog.setLayout(new BorderLayout());
-        dialog.add(form, BorderLayout.CENTER);
-        dialog.add(actions, BorderLayout.SOUTH);
-        dialog.pack();
-        dialog.setLocationRelativeTo(parentFrame);
-        dialog.setVisible(true);
-    }
-
-    private String safe(Object v) {
-        return v == null ? "" : v.toString();
+        d.add(form, BorderLayout.CENTER);
+        d.add(actions, BorderLayout.SOUTH);
+        d.pack();
+        d.setLocationRelativeTo(parentFrame);
+        d.setVisible(true);
     }
 
     public static void main(String[] args) {

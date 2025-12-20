@@ -2,7 +2,8 @@ package org.example.service;
 
 import org.example.dto.request.Product.CreateProductRequest;
 import org.example.dto.request.Product.UpdateProductRequest;
-import org.example.dto.response.ProductResponse;
+import org.example.dto.response.Product.ProductDetailResponse;
+import org.example.dto.response.Product.ProductResponse;
 
 import java.util.List;
 
@@ -17,4 +18,6 @@ public interface ProductService {
     List<ProductResponse> getAll();
 
     ProductResponse getByCode(String code);
+
+    ProductDetailResponse getDetailByCode(String code);
 }

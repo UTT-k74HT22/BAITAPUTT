@@ -2,7 +2,8 @@ package org.example.service.impl;
 
 import org.example.dto.request.Product.CreateProductRequest;
 import org.example.dto.request.Product.UpdateProductRequest;
-import org.example.dto.response.ProductResponse;
+import org.example.dto.response.Product.ProductDetailResponse;
+import org.example.dto.response.Product.ProductResponse;
 import org.example.entity.enums.ProductStatus;
 import org.example.repository.ProductRepository;
 import org.example.repository.impl.ProductRepositoryImpl;
@@ -74,4 +75,20 @@ public class ProductServiceImpl implements ProductService {
                         "Product not found with code: " + code
                 ));
     }
+    public ProductDetailResponse getDetailByCode(String code){
+        return productRepository.findDetailByCode(code)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Product not found with code: " + code
+                ));
+    }
+//    @Override
+//    public List<CategoryResponse> getAllCategories() {
+//        return categoryRepository.findAllActive();
+//    }
+//
+//    @Override
+//    public List<ManufacturerResponse> getAllManufacturers() {
+//        return manufacturerRepository.findAllActive();
+//    }
+
 }
