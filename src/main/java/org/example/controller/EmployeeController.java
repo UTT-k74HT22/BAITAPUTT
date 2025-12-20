@@ -1,5 +1,6 @@
 package org.example.controller;
 
+import org.example.dto.request.UpdateEmployeeProfileDetailRequest;
 import org.example.dto.request.UpdateProfileEmployeeRequest;
 import org.example.dto.response.EmployeeProfileDetailResponse;
 import org.example.dto.response.EmployeeProfileResponse;
@@ -52,6 +53,17 @@ public class EmployeeController {
     public void updateProfile(String id, UpdateProfileEmployeeRequest request) {
         System.out.println("[Controller] Cập nhật thông tin hồ sơ nhân viên");
         employeeService.updateProfile(id, request);
+    }
+
+    /**
+     * Cập nhật chi tiết hồ sơ nhân viên theo mã nhân viên.
+     *
+     * @param code    mã nhân viên
+     * @param request yêu cầu cập nhật chi tiết hồ sơ nhân viên
+     */
+    public void updateProfileDetail(String code, UpdateEmployeeProfileDetailRequest request) {
+        System.out.println("[Controller] Cập nhật chi tiết hồ sơ nhân viên theo mã nhân viên");
+        employeeService.updateProfileDetail(code, request);
     }
 
     /**

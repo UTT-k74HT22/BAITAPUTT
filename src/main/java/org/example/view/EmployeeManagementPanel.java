@@ -1,6 +1,7 @@
 package org.example.view;
 
 import org.example.controller.EmployeeController;
+import org.example.dto.request.UpdateEmployeeProfileDetailRequest;
 import org.example.dto.request.UpdateProfileEmployeeRequest;
 import org.example.dto.response.EmployeeProfileDetailResponse;
 import org.example.dto.response.EmployeeProfileResponse;
@@ -10,6 +11,9 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.*;
 import java.awt.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 public class EmployeeManagementPanel extends JPanel {
@@ -375,25 +379,26 @@ public class EmployeeManagementPanel extends JPanel {
         JTextField tfProfileId = roField(String.valueOf(d.getProfileId()));
         JTextField tfCode      = roField(d.getCode());
 
-        // ===== EDITABLE =====
-        JTextField tfFullName  = editField(d.getFullName());
-        JTextField tfPhone     = editField(d.getPhone());
-        JTextField tfEmail     = editField(d.getEmail());
-        JTextField tfAddress   = editField(d.getAddress());
-        JTextField tfPosition  = editField(d.getPosition());
-        JTextField tfDepartment= editField(d.getDepartment());
-        JTextField tfSalary    = editField(
+// ===== EDITABLE =====
+        JTextField tfFullName   = editField(d.getFullName());
+        JTextField tfPhone      = editField(d.getPhone());
+        JTextField tfEmail      = editField(d.getEmail());
+        JTextField tfAddress    = editField(d.getAddress());
+        JTextField tfPosition   = editField(d.getPosition());
+        JTextField tfDepartment = editField(d.getDepartment());
+        JTextField tfHiredDate  = editField(
+                d.getHiredDate() == null ? "" : d.getHiredDate().toString() // yyyy-MM-dd
+        );
+        JTextField tfSalary     = editField(
                 d.getSalary() == null ? "" : d.getSalary().toString()
         );
-
         JComboBox<String> cbStatus = new JComboBox<>(new String[]{"ACTIVE", "INACTIVE"});
         cbStatus.setSelectedItem(d.getStatus().name());
 
         // disable edit by default
         for (JComponent c : new JComponent[]{
                 tfFullName, tfPhone, tfEmail, tfAddress,
-                tfPosition, tfDepartment, tfSalary, cbStatus
-        }) {
+                tfPosition, tfDepartment, tfHiredDate, tfSalary, cbStatus}) {
             c.setEnabled(false);
         }
 
@@ -409,6 +414,7 @@ public class EmployeeManagementPanel extends JPanel {
         addRow(form, gc, r++, "Address", tfAddress);
         addRow(form, gc, r++, "Position", tfPosition);
         addRow(form, gc, r++, "Department", tfDepartment);
+        addRow(form, gc, r++, "Hired Date (yyyy-MM-dd)", tfHiredDate);
         addRow(form, gc, r++, "Salary", tfSalary);
         addRow(form, gc, r++, "Status", cbStatus);
 
@@ -426,7 +432,7 @@ public class EmployeeManagementPanel extends JPanel {
         btnEdit.addActionListener(e -> {
             for (JComponent c : new JComponent[]{
                     tfFullName, tfPhone, tfEmail, tfAddress,
-                    tfPosition, tfDepartment, tfSalary, cbStatus
+                    tfPosition, tfDepartment, tfHiredDate, tfSalary, cbStatus
             }) {
                 c.setEnabled(true);
             }
@@ -435,13 +441,49 @@ public class EmployeeManagementPanel extends JPanel {
         });
 
         btnSave.addActionListener(e -> {
-            UpdateProfileEmployeeRequest req = new UpdateProfileEmployeeRequest();
+            UpdateEmployeeProfileDetailRequest req = new UpdateEmployeeProfileDetailRequest();
+
             req.setFullName(tfFullName.getText().trim());
             req.setPhone(tfPhone.getText().trim());
+            req.setEmail(tfEmail.getText().trim());
+            req.setAddress(tfAddress.getText().trim());
             req.setPosition(tfPosition.getText().trim());
+            req.setDepartment(tfDepartment.getText().trim());
             req.setStatus(ProfileStatus.valueOf(cbStatus.getSelectedItem().toString()));
 
-            controller.updateProfile(tfCode.getText(), req);
+            // hiredDate parse
+            String hiredStr = tfHiredDate.getText().trim();
+            if (!hiredStr.isEmpty()) {
+                try {
+                    LocalDate hd;
+                    if (hiredStr.contains("/")) {
+                        hd = LocalDate.parse(hiredStr, java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                    } else {
+                        hd = LocalDate.parse(hiredStr); // yyyy-MM-dd
+                    }
+                    req.setHiredDate(hd);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(dialog, "Hired Date không hợp lệ. Nhập: yyyy-MM-dd hoặc dd/MM/yyyy");
+                    return;
+                }
+            } else {
+                req.setHiredDate(null);
+            }
+
+            // salary parse
+            String salaryStr = tfSalary.getText().trim();
+            if (!salaryStr.isEmpty()) {
+                try {
+                    req.setSalary(new BigDecimal(salaryStr));
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(dialog, "Salary không hợp lệ!");
+                    return;
+                }
+            } else {
+                req.setSalary(null);
+            }
+
+            controller.updateProfileDetail(tfCode.getText().trim(), req);
 
             JOptionPane.showMessageDialog(dialog, "Updated successfully!");
             dialog.dispose();

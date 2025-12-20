@@ -1,5 +1,6 @@
 package org.example.repository;
 
+import org.example.dto.request.UpdateEmployeeProfileDetailRequest;
 import org.example.dto.request.UpdateProfileEmployeeRequest;
 import org.example.dto.response.EmployeeProfileDetailResponse;
 import org.example.dto.response.EmployeeProfileResponse;
@@ -35,6 +36,14 @@ public interface EmployeeProfileRepository {
      * @param request yêu cầu cập nhật hồ sơ nhân viên
      */
     void updateProfile(String code, UpdateProfileEmployeeRequest request);
+
+    /**
+     * Cập nhật chi tiết hồ sơ nhân viên theo ID hồ sơ.
+     *
+     * @param profileId ID hồ sơ nhân viên
+     * @param req yêu cầu cập nhật chi tiết hồ sơ nhân viên
+     */
+    void updateDetailByProfileId(Long profileId, UpdateEmployeeProfileDetailRequest req);
 
     /**
      * Cập nhật trạng thái hồ sơ nhân viên.

@@ -1,6 +1,9 @@
 package org.example.repository;
 
+import org.example.dto.request.UpdateEmployeeProfileDetailRequest;
+import org.example.dto.request.UpdateProfileEmployeeRequest;
 import java.sql.Connection;
+import java.util.Optional;
 
 public interface UserProfileRepository {
     /**
@@ -24,4 +27,25 @@ public interface UserProfileRepository {
      * @return mã hồ sơ người dùng tiếp theo
      */
     String generateNextCode(Connection conn, String prefix);
+
+    /**
+     * Tìm ID hồ sơ người dùng dựa trên mã hồ sơ.
+     * @param code mã hồ sơ
+     * @return Optional chứa ID hồ sơ nếu tìm thấy, ngược lại là rỗng
+     */
+    Optional<Long> findIdByCode(String code);
+
+    /**
+     * Cập nhật thông tin cơ bản của hồ sơ người dùng dựa trên mã hồ sơ.
+     * @param code mã hồ sơ
+     * @param request đối tượng yêu cầu chứa thông tin cập nhật
+     */
+    void updateBasicByCode(String code, UpdateProfileEmployeeRequest request);
+
+    /**
+     * Cập nhật chi tiết hồ sơ người dùng dựa trên mã hồ sơ.
+     * @param code mã hồ sơ
+     * @param request đối tượng yêu cầu chứa thông tin cập nhật chi tiết
+     */
+    void updateDetailByCode(String code, UpdateEmployeeProfileDetailRequest request);
 }

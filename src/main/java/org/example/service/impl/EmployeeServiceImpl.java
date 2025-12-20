@@ -1,21 +1,26 @@
 package org.example.service.impl;
 
+import org.example.dto.request.UpdateEmployeeProfileDetailRequest;
 import org.example.dto.request.UpdateProfileEmployeeRequest;
 import org.example.dto.response.EmployeeProfileDetailResponse;
 import org.example.dto.response.EmployeeProfileResponse;
 import org.example.dto.response.EmployeeResponse;
 import org.example.entity.enums.ProfileStatus;
 import org.example.repository.EmployeeProfileRepository;
+import org.example.repository.UserProfileRepository;
 import org.example.repository.impl.EmployeeProfileRepositoryImpl;
+import org.example.repository.impl.UserProfileRepositoryImpl;
 import org.example.service.EmployeeService;
 import java.util.List;
 
 public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeProfileRepository employeeProfileRepository;
+    private final UserProfileRepository userProfileRepository;
 
     public EmployeeServiceImpl() {
         this.employeeProfileRepository = new EmployeeProfileRepositoryImpl();
+        this.userProfileRepository = new UserProfileRepositoryImpl();
     }
 
     /**
@@ -71,6 +76,23 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new IllegalArgumentException("Yêu cầu cập nhật không được null");
         }
         employeeProfileRepository.updateProfile(id, request);
+    }
+
+    /**
+     * Cập nhật chi tiết hồ sơ nhân viên theo mã nhân viên.
+     *
+     * @param code    mã nhân viên
+     * @param request yêu cầu cập nhật chi tiết hồ sơ nhân viên
+     */
+    @Override
+    public void updateProfileDetail(String code, UpdateEmployeeProfileDetailRequest request) {
+        System.out.println("[Service] Cập nhật chi tiết hồ sơ nhân viên theo mã nhân viên");
+        Long profileId = userProfileRepository.findIdByCode(code)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Không tìm thấy hồ sơ với mã: " + code)
+                );
+        userProfileRepository.updateDetailByCode(code, request);
+        employeeProfileRepository.updateDetailByProfileId(profileId, request);
     }
 
     /**

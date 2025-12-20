@@ -1,5 +1,6 @@
 package org.example.repository.impl;
 
+import org.example.dto.request.UpdateEmployeeProfileDetailRequest;
 import org.example.dto.request.UpdateProfileEmployeeRequest;
 import org.example.dto.response.EmployeeProfileDetailResponse;
 import org.example.dto.response.EmployeeProfileResponse;
@@ -94,7 +95,6 @@ public class EmployeeProfileRepositoryImpl extends BaseRepository implements Emp
                     up.status = ?
                 WHERE up.code = ?
                 """;
-
         executeUpdate(sql, params(
                 request.getFullName(),
                 request.getPhone(),
@@ -102,6 +102,28 @@ public class EmployeeProfileRepositoryImpl extends BaseRepository implements Emp
                 request.getStatus().name(), // LƯU ENUM DẠNG UPPERCASE
                 code
         ));
+    }
+
+    /**
+     * Cập nhật chi tiết hồ sơ nhân viên theo ID hồ sơ.
+     *
+     * @param profileId ID hồ sơ nhân viên
+     * @param req       yêu cầu cập nhật chi tiết hồ sơ nhân viên
+     */
+    @Override
+    public void updateDetailByProfileId(Long profileId, UpdateEmployeeProfileDetailRequest req) {
+        String sql = """
+                    UPDATE employee_profiles
+                    SET position = ?, department = ?, hired_date = ?, base_salary = ?
+                    WHERE profile_id = ?
+                    """;
+        executeUpdate(sql, ps -> {
+            ps.setString(1, req.getPosition());
+            ps.setString(2, req.getDepartment());
+            ps.setDate(3, req.getHiredDate() == null ? null : java.sql.Date.valueOf(req.getHiredDate()));
+            ps.setBigDecimal(4, req.getSalary());
+            ps.setLong(5, profileId);
+        });
     }
 
     @Override
