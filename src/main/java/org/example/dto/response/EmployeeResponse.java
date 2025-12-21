@@ -1,5 +1,6 @@
 package org.example.dto.response;
 
+import org.example.entity.enums.ProfileStatus;
 import java.time.LocalDate;
 
 public class EmployeeResponse {
@@ -10,10 +11,23 @@ public class EmployeeResponse {
     private String department;
     private String phone;
     private String email;
-    private boolean active;
+    private ProfileStatus active;
     private LocalDate hiredDate;
 
     private String accountUsername;
+
+    public EmployeeResponse(Long id, String code, String fullName, String position, String department, String phone, String email, ProfileStatus active, LocalDate hiredDate, String accountUsername) {
+        this.id = id;
+        this.code = code;
+        this.fullName = fullName;
+        this.position = position;
+        this.department = department;
+        this.phone = phone;
+        this.email = email;
+        this.active = active;
+        this.hiredDate = hiredDate;
+        this.accountUsername = accountUsername;
+    }
 
     public Long getId() {
         return id;
@@ -71,11 +85,11 @@ public class EmployeeResponse {
         this.email = email;
     }
 
-    public boolean isActive() {
+    public ProfileStatus isActive() {
         return active;
     }
 
-    public void setActive(boolean active) {
+    public void setActive(ProfileStatus active) {
         this.active = active;
     }
 

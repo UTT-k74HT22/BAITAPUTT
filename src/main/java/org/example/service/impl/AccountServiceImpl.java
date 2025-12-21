@@ -1,6 +1,8 @@
 package org.example.service.impl;
 
+import org.example.dto.response.AccountResponse;
 import org.example.entity.Account;
+import org.example.entity.enums.Role;
 import org.example.repository.AccountRepository;
 import org.example.repository.impl.AccountRepositoryImpl;
 import org.example.service.AccountService;
@@ -26,6 +28,20 @@ public class AccountServiceImpl implements AccountService {
         return accountRepository.findAll();
     }
 
+    @Override
+    public List<AccountResponse> getAllAccount() {
+        List<AccountResponse> responses = this.getAll().stream()
+                .map(account -> new AccountResponse(
+                        account.getId(),
+                        account.getUsername(),
+                        account.getRole(),
+                        account.isActive(),
+                        account.getLastLoginAt()
+                ))
+                .toList();
+        return  responses;
+    }
+
     /**
      * Tìm tài khoản theo tên đăng nhập.
      *
@@ -39,61 +55,30 @@ public class AccountServiceImpl implements AccountService {
     }
 
     /**
-     * Tạo tài khoản mới.
+     * Tìm tài khoản theo ID.
      *
-     * @param account tài khoản cần tạo
+     * @param id ID của tài khoản
+     * @return tài khoản hoặc null nếu không tìm thấy
      */
     @Override
-    public void create(Account account) {
-        System.out.println("[Service] Tạo tài khoản mới: " + (account != null ? account.getUsername() : "null"));
-
-        if (account == null) throw new IllegalArgumentException("Account không được null");
-
-        String username = account.getUsername() == null ? "" : account.getUsername().trim();
-        String password = account.getPassword() == null ? "" : account.getPassword().trim();
-        String email = account.getEmail() == null ? "" : account.getEmail().trim();
-        String phone = account.getPhone() == null ? "" : account.getPhone().trim();
-
-        if (username.isEmpty()) throw new IllegalArgumentException("Username không được để trống");
-        if (password.isEmpty()) throw new IllegalArgumentException("Password không được để trống");
-
-        if (accountRepository.existsByUsername(username)) {
-            throw new RuntimeException("Username đã tồn tại!");
-        }
-
-        if (!email.isEmpty() && accountRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email đã tồn tại!");
-        }
-
-        account.setUsername(username);
-        account.setPassword(password);
-        account.setEmail(email.isEmpty() ? null : email);
-        account.setPhone(phone.isEmpty() ? null : phone);
-
-        if (account.getRole() == null) {
-            account.setRole(org.example.entity.enums.Role.EMPLOYEE);
-        }
-
-        try {
-            accountRepository.save(account);
-        } catch (Exception ex) {
-            if (isDuplicateKey(ex)) {
-                throw new RuntimeException("Username hoặc Email đã tồn tại!");
-            }
-            throw new RuntimeException("Lỗi khi tạo tài khoản: " + ex.getMessage(), ex);
-        }
+    public Account findById(Long id) {
+        System.out.println("Tìm tài khoản với ID: " + id);
+        return accountRepository.findById(id);
     }
 
     /**
      * Cập nhật tài khoản.
      *
-     * @param account tài khoản cần cập nhật
+     * @param accountId ID của tài khoản cần cập nhật
+     * @param role      vai trò mới
+     * @param active    trạng thái kích hoạt mới
      */
     @Override
-    public void update(Account account) {
-        System.out.println("Cập nhật tài khoản: " + account.getUsername());
-        accountRepository.update(account);
+    public void update(Long accountId, Role role, Boolean active) {
+        System.out.println("Cập nhật tài khoản với ID: " + accountId);
+        accountRepository.updateRoleAndStatus(accountId, role, active);
     }
+
 
     /**
      * Xóa tài khoản theo ID.
@@ -101,7 +86,7 @@ public class AccountServiceImpl implements AccountService {
      * @param id ID của tài khoản cần xóa
      */
     @Override
-    public void deleteById(int id) {
+    public void deleteById(Long id) {
         System.out.println("Xóa tài khoản với ID: " + id);
         accountRepository.deleteById(id);
     }

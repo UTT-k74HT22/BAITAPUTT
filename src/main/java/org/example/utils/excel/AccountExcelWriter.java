@@ -4,43 +4,40 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.example.dto.response.EmployeeResponse;
+import org.example.dto.response.AccountResponse;
+
 import java.util.List;
 
 /**
- * Excel writer cho DTO EmployeeResponse.
+ * Excel writer cho DTO AccountResponse.
  * @author Hoang Dinh Dung
  */
-public class EmployeeExcelWriter extends AbstractExcelWriter<EmployeeResponse> {
+public class AccountExcelWriter extends AbstractExcelWriter<AccountResponse> {
 
     @Override
     public String sheetName() {
-        return "Employees";
+        return "Accounts";
     }
 
     @Override
     public String title() {
-        return "DANH SÁCH NHÂN VIÊN";
+        return "DANH SÁCH TÀI KHOẢN";
     }
 
     @Override
     public String[] headers() {
         return new String[]{
                 "STT",
-                "Account Username",
-                "Mã nhân viên",
-                "Họ và tên",
-                "Chức vụ",
-                "Phòng ban",
-                "Số điện thoại",
-                "Email",
+                "Account ID",
+                "Username",
+                "Role",
                 "Trạng thái",
-                "Ngày vào làm"
+                "Last Login"
         };
     }
 
     @Override
-    public void create(Sheet sheet, ExcelStyles styles, List<EmployeeResponse> data) {
+    public void create(Sheet sheet, ExcelStyles styles, List<AccountResponse> data) {
         // Title row
         Row titleRow = sheet.createRow(0);
         titleRow.setHeight((short) 600);
@@ -65,25 +62,23 @@ public class EmployeeExcelWriter extends AbstractExcelWriter<EmployeeResponse> {
         int rowNum = 2;
         int stt = 1;
 
-        for (EmployeeResponse e : data) {
+        for (AccountResponse a : data) {
             Row r = sheet.createRow(rowNum++);
             r.setHeight((short) 380);
 
             cell(r, 0, stt++, styles.get(StyleKey.DATA_CENTER));
-            cell(r, 1, safe(e.getAccountUsername()), styles.get(StyleKey.DATA)); // account user
-            cell(r, 2, safe(e.getCode()), styles.get(StyleKey.DATA_CENTER));
-            cell(r, 3, safe(e.getFullName()), styles.get(StyleKey.DATA));
-            cell(r, 4, safe(e.getPosition()), styles.get(StyleKey.DATA));
-            cell(r, 5, safe(e.getDepartment()), styles.get(StyleKey.DATA));
-            cell(r, 6, safe(e.getPhone()), styles.get(StyleKey.DATA_CENTER));
-            cell(r, 7, safe(e.getEmail()), styles.get(StyleKey.DATA));
+            cell(r, 1, a.getId(), styles.get(StyleKey.DATA_CENTER));
+            cell(r, 2, safe(a.getUsername()), styles.get(StyleKey.DATA));
+            cell(r, 3, a.getRole() == null ? "" : a.getRole().name(), styles.get(StyleKey.DATA_CENTER));
 
-            cell(r, 8,
-                    e.isActive() ? "ACTIVE" : "INACTIVE",
-                    e.isActive() ? styles.get(StyleKey.BADGE_ACTIVE) : styles.get(StyleKey.BADGE_INACTIVE)
+            cell(r, 4,
+                    a.isActive() ? "ACTIVE" : "INACTIVE",
+                    a.isActive() ? styles.get(StyleKey.BADGE_ACTIVE) : styles.get(StyleKey.BADGE_INACTIVE)
             );
 
-            cell(r, 9, e.getHiredDate(), styles.get(StyleKey.DATA_CENTER));
+            // lastLoginAt: nếu AbstractExcelWriter đã handle LocalDateTime ok thì giữ nguyên.
+            // Nếu chưa thì bạn có thể format string trước.
+            cell(r, 5, a.getLastLoginAt(), styles.get(StyleKey.DATA_CENTER));
         }
     }
 }

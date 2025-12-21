@@ -1,7 +1,13 @@
 package org.example.controller;
 
+import org.example.dto.request.CreateAccountRequest;
 import org.example.entity.Account;
+import org.example.entity.enums.Role;
 import org.example.service.AccountService;
+import org.example.service.UserCreationService;
+import org.example.utils.excel.AccountExcelWriter;
+import org.example.utils.excel.ExcelExporter;
+import java.awt.*;
 import java.util.List;
 
 /**
@@ -10,9 +16,11 @@ import java.util.List;
 public class AccountController {
 
     private final AccountService accountService;
+    private final UserCreationService userCreationService;
 
-    public AccountController(AccountService accountService) {
+    public AccountController(AccountService accountService, UserCreationService userCreationService) {
         this.accountService = accountService;
+        this.userCreationService = userCreationService;
     }
 
     /**
@@ -24,6 +32,20 @@ public class AccountController {
     }
 
     /**
+     * Lấy tất cả tài khoản dưới dạng AccountResponse.
+     * @return danh sách AccountResponse
+     */
+    public void getAllAccountResponses(Component component) {
+        System.out.println("[Controller] Lấy tất cả tài khoản dưới dạng AccountResponse");
+        ExcelExporter.exportWithDialog(
+                accountService.getAllAccount(),
+                new AccountExcelWriter(),
+                component
+        );
+    }
+
+
+    /**
      * Tìm tài khoản theo tên đăng nhập.
      * @param username tên đăng nhập
      * @return tài khoản hoặc null nếu không tìm thấy
@@ -33,27 +55,39 @@ public class AccountController {
     }
 
     /**
-     * Tạo tài khoản mới.
-     * @param account tài khoản cần tạo
+     * Tìm tài khoản theo ID.
+     * @param id ID của tài khoản
+     * @return tài khoản hoặc null nếu không tìm thấy
      */
-    public void createAccount(Account account) {
-        System.out.println("[Controller] Tạo tài khoản mới: " + account.getUsername());
-        accountService.create(account);
+    public Account findById(Long id) {
+        System.out.println("[Controller] Tìm tài khoản với ID: " + id);
+        return accountService.findById(id);
     }
 
     /**
-     * Cập nhật tài khoản.
-     * @param account tài khoản cần cập nhật
+     * Tạo tài khoản mới.
+     * @param request tài khoản cần tạo
      */
-    public void updateAccount(Account account) {
-        accountService.update(account);
+    public long createAccount(CreateAccountRequest request) {
+        System.out.println("[Controller] Tạo tài khoản mới: " + request.getUsername());
+        return userCreationService.createAccount(request);
+    }
+
+    /**
+     * Cập nhật vai trò và trạng thái kích hoạt của tài khoản.
+     * @param accountId ID của tài khoản cần cập nhật
+     * @param role vai trò mới
+     * @param active trạng thái kích hoạt mới
+     */
+    public void updateRoleAndStatus(long accountId, Role role, boolean active) {
+        accountService.update(accountId, role, active);
     }
 
     /**
      * Xóa tài khoản theo ID.
      * @param id ID của tài khoản cần xóa
      */
-    public void deleteAccountById(int id) {
+    public void deleteAccountById(Long id) {
         accountService.deleteById(id);
     }
 

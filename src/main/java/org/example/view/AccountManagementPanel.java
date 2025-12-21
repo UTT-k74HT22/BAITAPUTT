@@ -2,7 +2,10 @@ package org.example.view;
 
 import org.example.controller.AccountController;
 import org.example.entity.Account;
+import org.example.entity.enums.Role;
 import org.example.service.impl.AccountServiceImpl;
+import org.example.service.impl.UserCreationServiceImpl;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -28,7 +31,7 @@ public class AccountManagementPanel extends JPanel {
 
     // ===================== CONSTANTS =====================
     private static final String[] TABLE_COLUMNS = {
-            "STT", "ID", "Username", "Email", "Phone", "Role", "Status", "Last Login"
+            "STT", "ID", "Username", "Role", "Status", "Last Login"
     };
 
     // ===================== THEME =====================
@@ -40,7 +43,7 @@ public class AccountManagementPanel extends JPanel {
 
     // ===================== CONSTRUCTOR =====================
     public AccountManagementPanel() {
-        this(new AccountController(new AccountServiceImpl()));
+        this(new AccountController(new AccountServiceImpl(), new UserCreationServiceImpl()));
     }
 
     public AccountManagementPanel(AccountController controller) {
@@ -169,7 +172,7 @@ public class AccountManagementPanel extends JPanel {
     }
 
     private void configureTableColumns() {
-        int[] widths = {50, 60, 140, 220, 120, 100, 110, 160};
+        int[] widths = {50, 70, 200, 140, 120, 200};
         for (int i = 0; i < widths.length; i++) {
             accountTable.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
         }
@@ -232,9 +235,11 @@ public class AccountManagementPanel extends JPanel {
         int index = 1;
         for (Account a : accounts) {
             tableModel.addRow(new Object[]{
-                    index++, a.getId(), a.getUsername(),
-                    a.getEmail(), a.getPhone(),
-                    a.getRole(), a.isActive() ? "ACTIVE" : "INACTIVE",
+                    index++,
+                    a.getId(),
+                    a.getUsername(),
+                    a.getRole() == null ? "" : a.getRole().name(),
+                    a.isActive() ? "ACTIVE" : "INACTIVE",
                     a.getLastLoginAt() == null ? "" : a.getLastLoginAt().format(fmt)
             });
         }
@@ -252,12 +257,191 @@ public class AccountManagementPanel extends JPanel {
     }
 
     // ===================== CRUD =====================
-    private void openCreateDialog() { JOptionPane.showMessageDialog(this,"TODO: Create"); }
-    private void openEditDialog()   { JOptionPane.showMessageDialog(this,"TODO: Edit"); }
-    private void deleteSelectedAccount() { JOptionPane.showMessageDialog(this,"TODO: Delete"); }
+    private void openCreateDialog() {
+        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Tạo Account", true);
+        dialog.setSize(520, 360);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout(12, 12));
+
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(6, 6, 6, 6);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+
+        JTextField tfUsername = new JTextField(20);
+        JPasswordField pfPassword = new JPasswordField(20);
+        JPasswordField pfConfirm = new JPasswordField(20);
+
+        JComboBox<String> cbRole = new JComboBox<>(new String[]{"EMPLOYEE", "CUSTOMER"});
+        JCheckBox cbActive = new JCheckBox("Active", true);
+
+        int row = 0;
+
+        // Username
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        form.add(new JLabel("Username"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1;
+        form.add(tfUsername, gbc);
+
+        // Password
+        row++;
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        form.add(new JLabel("Password"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1;
+        form.add(pfPassword, gbc);
+
+        // Confirm
+        row++;
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        form.add(new JLabel("Confirm"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1;
+        form.add(pfConfirm, gbc);
+
+        // Role
+        row++;
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        form.add(new JLabel("Role"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1;
+        form.add(cbRole, gbc);
+
+        // Active
+        row++;
+        gbc.gridx = 1; gbc.gridy = row; gbc.weightx = 1;
+        form.add(cbActive, gbc);
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
+        JButton btnCancel = new JButton("Hủy");
+        JButton btnSave = new JButton("Lưu");
+
+        btnCancel.addActionListener(e -> dialog.dispose());
+
+        btnSave.addActionListener(e -> {
+            try {
+                String username = tfUsername.getText().trim();
+                String password = new String(pfPassword.getPassword()).trim();
+                String confirm  = new String(pfConfirm.getPassword()).trim();
+
+                org.example.dto.request.CreateAccountRequest req =
+                        new org.example.dto.request.CreateAccountRequest();
+
+                req.setUsername(username);
+                req.setPassword(password);
+                req.setConfirmPassword(confirm);
+                req.setRole(org.example.entity.enums.Role.valueOf((String) cbRole.getSelectedItem()));
+                req.setActive(cbActive.isSelected());
+
+                controller.createAccount(req);
+
+                JOptionPane.showMessageDialog(dialog, "Tạo account thành công!");
+                dialog.dispose();
+                reloadAccountTable();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialog, ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        actions.add(btnCancel);
+        actions.add(btnSave);
+
+        dialog.add(form, BorderLayout.CENTER);
+        dialog.add(actions, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
+
+    private void openEditDialog() {
+        Account acc = getSelectedAccount();
+        if (acc == null) return;
+
+        JDialog dialog = new JDialog(
+                SwingUtilities.getWindowAncestor(this),
+                "Cập nhật tài khoản",
+                Dialog.ModalityType.APPLICATION_MODAL
+        );
+        dialog.setSize(400, 260);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout(10,10));
+
+        // ===== FORM =====
+        JPanel form = new JPanel(new GridLayout(3,2,10,10));
+        form.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
+
+        JTextField usernameField = new JTextField(acc.getUsername());
+        usernameField.setEnabled(false);
+
+        JComboBox<Role> roleBox = new JComboBox<>(Role.values());
+        roleBox.setSelectedItem(acc.getRole());
+
+        JComboBox<String> statusBox = new JComboBox<>(new String[]{"ACTIVE", "INACTIVE"});
+        statusBox.setSelectedItem(acc.isActive() ? "ACTIVE" : "INACTIVE");
+
+        form.add(new JLabel("Username"));
+        form.add(usernameField);
+        form.add(new JLabel("Role"));
+        form.add(roleBox);
+        form.add(new JLabel("Status"));
+        form.add(statusBox);
+
+        // ===== BUTTON =====
+        JButton saveBtn = new JButton("Lưu");
+        JButton cancelBtn = new JButton("Hủy");
+
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        footer.add(cancelBtn);
+        footer.add(saveBtn);
+
+        dialog.add(form, BorderLayout.CENTER);
+        dialog.add(footer, BorderLayout.SOUTH);
+
+        // ===== EVENTS =====
+        cancelBtn.addActionListener(e -> dialog.dispose());
+
+        saveBtn.addActionListener(e -> {
+            Role newRole = (Role) roleBox.getSelectedItem();
+            boolean newStatus = "ACTIVE".equals(statusBox.getSelectedItem());
+
+            controller.updateRoleAndStatus(acc.getId(), newRole, newStatus);
+
+            dialog.dispose();
+            reloadAccountTable();
+            JOptionPane.showMessageDialog(this, "Cập nhật thành công");
+        });
+
+        dialog.setVisible(true);
+    }
+    private void deleteSelectedAccount() {
+        Account acc = getSelectedAccount();
+        if (acc == null) return;
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có chắc chắn muốn xóa tài khoản '" + acc.getUsername() + "' không?",
+                "Xác nhận xóa",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            controller.deleteAccountById(acc.getId());
+            reloadAccountTable();
+            JOptionPane.showMessageDialog(this, "Xóa tài khoản thành công.");
+        }
+    }
 
     // ===================== EXPORT =====================
-    private void exportExcel() { JOptionPane.showMessageDialog(this,"TODO: Export Excel"); }
+    private void exportExcel() {
+        int choice = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có muốn xuất danh sách nhân viên ra file Excel không?",
+                "Xác nhận xuất Excel",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (choice != JOptionPane.YES_OPTION) return;
+
+        controller.getAllAccountResponses(this);
+    }
     private void exportPdf()   { JOptionPane.showMessageDialog(this,"TODO: Export PDF"); }
 
     // ===================== UTIL =====================
@@ -281,5 +465,16 @@ public class AccountManagementPanel extends JPanel {
         b.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 14));
         b.addActionListener(action);
         return b;
+    }
+
+    private Account getSelectedAccount() {
+        int row = accountTable.getSelectedRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn một tài khoản từ bảng.", "Chú ý", JOptionPane.WARNING_MESSAGE);
+            return null;
+        } else {
+            long accountId = (long) tableModel.getValueAt(row, 1);
+            return controller.findById(accountId);
+        }
     }
 }

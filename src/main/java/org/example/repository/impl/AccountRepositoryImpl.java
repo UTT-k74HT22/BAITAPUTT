@@ -43,25 +43,20 @@ public class AccountRepositoryImpl extends BaseRepository implements AccountRepo
     }
 
     /**
-     * Lưu tài khoản mới.
+     * Tìm tài khoản theo ID.
      *
-     * @param account tài khoản cần lưu
+     * @param id ID của tài khoản
+     * @return tài khoản hoặc null nếu không tìm thấy
      */
     @Override
-    public void save(Account account) {
+    public Account findById(Long id) {
         String sql = """
-            INSERT INTO accounts(username, password, email, phone, role, is_active, last_login_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            SELECT id, username, password, role, is_active, last_login_at
+            FROM accounts
+            WHERE id = ?
         """;
-        executeUpdate(sql, ps -> {
-            ps.setString(1, account.getUsername());
-            ps.setString(2, account.getPassword());
-            ps.setString(3, account.getEmail());
-            ps.setString(4, account.getPhone());
-            ps.setString(5, account.getRole() != null ? account.getRole().name() : null);
-            ps.setBoolean(6, account.isActive());
-            ps.setTimestamp(7, toTimestamp(account.getLastLoginAt()));
-        });
+        Optional<Account> account = queryForObject(sql, params(id), this::mapRow);
+        return account.orElse(null);
     }
 
     /**
@@ -91,27 +86,20 @@ public class AccountRepositoryImpl extends BaseRepository implements AccountRepo
     }
 
     /**
-     * Cập nhật tài khoản.
+     * Cập nhật vai trò và trạng thái kích hoạt của tài khoản.
      *
-     * @param account tài khoản cần cập nhật
+     * @param id     ID của tài khoản cần cập nhật
+     * @param role   vai trò mới
+     * @param active trạng thái kích hoạt mới
      */
     @Override
-    public void update(Account account) {
+    public void updateRoleAndStatus(long id, Role role, boolean active) {
         String sql = """
             UPDATE accounts
-            SET password = ?,
-                role = ?,
-                is_active = ?,
-                last_login_at = ?
+            SET role = ?, is_active = ?
             WHERE id = ?
         """;
-        executeUpdate(sql, ps -> {
-            ps.setString(1, account.getPassword());
-            ps.setString(2, account.getRole() != null ? account.getRole().name() : null);
-            ps.setBoolean(3, account.isActive());
-            ps.setTimestamp(4, toTimestamp(account.getLastLoginAt()));
-            ps.setLong(5, account.getId());
-        });
+        executeUpdate(sql, params(role.name(), active, id));
     }
 
     /**
@@ -120,7 +108,7 @@ public class AccountRepositoryImpl extends BaseRepository implements AccountRepo
      * @param id ID của tài khoản cần xóa
      */
     @Override
-    public void deleteById(int id) {
+    public void deleteById(Long id) {
         String sql = """
             UPDATE accounts
             SET is_active = FALSE

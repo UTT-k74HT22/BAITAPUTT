@@ -1,50 +1,42 @@
-package org.example.dto.request;
+package org.example.dto.response;
+
+import org.example.entity.enums.ProfileStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public class CreateEmployeeRequest {
-    private String username;
-    private String password;
-    private String fullName;
-    private String phone;
+public class EmployeeProfileDetailResponse extends EmployeeProfileResponse {
     private String email;
     private String address;
-    private String position;
     private String department;
     private LocalDate hiredDate;
     private BigDecimal salary;
 
-    public String getUsername() {
-        return username;
+    public EmployeeProfileDetailResponse(
+            Long accountId,
+            String accountUsername,
+            Long profileId,
+            String code,
+            String fullName,
+            String phone,
+            String email,
+            String address,
+            String position,
+            String department,
+            LocalDate hiredDate,
+            BigDecimal salary,
+            ProfileStatus status
+    ) {
+        super(accountId, accountUsername, profileId, code, fullName, phone, position, status);
+        this.email = email;
+        this.address = address;
+        this.department = department;
+        this.hiredDate = hiredDate;
+        this.salary = salary;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    public EmployeeProfileDetailResponse() {
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
     }
 
     public String getEmail() {
@@ -61,14 +53,6 @@ public class CreateEmployeeRequest {
 
     public void setAddress(String address) {
         this.address = address;
-    }
-
-    public String getPosition() {
-        return position;
-    }
-
-    public void setPosition(String position) {
-        this.position = position;
     }
 
     public String getDepartment() {
@@ -95,4 +79,3 @@ public class CreateEmployeeRequest {
         this.salary = salary;
     }
 }
-
