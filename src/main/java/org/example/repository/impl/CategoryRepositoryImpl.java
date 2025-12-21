@@ -110,7 +110,11 @@ public class CategoryRepositoryImpl extends BaseRepository implements CategoryRe
     // ==================== DELETE ====================
     @Override
     public void deleteById(Long id) {
-        String sql = "DELETE FROM categories WHERE id = ?";
+        String sql = """
+                UPDATE categories
+                SET is_active = 0
+                WHERE id = ?
+                """;
         executeUpdate(sql, params(id));
     }
 
