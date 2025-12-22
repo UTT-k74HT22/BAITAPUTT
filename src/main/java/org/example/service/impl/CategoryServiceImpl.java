@@ -45,8 +45,13 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public void deleteCategory(Long id) {
-        categoryRepository.deleteById(id);
+    public void delete(String code) {
+        Category c = categoryRepository.findByCode(code);
+        if (c == null) {
+            throw new RuntimeException("Category not found: " + code);
+        }
+        c.setActive(false); // soft delete
+        categoryRepository.update(c);
     }
 
     @Override
@@ -56,7 +61,6 @@ public class CategoryServiceImpl implements CategoryService {
         }
         return categoryRepository.search(keyword.trim());
     }
-
 
     @Override
     public boolean existsByCode(String code) {

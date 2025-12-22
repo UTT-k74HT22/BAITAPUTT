@@ -2,6 +2,8 @@ package org.example.service;
 
 import org.example.dto.response.CategoryResponse;
 import org.example.entity.Category;
+import org.example.entity.enums.ProfileStatus;
+
 import java.util.List;
 
 public interface CategoryService {
@@ -31,10 +33,7 @@ public interface CategoryService {
      */
     void updateCategory(Category category);
 
-    /**
-     * Xóa category theo ID.
-     */
-    void deleteCategory(Long id);
+
 
     /**
      * Tìm kiếm category theo keyword (code hoặc name).
@@ -45,5 +44,7 @@ public interface CategoryService {
      * Kiểm tra tồn tại theo code.
      */
     boolean existsByCode(String code);
+
+    void delete(String code);
 }
 

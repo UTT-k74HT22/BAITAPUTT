@@ -98,11 +98,17 @@ public class CategoryController {
      *
      * @param id ID của category cần xóa
      */
-    public void deleteCategory(Long id) {
-        System.out.println("[Controller] Xóa category: ID=" + id);
-        categoryService.deleteCategory(id);
-        System.out.println("[Controller] Xóa thành công");
+    /**
+     * Soft delete category (set is_active = 0)
+     *
+     * @param code mã category
+     */
+    public void delete(String code) {
+        System.out.println("[Controller] Soft delete category");
+        categoryService.delete(code);
     }
+
+
 
 
     /**
