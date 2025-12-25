@@ -45,37 +45,29 @@ public class ManufacturerReponsitoryImpl extends BaseRepository implements Manuf
         return result.orElse(null);
     }
 
-
     /**
      *
-     * @param conn
+     * @param
      * @param m
      * @return
      */
     @Override
-    public long insert(Connection conn, Manufacturer m){
+    public long insert(Manufacturer m){
         String sql = """
             INSERT INTO manufacturers
             (code, name, country, address, phone, email, contact_person) VALUES (?, ?, ?, ?, ?, ?, ?)
         """;
 
-        try {
-            return executeInsertAndReturnId(conn, sql, ps -> {
-                ps.setString(1, m.getCode());
-                ps.setString(2, m.getName());
-                ps.setString(3, m.getCountry());
-                ps.setString(4, m.getAddress());
-                ps.setString(5, m.getPhone());
-                ps.setString(6, m.getEmail());
-                ps.setString(7, m.getContactPerson());
-            });
-        } catch (SQLException e) {
-            throw new RuntimeException(
-                    "Insert manufacturer failed: " + e.getMessage(), e
-            );
-        }
+        return executeInsertAndReturnId(sql, ps -> {
+            ps.setString(1, m.getCode());
+            ps.setString(2, m.getName());
+            ps.setString(3, m.getCountry());
+            ps.setString(4, m.getAddress());
+            ps.setString(5, m.getPhone());
+            ps.setString(6, m.getEmail());
+            ps.setString(7, m.getContactPerson());
+        });
     }
-
     /**
      *
      * @param m
@@ -111,6 +103,21 @@ public class ManufacturerReponsitoryImpl extends BaseRepository implements Manuf
             WHERE id = ?
         """;
         executeUpdate(sql, params(id));
+    }
+
+    /**
+     *
+     * @param code
+     * @return
+     */
+    @Override
+    public boolean ExistsByCode(String code) {
+        String sql = """
+            SELECT 1 FROM manufacturers
+            WHERE code = ?
+            LIMIT 1;
+        """;
+        return exists(sql, params(code));
     }
 
     /**

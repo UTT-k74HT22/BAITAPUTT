@@ -20,12 +20,11 @@ public interface ManufacturerReponsitory {
     Manufacturer findById(Long id);
 
     /**
-     *
-     * @param conn
      * @param m
      * @return
      */
-    long insert(Connection conn, Manufacturer m);
+    long insert(Manufacturer m);
+
 
     /**
      *
@@ -38,4 +37,11 @@ public interface ManufacturerReponsitory {
      * @param id
      */
     void deleteById(Long id);
+
+    /**
+     *
+     * @param code
+     * @return
+     */
+    boolean ExistsByCode(String code);
 }
