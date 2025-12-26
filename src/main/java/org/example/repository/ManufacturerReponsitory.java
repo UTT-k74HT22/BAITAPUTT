@@ -1,7 +1,8 @@
 package org.example.repository;
 
+import org.example.dto.response.ManufacturerResponse;
 import org.example.entity.Manufacturer;
-import java.sql.Connection;
+
 import java.util.List;
 
 public interface ManufacturerReponsitory {
@@ -44,4 +45,11 @@ public interface ManufacturerReponsitory {
      * @return
      */
     boolean ExistsByCode(String code);
+    /**
+     * Lấy tất cả manufacturer có status = ACTIVE
+     *
+     * @return danh sách manufacturer
+     *
+     */
+    List<ManufacturerResponse> findAllActive();
 }

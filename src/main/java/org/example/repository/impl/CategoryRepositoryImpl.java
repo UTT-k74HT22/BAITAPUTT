@@ -2,6 +2,7 @@ package org.example.repository.impl;
 
 import org.example.dto.response.CategoryResponse;
 import org.example.entity.Category;
+import org.example.entity.Manufacturer;
 import org.example.repository.BaseRepository;
 import org.example.repository.CategoryRepository;
 import java.sql.ResultSet;
@@ -123,6 +124,27 @@ public class CategoryRepositoryImpl extends BaseRepository implements CategoryRe
     public boolean existsByCode(String code) {
         String sql = "SELECT 1 FROM categories WHERE code = ?";
         return exists(sql, params(code));
+    }
+
+    @Override
+    public List<CategoryResponse> findAllActive() {
+        String sql = """
+        SELECT
+            c.id,
+            c.code,
+            c.name,
+            c.description,
+            c.parent_id,
+            c.is_active,
+            c.display_order,
+            p.name AS parent_name
+        FROM categories c
+        LEFT JOIN categories p ON c.parent_id = p.id
+        WHERE c.is_active = 1
+        ORDER BY c.display_order, c.name
+        """;
+
+        return queryForList(sql, this::mapRowToDto);
     }
 
     // ==================== MAPPERS ====================

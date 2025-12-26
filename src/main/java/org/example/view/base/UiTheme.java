@@ -6,6 +6,7 @@ public final class UiTheme {
     private UiTheme() {}
 
     public static final Color PRIMARY = new Color(113, 99, 248);
+    public static final Color SECONDARY = new Color(108,117,125);
     public static final Color BORDER  = new Color(230, 232, 245);
     public static final Color ROW_ALT = new Color(248, 249, 255);
     public static final Color SELECT  = new Color(232, 236, 255);
