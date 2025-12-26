@@ -37,6 +37,12 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
             "Giá", "Toa thuốc", "Trạng thái"
     };
 
+    public ProductManagementPanel() {
+        this.controller = new ProductController(new ProductServiceImpl());
+        this.parentFrame = null;
+        reload();
+    }
+
     // ===== Category giả lập =====
     private static class CategoryOption {
         Long id;

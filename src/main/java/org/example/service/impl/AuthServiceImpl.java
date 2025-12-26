@@ -50,10 +50,11 @@ public class AuthServiceImpl implements AuthService {
             return null;
         }
 
-        if (!account.getPassword().equals(password)) {
+        if (!BCrypt.checkpw(password, account.getPassword())) {
             log.info("Login failed: incorrect password - " + username);
             return null;
         }
+
         log.info("Login successful: " + username);
         return account;
     }
