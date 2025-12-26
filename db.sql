@@ -328,3 +328,61 @@ CREATE TABLE payments (
 
 -- Example: set first account as ADMIN
 UPDATE accounts SET role = 'ADMIN' WHERE id = 1;
+
+
+
+INSERT INTO categories (code, name, description, parent_id, display_order)
+VALUES ('MED', 'Thuốc', 'Nhóm thuốc điều trị', NULL, 1),
+       ('OTC', 'Thuốc không kê đơn', 'Thuốc OTC', 1, 1),
+       ('ETC', 'Thuốc kê đơn', 'Thuốc ETC', 1, 2),
+
+       ('SUP', 'Thực phẩm chức năng', 'Nhóm thực phẩm chức năng', NULL, 2),
+       ('VIT', 'Vitamin & Khoáng chất', 'Vitamin và khoáng', 4, 1),
+       ('IMM', 'Tăng đề kháng', 'Hỗ trợ miễn dịch', 4, 2),
+
+       ('EQUIP', 'Thiết bị y tế', 'Thiết bị y tế', NULL, 3),
+       ('BP', 'Máy đo huyết áp', 'Thiết bị đo huyết áp', 7, 1),
+       ('GLU', 'Máy đo đường huyết', 'Thiết bị đo đường huyết', 7, 2),
+
+       ('CARE', 'Chăm sóc cá nhân', 'Chăm sóc sức khỏe cá nhân', NULL, 4),
+       ('SKIN', 'Chăm sóc da', 'Sản phẩm chăm sóc da', 10, 1),
+       ('BABY', 'Chăm sóc trẻ em', 'Sản phẩm cho trẻ em', 10, 2);
+
+
+INSERT INTO manufacturers (code, name, country, address, phone, email, contact_person)
+VALUES ('DHG', 'Dược Hậu Giang', 'Việt Nam', 'Cần Thơ', '02923895555', 'info@dhgpharma.com.vn', 'Nguyễn Văn A'),
+       ('TRA', 'Traphaco', 'Việt Nam', 'Hà Nội', '02437633333', 'contact@traphaco.com.vn', 'Trần Thị B'),
+       ('IMEX', 'Imexpharm', 'Việt Nam', 'Đồng Tháp', '02773856789', 'info@imexpharm.com', 'Lê Văn C'),
+       ('SANOFI', 'Sanofi', 'Pháp', 'Paris, France', '+33123456789', 'contact@sanofi.com', 'Jean Dupont'),
+       ('GSK', 'GlaxoSmithKline', 'Anh', 'London, UK', '+442012345678', 'info@gsk.com', 'David Smith'),
+       ('PFIZER', 'Pfizer', 'Mỹ', 'New York, USA', '+12125551234', 'support@pfizer.com', 'Michael Johnson'),
+       ('ABBOTT', 'Abbott', 'Mỹ', 'Illinois, USA', '+13125559876', 'info@abbott.com', 'Emily Brown'),
+       ('BAYER', 'Bayer', 'Đức', 'Leverkusen, Germany', '+492145123456', 'contact@bayer.com', 'Hans Müller'),
+       ('ROCHE', 'Roche', 'Thụy Sĩ', 'Basel, Switzerland', '+41611234567', 'info@roche.com', 'Anna Keller'),
+       ('MEDELA', 'Medela', 'Thụy Sĩ', 'Zug, Switzerland', '+41411223344', 'contact@medela.com', 'Laura Meier');
+
+
+INSERT INTO products
+(category_id, manufacturer_id, code, barcode, name, dosage_form, unit, description,
+ image_url, standard_price, requires_prescription, status)
+VALUES
+    (2, 1, 'PARA500', '893600123001', 'Paracetamol 500mg', 'Viên nén', 'Hộp', 'Giảm đau hạ sốt', NULL, 15000, 0, 'ACTIVE'),
+    (3, 2, 'AMOX500', '893600123002', 'Amoxicillin 500mg', 'Viên nang', 'Hộp', 'Kháng sinh', NULL, 55000, 1, 'ACTIVE'),
+    (3, 3, 'CEPHA250', '893600123003', 'Cephalexin 250mg', 'Viên nang', 'Hộp', 'Kháng sinh cephalosporin', NULL, 65000, 1, 'ACTIVE'),
+    (2, 4, 'PANADOL', '893600123004', 'Panadol Extra', 'Viên nén', 'Hộp', 'Giảm đau nhanh', NULL, 30000, 0, 'ACTIVE'),
+    (3, 5, 'AUGMENTIN', '893600123005', 'Augmentin 625mg', 'Viên nén', 'Hộp', 'Kháng sinh phổ rộng', NULL, 120000, 1, 'ACTIVE'),
+
+    (5, 7, 'VITC500', '893600123006', 'Vitamin C 500mg', 'Viên sủi', 'Tuýp', 'Tăng đề kháng', NULL, 45000, 0, 'ACTIVE'),
+    (6, 8, 'IMMUNO', '893600123007', 'Immuno Boost', 'Viên nang', 'Hộp', 'Hỗ trợ miễn dịch', NULL, 98000, 0, 'ACTIVE'),
+
+    (8, 9, 'BPOMRON', '893600123008', 'Máy đo huyết áp Omron', 'Thiết bị', 'Cái', 'Đo huyết áp điện tử', NULL, 750000, 0, 'ACTIVE'),
+    (9, 9, 'GLUROCHE', '893600123009', 'Máy đo đường huyết Roche', 'Thiết bị', 'Cái', 'Đo đường huyết', NULL, 680000, 0, 'ACTIVE'),
+
+    (11, 6, 'ACNEGEL', '893600123010', 'Gel trị mụn', 'Gel', 'Tuýp', 'Điều trị mụn', NULL, 85000, 0, 'ACTIVE'),
+    (11, 8, 'SUNSCREEN', '893600123011', 'Kem chống nắng SPF50', 'Kem', 'Tuýp', 'Bảo vệ da', NULL, 120000, 0, 'ACTIVE'),
+
+    (12, 10, 'BABYMILK', '893600123012', 'Sữa cho trẻ sơ sinh', 'Bột', 'Lon', 'Dinh dưỡng cho bé', NULL, 420000, 0, 'ACTIVE'),
+    (12, 10, 'BABYCARE', '893600123013', 'Dung dịch vệ sinh cho bé', 'Dung dịch', 'Chai', 'Chăm sóc trẻ em', NULL, 68000, 0, 'ACTIVE'),
+
+    (2, 1, 'IBU400', '893600123014', 'Ibuprofen 400mg', 'Viên nén', 'Hộp', 'Giảm đau kháng viêm', NULL, 28000, 0, 'ACTIVE'),
+    (3, 5, 'ZITHRO', '893600123015', 'Azithromycin 500mg', 'Viên nén', 'Hộp', 'Kháng sinh macrolid', NULL, 135000, 1, 'ACTIVE');
