@@ -191,11 +191,4 @@ public class MainFrame extends JFrame {
             graphics.fillRoundRect(0, 0, width - 8, height - 8, arcs.width, arcs.height);
         }
     }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            MainFrame mainFrame = new MainFrame("john_doe", Role.ADMIN);
-            mainFrame.setVisible(true);
-        });
-    }
 }

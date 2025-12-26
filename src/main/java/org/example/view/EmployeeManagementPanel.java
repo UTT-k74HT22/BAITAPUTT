@@ -731,15 +731,4 @@ public class EmployeeManagementPanel extends JPanel {
         gc.gridx = 1; gc.weightx = 1;
         panel.add(field, gc);
     }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Employee Management");
-            frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-            frame.setSize(1000, 600);
-            frame.setLocationRelativeTo(null);
-            frame.setContentPane(new EmployeeManagementPanel());
-            frame.setVisible(true);
-        });
-    }
 }

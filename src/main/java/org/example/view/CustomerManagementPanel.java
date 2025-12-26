@@ -129,18 +129,5 @@ public class CustomerManagementPanel extends BaseManagementPanel<CustomerProfile
     private void openCreate() { JOptionPane.showMessageDialog(this, "TODO create customer"); }
     private void openEdit()   { JOptionPane.showMessageDialog(this, "TODO edit customer"); }
     private void deleteCustomer() { JOptionPane.showMessageDialog(this, "TODO delete customer"); }
-
     private String safe(Object v) { return v == null ? "" : v.toString(); }
-
-    // Demo run
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            JFrame f = new JFrame("Customer Management");
-            f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            f.setSize(1000, 650);
-            f.setLocationRelativeTo(null);
-            f.setContentPane(new CustomerManagementPanel());
-            f.setVisible(true);
-        });
-    }
 }
