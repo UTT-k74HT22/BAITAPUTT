@@ -1,8 +1,11 @@
 package org.example.repository.impl;
 
+import org.example.dto.request.UpdateEmployeeProfileDetailRequest;
+import org.example.dto.request.UpdateProfileEmployeeRequest;
 import org.example.repository.BaseRepository;
 import org.example.repository.UserProfileRepository;
 import java.sql.Connection;
+import java.util.Optional;
 
 public class UserProfileRepositoryImpl extends BaseRepository implements UserProfileRepository {
     /**
@@ -67,5 +70,67 @@ public class UserProfileRepositoryImpl extends BaseRepository implements UserPro
         } catch (Exception e) {
             throw new RuntimeException("Generate code failed: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Tìm ID hồ sơ người dùng dựa trên mã hồ sơ.
+     *
+     * @param code mã hồ sơ
+     * @return Optional chứa ID hồ sơ nếu tìm thấy, ngược lại là rỗng
+     */
+    @Override
+    public Optional<Long> findIdByCode(String code) {
+        String sql = """
+                SELECT id
+                FROM user_profiles
+                WHERE code = ?
+                """;
+        return queryForObject(sql, params(code), rs -> rs.getLong("id"));
+    }
+
+    /**
+     * Cập nhật thông tin cơ bản của hồ sơ người dùng dựa trên mã hồ sơ.
+     *
+     * @param code    mã hồ sơ
+     * @param request đối tượng yêu cầu chứa thông tin cập nhật
+     */
+    @Override
+    public void updateBasicByCode(String code, UpdateProfileEmployeeRequest request) {
+        String sql = """
+                UPDATE user_profiles
+                SET full_name = ?,
+                    phone = ?,
+                    status = ?
+                WHERE code = ?
+                """;
+        executeUpdate(sql, ps -> {
+            ps.setString(1, request.getFullName());
+            ps.setString(2, request.getPhone());
+            ps.setString(3, request.getStatus().name());
+            ps.setString(4, code);
+        });
+    }
+
+    /**
+     * Cập nhật chi tiết hồ sơ người dùng dựa trên mã hồ sơ.
+     *
+     * @param code    mã hồ sơ
+     * @param request đối tượng yêu cầu chứa thông tin cập nhật chi tiết
+     */
+    @Override
+    public void updateDetailByCode(String code, UpdateEmployeeProfileDetailRequest request) {
+        String sql = """
+        UPDATE user_profiles
+        SET full_name = ?, phone = ?, email = ?, address = ?, status = ?
+        WHERE code = ?
+        """;
+        executeUpdate(sql, ps -> {
+            ps.setString(1, request.getFullName());
+            ps.setString(2, request.getPhone());
+            ps.setString(3, request.getEmail());
+            ps.setString(4, request.getAddress());
+            ps.setString(5, request.getStatus() == null ? null : request.getStatus().name());
+            ps.setString(6, code);
+        });
     }
 }
