@@ -163,6 +163,9 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
         row.add(UiFactory.button("🗑️ Xóa", new Color(220,53,69), e -> deleteProduct()));
         row.add(UiFactory.button("🔍 Chi tiết", new Color(108,117,125), e -> openDetail()));
         row.add(UiFactory.button("🔄 Refresh", new Color(108,117,125), e -> reload()));
+        row.add(Box.createHorizontalStrut(20));
+        row.add(UiFactory.button("📥 Download Template", new Color(23,162,184), e -> downloadTemplate()));
+        row.add(UiFactory.button("📤 Import Excel", new Color(102,16,242), e -> importFromExcel()));
 
         return row;
     }
@@ -317,6 +320,133 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
         d.pack();
         d.setLocationRelativeTo(parentFrame);
         d.setVisible(true);
+    }
+
+    // ================= IMPORT/EXPORT =================
+
+    /**
+     * Download file template Excel để user có thể điền dữ liệu
+     */
+    private void downloadTemplate() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Lưu Template Excel");
+        fileChooser.setSelectedFile(new java.io.File("Product_Import_Template.xlsx"));
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+                "Excel Files (*.xlsx)", "xlsx"));
+
+        if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            java.io.File file = fileChooser.getSelectedFile();
+            String path = file.getAbsolutePath();
+            if (!path.toLowerCase().endsWith(".xlsx")) {
+                path += ".xlsx";
+            }
+
+            try {
+                org.example.utils.importer.template.ProductTemplateGenerator.generateTemplate(path);
+                JOptionPane.showMessageDialog(this,
+                        "Template đã được tạo thành công!\n" + path,
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                // Mở thư mục chứa file
+                if (java.awt.Desktop.isDesktopSupported()) {
+                    java.awt.Desktop.getDesktop().open(file.getParentFile());
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this,
+                        "Lỗi khi tạo template: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    /**
+     * Import dữ liệu từ file Excel
+     */
+    private void importFromExcel() {
+        // Chọn file
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Chọn file Excel để import");
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+                "Excel Files (*.xlsx, *.xls)", "xlsx", "xls"));
+
+        if (fileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        java.io.File file = fileChooser.getSelectedFile();
+
+        // Hiển thị loading
+        setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+
+        try {
+            // Khởi tạo import service
+            org.example.repository.CategoryRepository categoryRepo =
+                new org.example.repository.impl.CategoryRepositoryImpl();
+            org.example.repository.ManufacturerReponsitory manufacturerRepo =
+                new org.example.repository.impl.ManufacturerReponsitoryImpl();
+            org.example.repository.ProductRepository productRepo =
+                new org.example.repository.impl.ProductRepositoryImpl();
+
+            org.example.service.impl.ProductImportService importService =
+                new org.example.service.impl.ProductImportService(
+                    productRepo, categoryRepo, manufacturerRepo);
+
+            // Preview dữ liệu
+            org.example.dto.response.ImportPreviewResponse<org.example.dto.request.ImportProductRequest> preview =
+                importService.previewFromFile(file);
+
+            setCursor(java.awt.Cursor.getDefaultCursor());
+
+            // Hiển thị preview dialog
+            String[] columnNames = {
+                "Code", "Name", "Category", "Manufacturer",
+                "Barcode", "Dosage Form", "Unit", "Price", "Prescription"
+            };
+
+            org.example.view.dialog.ImportPreviewDialog<org.example.dto.request.ImportProductRequest> dialog =
+                new org.example.view.dialog.ImportPreviewDialog<>(
+                    (java.awt.Frame) javax.swing.SwingUtilities.getWindowAncestor(this),
+                    preview,
+                    columnNames,
+                    dto -> new Object[]{
+                        dto.getCode(),
+                        dto.getName(),
+                        dto.getCategoryCode(),
+                        dto.getManufacturerCode(),
+                        dto.getBarcode(),
+                        dto.getDosageForm(),
+                        dto.getUnit(),
+                        dto.getStandardPrice(),
+                        dto.getRequiresPrescription() ? "Yes" : "No"
+                    }
+                );
+
+            dialog.setVisible(true);
+
+            // Nếu user confirm, thực hiện import
+            if (dialog.isConfirmed()) {
+                setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+                int imported = importService.applyImport(dialog.getValidData());
+                setCursor(java.awt.Cursor.getDefaultCursor());
+
+                JOptionPane.showMessageDialog(this,
+                        "Đã import thành công " + imported + " sản phẩm!",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                reload(); // Refresh table
+            }
+
+        } catch (Exception ex) {
+            setCursor(java.awt.Cursor.getDefaultCursor());
+            JOptionPane.showMessageDialog(this,
+                    "Lỗi khi import: " + ex.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {

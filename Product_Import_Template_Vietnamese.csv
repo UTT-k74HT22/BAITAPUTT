@@ -1,0 +1,12 @@
+Code,Name,Category Code,Manufacturer Code,Barcode,Dosage Form,Unit,Description,Standard Price,Requires Prescription
+BABYWIPES,Khăn ướt cho bé,BABY,MEDELA,893600123025,Khăn,Gói,Chăm sóc trẻ em,45000,No
+MASK_N95,Khẩu trang N95,CARE,3M,893600123024,Khẩu trang,Hộp,Khẩu trang y tế,125000,No
+THERMO_01,Nhiệt kế điện tử,EQUIP,OMRON,893600123023,Thiết bị,Cái,Đo nhiệt độ cơ thể,180000,No
+CALCI_D3,Calcium + D3,VIT,ABBOTT,893600123022,Viên sủi,Tuýp,Bổ sung canxi vitamin D3,55000,No
+METFORM850,Metformin 850mg,ETC,GSK,893600123021,Viên nén,Hộp,Điều trị tiểu đường type 2,32000,Yes
+OMEZ20,Omeprazole 20mg,ETC,SANOFI,893600123020,Viên nang,Hộp,Điều trị viêm loét dạ dày,45000,Yes
+CEFIX200,Cefixime 200mg,ETC,PFIZER,893600123019,Viên nang,Hộp,Kháng sinh thế hệ 3,85000,Yes
+LACTO_PRO,Lactobacillus Probiotic,IMM,TRA,893600123018,Gói,Hộp,Hỗ trợ tiêu hóa,65000,No
+VITAMIN_B,Vitamin B Complex,VIT,ABBOTT,893600123017,Viên nang,Lọ,Bổ sung vitamin B,75000,No
+ASPIRIN300,Aspirin 300mg,OTC,DHG,893600123016,Viên nén,Hộp,Giảm đau hạ sốt,18000,No
+
