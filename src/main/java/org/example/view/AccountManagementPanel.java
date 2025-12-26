@@ -79,7 +79,7 @@ public class AccountManagementPanel extends JPanel {
         row.setOpaque(false);
 
         searchField = createTextField(20);
-        JButton searchBtn = createButton("🔍 Tìm", COLOR_PRIMARY, e -> searchByUsername());
+        JButton searchBtn = createButton("Tìm", COLOR_PRIMARY, e -> searchByUsername());
 
         roleFilter = new JComboBox<>(new String[]{"ALL", "ADMIN", "EMPLOYEE", "CUSTOMER"});
         statusFilter = new JComboBox<>(new String[]{"ALL", "ACTIVE", "INACTIVE"});
@@ -104,13 +104,13 @@ public class AccountManagementPanel extends JPanel {
         JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 5));
         row.setOpaque(false);
 
-        row.add(createButton("➕ Thêm", new Color(40,167,69), e -> openCreateDialog()));
-        row.add(createButton("✏️ Sửa", new Color(255,193,7), e -> openEditDialog()));
-        row.add(createButton("🗑️ Xóa", new Color(220,53,69), e -> deleteSelectedAccount()));
-        row.add(createButton("🔄 Refresh", new Color(108,117,125), e -> reloadAccountTable()));
+        row.add(createButton("Thêm", new Color(40,167,69), e -> openCreateDialog()));
+        row.add(createButton("Sửa", new Color(255,193,7), e -> openEditDialog()));
+        row.add(createButton("Xóa", new Color(220,53,69), e -> deleteSelectedAccount()));
+        row.add(createButton("Refresh", new Color(108,117,125), e -> reloadAccountTable()));
         row.add(Box.createHorizontalStrut(20));
-        row.add(createButton("📊 Excel", new Color(23,162,184), e -> exportExcel()));
-        row.add(createButton("📄 PDF", new Color(111,66,193), e -> exportPdf()));
+        row.add(createButton("Excel", new Color(23,162,184), e -> exportExcel()));
+        row.add(createButton("PDF", new Color(111,66,193), e -> exportPdf()));
 
         return row;
     }

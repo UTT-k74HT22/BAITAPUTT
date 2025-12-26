@@ -67,11 +67,11 @@ public class ManufacturerManagementPanel extends JPanel {
         row.setOpaque(false);
 
         searchField = createTextField(20);
-        JButton searchBtn = createButton("🔍 Tìm", COLOR_PRIMARY, e -> search());
-        JButton addBtn = createButton("➕ Thêm", new Color(40,167,69), e -> openCreateDialog());
-        JButton editBtn = createButton("✏️ Sửa", new Color(255,193,7), e -> openEditDialog());
-        JButton delBtn = createButton("🗑️ Xóa", new Color(220,53,69), e -> delete());
-        JButton refreshBtn = createButton("🔄 Refresh", new Color(108,117,125), e -> reloadTable());
+        JButton searchBtn = createButton("Tìm", COLOR_PRIMARY, e -> search());
+        JButton addBtn = createButton("Thêm", new Color(40,167,69), e -> openCreateDialog());
+        JButton editBtn = createButton("Sửa", new Color(255,193,7), e -> openEditDialog());
+        JButton delBtn = createButton("Xóa", new Color(220,53,69), e -> delete());
+        JButton refreshBtn = createButton("Refresh", new Color(108,117,125), e -> reloadTable());
 
         row.add(new JLabel("Keyword:"));
         row.add(searchField);

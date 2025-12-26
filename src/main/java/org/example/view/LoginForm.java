@@ -37,7 +37,7 @@ public class LoginForm extends JFrame {
         add(container);
 
         // ===== TITLE =====
-        JLabel title = new JLabel("QUẢN LÝ SINH VIÊN", SwingConstants.CENTER);
+        JLabel title = new JLabel("Hospital System", SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 22));
         title.setForeground(new Color(50, 50, 70));
         title.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
