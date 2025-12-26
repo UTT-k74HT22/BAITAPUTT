@@ -2,10 +2,16 @@ package org.example.service.impl;
 
 import org.example.dto.request.Product.CreateProductRequest;
 import org.example.dto.request.Product.UpdateProductRequest;
+import org.example.dto.response.CategoryResponse;
+import org.example.dto.response.ManufacturerResponse;
 import org.example.dto.response.Product.ProductDetailResponse;
 import org.example.dto.response.Product.ProductResponse;
 import org.example.entity.enums.ProductStatus;
+import org.example.repository.CategoryRepository;
+import org.example.repository.ManufacturerReponsitory;
 import org.example.repository.ProductRepository;
+import org.example.repository.impl.CategoryRepositoryImpl;
+import org.example.repository.impl.ManufacturerReponsitoryImpl;
 import org.example.repository.impl.ProductRepositoryImpl;
 import org.example.service.ProductService;
 
@@ -17,7 +23,8 @@ import java.util.List;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository = new ProductRepositoryImpl();
-
+    private final CategoryRepository categoryRepository = new CategoryRepositoryImpl();
+    private final ManufacturerReponsitory manufacturerRepository = new ManufacturerReponsitoryImpl();
     /**
      * Tạo mới sản phẩm.
      */
@@ -81,14 +88,16 @@ public class ProductServiceImpl implements ProductService {
                         "Product not found with code: " + code
                 ));
     }
-//    @Override
-//    public List<CategoryResponse> getAllCategories() {
-//        return categoryRepository.findAllActive();
-//    }
-//
-//    @Override
-//    public List<ManufacturerResponse> getAllManufacturers() {
-//        return manufacturerRepository.findAllActive();
-//    }
+
+    @Override
+    public List<CategoryResponse> getAllCategories() {
+        return categoryRepository.findAllActive();
+    }
+
+    @Override
+    public List<ManufacturerResponse> getAllManufacturers() {
+        return manufacturerRepository.findAllActive();
+    }
+
 
 }

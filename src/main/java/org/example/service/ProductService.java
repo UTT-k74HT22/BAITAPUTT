@@ -2,6 +2,8 @@ package org.example.service;
 
 import org.example.dto.request.Product.CreateProductRequest;
 import org.example.dto.request.Product.UpdateProductRequest;
+import org.example.dto.response.CategoryResponse;
+import org.example.dto.response.ManufacturerResponse;
 import org.example.dto.response.Product.ProductDetailResponse;
 import org.example.dto.response.Product.ProductResponse;
 
@@ -20,4 +22,9 @@ public interface ProductService {
     ProductResponse getByCode(String code);
 
     ProductDetailResponse getDetailByCode(String code);
+
+    List<CategoryResponse> getAllCategories();
+
+    List<ManufacturerResponse> getAllManufacturers();
+
 }

@@ -2,6 +2,8 @@ package org.example.repository;
 
 import org.example.dto.response.CategoryResponse;
 import org.example.entity.Category;
+import org.example.entity.Manufacturer;
+
 import java.util.List;
 
 public interface CategoryRepository {
@@ -58,4 +60,9 @@ public interface CategoryRepository {
      * @return true nếu tồn tại
      */
     boolean existsByCode(String code);
+    /**
+     * Lấy tất cả category có status = ACTIVE
+     * @return danh sách category
+     */
+    List<CategoryResponse> findAllActive();
 }
