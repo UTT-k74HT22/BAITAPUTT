@@ -588,16 +588,4 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
             ex.printStackTrace();
         }
     }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            JFrame f = new JFrame("Product Management");
-            f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            f.setSize(1100, 650);
-            f.setLocationRelativeTo(null);
-            f.setContentPane(new ProductManagementPanel(f));
-            f.setVisible(true);
-        });
-    }
-
 }
