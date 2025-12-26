@@ -1,21 +1,33 @@
 package org.example.view;
 
 import org.example.controller.ProductController;
+import org.example.dto.request.ImportProductRequest;
 import org.example.dto.request.Product.CreateProductRequest;
 import org.example.dto.request.Product.UpdateProductRequest;
 import org.example.dto.response.CategoryResponse;
+import org.example.dto.response.ImportPreviewResponse;
 import org.example.dto.response.ManufacturerResponse;
 import org.example.dto.response.Product.ProductDetailResponse;
 import org.example.dto.response.Product.ProductResponse;
 import org.example.entity.enums.ProductStatus;
+import org.example.repository.CategoryRepository;
+import org.example.repository.ManufacturerReponsitory;
+import org.example.repository.ProductRepository;
+import org.example.repository.impl.CategoryRepositoryImpl;
+import org.example.repository.impl.ManufacturerReponsitoryImpl;
+import org.example.repository.impl.ProductRepositoryImpl;
+import org.example.service.impl.ProductImportService;
 import org.example.service.impl.ProductServiceImpl;
+import org.example.utils.importer.template.ProductTemplateGenerator;
 import org.example.view.base.BaseManagementPanel;
 import org.example.view.base.UiFactory;
 import org.example.view.base.UiTheme;
-
+import org.example.view.dialog.ImportPreviewDialog;
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.io.File;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -119,7 +131,7 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
 
         keywordField = UiFactory.textField(20, 240);
         JButton searchBtn =
-                UiFactory.button("🔍 Tìm", UiTheme.PRIMARY, e -> applyFilters());
+                UiFactory.button("Tìm", UiTheme.PRIMARY, e -> applyFilters());
 
         statusFilter = new JComboBox<>(new String[]{
                 "ALL",
@@ -171,14 +183,14 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
         JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         row.setOpaque(false);
 
-        row.add(UiFactory.button("➕ Thêm", new Color(40,167,69), e -> openProductDialog(null)));
-        row.add(UiFactory.button("✏️ Sửa", new Color(255,193,7), e -> openEdit()));
-        row.add(UiFactory.button("🗑️ Xóa", new Color(220,53,69), e -> deleteProduct()));
-        row.add(UiFactory.button("🔍 Chi tiết", new Color(108,117,125), e -> openDetail()));
-        row.add(UiFactory.button("🔄 Refresh", new Color(108,117,125), e -> reload()));
+        row.add(UiFactory.button("Thêm", new Color(40,167,69), e -> openProductDialog(null)));
+        row.add(UiFactory.button("Sửa", new Color(255,193,7), e -> openEdit()));
+        row.add(UiFactory.button("Xóa", new Color(220,53,69), e -> deleteProduct()));
+        row.add(UiFactory.button("Chi tiết", new Color(108,117,125), e -> openDetail()));
+        row.add(UiFactory.button("Refresh", new Color(108,117,125), e -> reload()));
         row.add(Box.createHorizontalStrut(20));
-        row.add(UiFactory.button("📥 Download Template", new Color(23,162,184), e -> downloadTemplate()));
-        row.add(UiFactory.button("📤 Import Excel", new Color(102,16,242), e -> importFromExcel()));
+        row.add(UiFactory.button("Download Template", new Color(23,162,184), e -> downloadTemplate()));
+        row.add(UiFactory.button("Import Excel", new Color(102,16,242), e -> importFromExcel()));
 
         return row;
     }
@@ -470,27 +482,26 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
     private void downloadTemplate() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Lưu Template Excel");
-        fileChooser.setSelectedFile(new java.io.File("Product_Import_Template.xlsx"));
-        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
-                "Excel Files (*.xlsx)", "xlsx"));
+        fileChooser.setSelectedFile(new File("Product_Import_Template.xlsx"));
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Excel Files (*.xlsx)", "xlsx"));
 
         if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-            java.io.File file = fileChooser.getSelectedFile();
+            File file = fileChooser.getSelectedFile();
             String path = file.getAbsolutePath();
             if (!path.toLowerCase().endsWith(".xlsx")) {
                 path += ".xlsx";
             }
 
             try {
-                org.example.utils.importer.template.ProductTemplateGenerator.generateTemplate(path);
+                ProductTemplateGenerator.generateTemplate(path);
                 JOptionPane.showMessageDialog(this,
                         "Template đã được tạo thành công!\n" + path,
                         "Success",
                         JOptionPane.INFORMATION_MESSAGE);
 
                 // Mở thư mục chứa file
-                if (java.awt.Desktop.isDesktopSupported()) {
-                    java.awt.Desktop.getDesktop().open(file.getParentFile());
+                if (Desktop.isDesktopSupported()) {
+                    Desktop.getDesktop().open(file.getParentFile());
                 }
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this,
@@ -515,29 +526,20 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
             return;
         }
 
-        java.io.File file = fileChooser.getSelectedFile();
+        File file = fileChooser.getSelectedFile();
 
         // Hiển thị loading
-        setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
         try {
-            // Khởi tạo import service
-            org.example.repository.CategoryRepository categoryRepo =
-                new org.example.repository.impl.CategoryRepositoryImpl();
-            org.example.repository.ManufacturerReponsitory manufacturerRepo =
-                new org.example.repository.impl.ManufacturerReponsitoryImpl();
-            org.example.repository.ProductRepository productRepo =
-                new org.example.repository.impl.ProductRepositoryImpl();
-
-            org.example.service.impl.ProductImportService importService =
-                new org.example.service.impl.ProductImportService(
-                    productRepo, categoryRepo, manufacturerRepo);
+            CategoryRepository categoryRepo = new CategoryRepositoryImpl();
+            ManufacturerReponsitory manufacturerRepo = new ManufacturerReponsitoryImpl();
+            ProductRepository productRepo = new ProductRepositoryImpl();
+            ProductImportService importService = new ProductImportService(productRepo, categoryRepo, manufacturerRepo);
 
             // Preview dữ liệu
-            org.example.dto.response.ImportPreviewResponse<org.example.dto.request.ImportProductRequest> preview =
-                importService.previewFromFile(file);
-
-            setCursor(java.awt.Cursor.getDefaultCursor());
+            ImportPreviewResponse<ImportProductRequest> preview = importService.previewFromFile(file);
+            setCursor(Cursor.getDefaultCursor());
 
             // Hiển thị preview dialog
             String[] columnNames = {
@@ -545,9 +547,9 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
                 "Barcode", "Dosage Form", "Unit", "Price", "Prescription"
             };
 
-            org.example.view.dialog.ImportPreviewDialog<org.example.dto.request.ImportProductRequest> dialog =
-                new org.example.view.dialog.ImportPreviewDialog<>(
-                    (java.awt.Frame) javax.swing.SwingUtilities.getWindowAncestor(this),
+            ImportPreviewDialog<ImportProductRequest> dialog =
+                new ImportPreviewDialog<>(
+                    (Frame) SwingUtilities.getWindowAncestor(this),
                     preview,
                     columnNames,
                     dto -> new Object[]{
@@ -567,9 +569,9 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
 
             // Nếu user confirm, thực hiện import
             if (dialog.isConfirmed()) {
-                setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+                setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                 int imported = importService.applyImport(dialog.getValidData());
-                setCursor(java.awt.Cursor.getDefaultCursor());
+                setCursor(Cursor.getDefaultCursor());
 
                 JOptionPane.showMessageDialog(this,
                         "Đã import thành công " + imported + " sản phẩm!",
@@ -580,7 +582,7 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
             }
 
         } catch (Exception ex) {
-            setCursor(java.awt.Cursor.getDefaultCursor());
+            setCursor(Cursor.getDefaultCursor());
             JOptionPane.showMessageDialog(this,
                     "Lỗi khi import: " + ex.getMessage(),
                     "Error",

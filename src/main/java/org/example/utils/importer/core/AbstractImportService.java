@@ -4,7 +4,6 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.example.dto.response.ImportPreviewResponse;
 import org.example.dto.response.ImportRowData;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
@@ -12,7 +11,6 @@ import java.util.List;
 
 /**
  * Abstract class cung cấp logic chung cho việc import
- * Các class con chỉ cần implement 3 method: getMapper, getValidator, saveData
  */
 public abstract class AbstractImportService<T> {
 
@@ -54,19 +52,19 @@ public abstract class AbstractImportService<T> {
 
             String[] requiredHeaders = mapper.getRequiredHeaders();
             if (!validateHeaders(headerRow, requiredHeaders)) {
-                StringBuilder errorMsg = new StringBuilder("File không đúng định dạng. Header không khớp với template.\n");
-                errorMsg.append("Expected headers: ");
+                StringBuilder error = new StringBuilder("File không đúng định dạng. Header không khớp với template.");
+                error.append("Expected headers: ");
                 for (int i = 0; i < requiredHeaders.length; i++) {
-                    if (i > 0) errorMsg.append(", ");
-                    errorMsg.append("\"").append(requiredHeaders[i]).append("\"");
+                    if (i > 0) error.append(", ");
+                    error.append("\"").append(requiredHeaders[i]).append("\"");
                 }
-                errorMsg.append("\nActual headers: ");
+                error.append("\nActual headers: ");
                 int actualColCount = Math.min(headerRow.getLastCellNum(), requiredHeaders.length + 5);
                 for (int i = 0; i < actualColCount; i++) {
-                    if (i > 0) errorMsg.append(", ");
-                    errorMsg.append("\"").append(getCellValue(headerRow, i)).append("\"");
+                    if (i > 0) error.append(", ");
+                    error.append("\"").append(getCellValue(headerRow, i)).append("\"");
                 }
-                throw new IllegalArgumentException(errorMsg.toString());
+                throw new IllegalArgumentException(error.toString());
             }
 
             // Process data rows (skip header)
@@ -135,8 +133,10 @@ public abstract class AbstractImportService<T> {
 
         switch (cell.getCellType()) {
             case STRING:
+                //Case kí tự trắng
                 return cell.getStringCellValue().trim();
             case NUMERIC:
+                //Case ngày tháng
                 if (DateUtil.isCellDateFormatted(cell)) {
                     return cell.getDateCellValue().toString();
                 }
@@ -148,8 +148,10 @@ public abstract class AbstractImportService<T> {
                     return String.valueOf(numericValue);
                 }
             case BOOLEAN:
+                //Case boolean
                 return String.valueOf(cell.getBooleanCellValue());
             case FORMULA:
+                //Case công thức
                 return cell.getCellFormula();
             default:
                 return "";

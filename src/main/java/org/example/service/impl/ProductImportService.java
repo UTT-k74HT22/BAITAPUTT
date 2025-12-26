@@ -20,8 +20,6 @@ import java.util.List;
 
 /**
  * Service để import Product từ file Excel
- *
- * Cách sử dụng:
  * 1. User chọn file Excel
  * 2. Gọi previewFromFile() để xem trước và validate
  * 3. Nếu OK, gọi applyImport() để lưu vào DB
