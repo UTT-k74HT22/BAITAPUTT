@@ -5,6 +5,8 @@ import org.example.view.*;
 public class ScreenRegistry {
 
     public static void registerAll(ScreenFactory factory) {
+        factory.register("screen_dashboard", Dashboard::new);
+
         factory.register("screen_accounts", AccountManagementPanel::new);
         factory.register("screen_employee", EmployeeManagementPanel::new);
         factory.register("screen_categories", CategoryManagementPanel::new);
