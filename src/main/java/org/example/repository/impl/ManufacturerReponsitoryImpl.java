@@ -1,5 +1,6 @@
 package org.example.repository.impl;
 
+import org.example.dto.response.ManufacturerResponse;
 import org.example.repository.ManufacturerReponsitory;
 import org.example.repository.BaseRepository;
 import org.example.entity.Manufacturer;
@@ -120,6 +121,15 @@ public class ManufacturerReponsitoryImpl extends BaseRepository implements Manuf
         return exists(sql, params(code));
     }
 
+    @Override
+    public List<ManufacturerResponse> findAllActive() {
+        String sql = """
+        SELECT id, code, name, country, address, phone, email, contact_person
+        FROM manufacturers
+        ORDER BY name
+        """;
+        return queryForList(sql, this::mapRowToDto);
+    }
     /**
      * @param rs
      * @return
@@ -148,4 +158,17 @@ public class ManufacturerReponsitoryImpl extends BaseRepository implements Manuf
 
         return m;
     }
+    private ManufacturerResponse mapRowToDto(ResultSet rs) throws SQLException {
+        ManufacturerResponse dto = new ManufacturerResponse();
+        dto.setId(rs.getLong("id"));
+        dto.setCode(rs.getString("code"));
+        dto.setName(rs.getString("name"));
+        dto.setCountry(rs.getString("country"));
+//        dto.setAddress(rs.getString("address"));
+        dto.setPhone(rs.getString("phone"));
+        dto.setEmail(rs.getString("email"));
+//        dto.setContactPerson(rs.getString("contact_person"));
+        return dto;
+    }
+
 }

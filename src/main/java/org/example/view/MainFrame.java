@@ -2,6 +2,7 @@ package org.example.view;
 
 import org.example.entity.enums.Role;
 import org.example.router.AppRoutes;
+import org.example.router.CustomerScreenRegistry;
 import org.example.router.ScreenFactory;
 import org.example.router.ScreenRegistry;
 import org.example.view.layout.Footer;
@@ -52,6 +53,12 @@ public class MainFrame extends JFrame {
 
         routes = AppRoutes.build();
         ScreenRegistry.registerAll(screenFactory);
+        /**
+         * Chỉ khách hàng mới có menu shop (test)
+         * */
+        if (role == Role.CUSTOMER) {
+            CustomerScreenRegistry.registerAll(screenFactory);
+        }
 
         initScreens(role);
 
@@ -183,12 +190,5 @@ public class MainFrame extends JFrame {
             graphics.setColor(backgroundColor);
             graphics.fillRoundRect(0, 0, width - 8, height - 8, arcs.width, arcs.height);
         }
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            MainFrame mainFrame = new MainFrame("john_doe", Role.ADMIN);
-            mainFrame.setVisible(true);
-        });
     }
 }

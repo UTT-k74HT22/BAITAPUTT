@@ -2,6 +2,8 @@ package org.example.controller;
 
 import org.example.dto.request.Product.CreateProductRequest;
 import org.example.dto.request.Product.UpdateProductRequest;
+import org.example.dto.response.CategoryResponse;
+import org.example.dto.response.ManufacturerResponse;
 import org.example.dto.response.Product.ProductDetailResponse;
 import org.example.dto.response.Product.ProductResponse;
 import org.example.service.ProductService;
@@ -61,17 +63,19 @@ public class ProductController {
     public void delete(String code) {
         productService.delete(code);
     }
-//    /**
-//     * Lấy danh sách tất cả danh mục.
-//     */
-//    public List<CategoryResponse> getAllCategories() { // khi có dữ liệu thật
-//        return service.getAllCategories();
-//    }
-//    /**
-//     * Lấy danh sách tất cả nhà sản xuất.
-//     */
-//    public List<ManufacturerResponse> getAllManufacturers() {
-//        return service.getAllManufacturers();
-//    }
+
+    /**
+     * Lấy danh sách tất cả danh mục.
+     */
+    public List<CategoryResponse> getAllCategories() {
+        return productService.getAllCategories();
+    }
+
+    /**
+     * Lấy danh sách tất cả nhà sản xuất.
+     */
+    public List<ManufacturerResponse> getAllManufacturers() {
+        return productService.getAllManufacturers();
+    }
 
 }
