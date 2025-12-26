@@ -386,3 +386,78 @@ VALUES
 
     (2, 1, 'IBU400', '893600123014', 'Ibuprofen 400mg', 'Viên nén', 'Hộp', 'Giảm đau kháng viêm', NULL, 28000, 0, 'ACTIVE'),
     (3, 5, 'ZITHRO', '893600123015', 'Azithromycin 500mg', 'Viên nén', 'Hộp', 'Kháng sinh macrolid', NULL, 135000, 1, 'ACTIVE');
+
+
+-- SPRINT WAREHOUSE AND INVENTORY
+# warehouses
+# → batches
+# → inventory_items
+# → stock_movements
+
+
+-- Kho mẫu
+INSERT INTO warehouses (code, name, address, phone, manager_name)
+VALUES
+    ('WH-HN', 'Kho Hà Nội', 'Cầu Giấy, Hà Nội', '02439998888', 'Nguyễn Văn Kho'),
+    ('WH-HCM', 'Kho Hồ Chí Minh', 'Quận 7, TP.HCM', '02838887777', 'Trần Thị Kho'),
+    ('WH-CT', 'Kho Cần Thơ', 'Ninh Kiều, Cần Thơ', '02923886666', 'Lê Văn Kho');
+
+-- Lô hàng mẫu
+INSERT INTO batches
+(product_id, batch_code, import_price, manufacture_date, expiry_date, supplier_name, status)
+VALUES
+-- Paracetamol
+(1, 'PARA-2024-01', 9000, '2024-01-01', '2026-01-01', 'Công ty Dược A', 'ACTIVE'),
+(1, 'PARA-2023-06', 8500, '2023-06-01', '2025-06-01', 'Công ty Dược A', 'ACTIVE'),
+
+-- Amoxicillin
+(2, 'AMOX-2024-02', 35000, '2024-02-01', '2026-02-01', 'Công ty Dược B', 'ACTIVE'),
+
+-- Vitamin C
+(6, 'VITC-2024-03', 28000, '2024-03-01', '2026-03-01', 'Công ty Dược C', 'ACTIVE'),
+
+-- Augmentin
+(5, 'AUG-2023-05', 90000, '2023-05-01', '2025-05-01', 'Công ty Dược D', 'ACTIVE'),
+
+-- Batch đã hết hạn (test logic)
+(3, 'CEPHA-2022-01', 40000, '2022-01-01', '2024-01-01', 'Công ty Dược E', 'EXPIRED');
+
+-- Hàng tồn kho mẫu
+INSERT INTO inventory_items
+(product_id, batch_id, warehouse_id, quantity_on_hand, quantity_reserved, min_threshold, max_threshold)
+VALUES
+-- Kho Hà Nội
+(1, 1, 1, 500, 50, 100, 1000),   -- Paracetamol
+(1, 2, 1, 300, 20, 100, 1000),
+(2, 3, 1, 200, 10, 50, 500),
+(6, 4, 1, 150, 0, 30, 300),
+
+-- Kho HCM
+(1, 1, 2, 400, 30, 100, 1000),
+(5, 5, 2, 120, 0, 30, 300),
+
+-- Kho Cần Thơ
+(6, 4, 3, 100, 0, 30, 300);
+
+-- Giao dịch xuất nhập kho mẫu
+INSERT INTO stock_movements
+(movement_type, product_id, batch_id, warehouse_id,
+ quantity, quantity_before, quantity_after,
+ reference_type, reference_id, performed_by_user_id, note)
+VALUES
+-- Nhập kho Paracetamol HN
+('IMPORT', 1, 1, 1, 500, 0, 500, 'IMPORT_ORDER', 1001, 1, 'Nhập hàng đầu năm'),
+
+-- Xuất kho Paracetamol
+('EXPORT', 1, 1, 1, 50, 500, 450, 'SALE_ORDER', 2001, 1, 'Bán lẻ'),
+
+-- Nhập Amoxicillin
+('IMPORT', 2, 3, 1, 200, 0, 200, 'IMPORT_ORDER', 1002, 1, 'Nhập kháng sinh'),
+
+-- Điều chỉnh tồn Vitamin C
+('ADJUST', 6, 4, 1, -10, 150, 140, 'STOCK_CHECK', NULL, 1, 'Hỏng bao bì');
+
+
+UPDATE accounts
+SET password = '$2a$12$ZbxOL6/mxxY65NraoXE2GeeS2HFNVtZvJhlNt7Vtg.XNJ5HKNnd9q'
+WHERE id = 1;
