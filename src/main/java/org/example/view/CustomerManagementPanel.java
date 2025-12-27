@@ -141,7 +141,70 @@ public class CustomerManagementPanel extends BaseManagementPanel<CustomerProfile
 
     // -------- actions (demo) --------
     private void openView() {
+        int row = getSelectedModelRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn khách hàng");
+            return;
+        }
 
+        CustomerProfileResponse c = controller.getCustomerByCode(
+                getCellString(row, 2)
+        );
+
+        JDialog dialog = new JDialog(
+                SwingUtilities.getWindowAncestor(this),
+                "Chi tiết khách hàng",
+                Dialog.ModalityType.APPLICATION_MODAL
+        );
+        dialog.setSize(520, 400);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setBorder(new EmptyBorder(16,16,16,16));
+        form.setBackground(Color.WHITE);
+
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.insets = new Insets(8,8,8,8);
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.weightx = 1;
+
+        // ===== Tất cả trường đều chỉ đọc =====
+        JTextField tfProfileId = roField(c.getProfileId());
+        JTextField tfCode      = roField(c.getCode());
+        JTextField tfFullName  = roField(c.getFullName());
+        JTextField tfPhone     = roField(c.getPhone());
+
+        JComboBox<String> cbStatus = new JComboBox<>(new String[]{"ACTIVE","INACTIVE"});
+        cbStatus.setSelectedItem(c.getProfileStatus().name());
+        cbStatus.setEnabled(false); // khóa không sửa
+
+        JComboBox<String> cbType = new JComboBox<>(new String[]{"RETAIL","WHOLESALE"});
+        cbType.setSelectedItem(c.getCustomerType().name());
+        cbType.setEnabled(false); // khóa không sửa
+
+        JTextField tfTaxCode = roField(c.getTaxCode()); // giả sử response có taxCode
+
+        int r = 0;
+        addRow(form, gc, r++, "Profile ID", tfProfileId);
+        addRow(form, gc, r++, "Code", tfCode);
+        addRow(form, gc, r++, "Full Name", tfFullName);
+        addRow(form, gc, r++, "Phone", tfPhone);
+        addRow(form, gc, r++, "Status", cbStatus);
+        addRow(form, gc, r++, "Customer Type", cbType);
+        addRow(form, gc, r++, "Tax Code", tfTaxCode);
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        actions.setBackground(Color.WHITE);
+
+        JButton close = new JButton("Close");
+        close.addActionListener(e -> dialog.dispose());
+
+        actions.add(close);
+
+        dialog.add(form, BorderLayout.CENTER);
+        dialog.add(actions, BorderLayout.SOUTH);
+        dialog.setVisible(true);
     }
     private void openEdit() {
         int row = getSelectedModelRow();
