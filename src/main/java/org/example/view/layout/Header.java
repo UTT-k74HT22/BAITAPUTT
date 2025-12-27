@@ -10,10 +10,6 @@ public class Header extends JPanel {
     private final JLabel moduleLabel;
     private final JLabel userInfoLabel;
 
-    private final JButton btnAdd;
-    private final JButton btnEdit;
-    private final JButton btnExport;
-
     public Header(String username, Role role) {
         setPreferredSize(new Dimension(0, 70));
         setBackground(new Color(248, 249, 255));
@@ -28,34 +24,21 @@ public class Header extends JPanel {
         moduleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
         moduleLabel.setBorder(BorderFactory.createEmptyBorder(0, 24, 0, 0));
 
-        // ===== Cụm nút + user info (phải) =====
-        JPanel rightPanel = new JPanel();
+        // ===== user info (phải) =====
+        JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.setOpaque(false);
-        rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
-        rightPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 24));
+        rightPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 24));
 
-        // Hàng nút
-        JPanel actionRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        actionRow.setOpaque(false);
-
-        btnAdd = createPrimaryButton("+ Thêm");
-        btnEdit = createGhostButton("Sửa");
-        btnExport = createPrimaryButton("↑ Xuất Excel");
-
-        actionRow.add(btnAdd);
-        actionRow.add(btnEdit);
-        actionRow.add(btnExport);
-
-        // Hàng user info
-        JPanel userRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 2));
-        userRow.setOpaque(false);
         userInfoLabel = new JLabel(username + " (" + role + ")");
         userInfoLabel.setForeground(new Color(120, 122, 150));
-        userInfoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        userRow.add(userInfoLabel);
+        userInfoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
-        rightPanel.add(userRow);
-        rightPanel.add(actionRow);
+        // Wrapper để căn phải và căn giữa dọc
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setOpaque(false);
+        wrapper.add(userInfoLabel, BorderLayout.EAST);
+
+        rightPanel.add(wrapper, BorderLayout.CENTER);
 
         add(moduleLabel, BorderLayout.WEST);
         add(rightPanel, BorderLayout.EAST);
@@ -126,17 +109,5 @@ public class Header extends JPanel {
 
     public void setUserInfo(String username, String role) {
         userInfoLabel.setText(username + " (" + role + ")");
-    }
-
-    public JButton getBtnAdd() {
-        return btnAdd;
-    }
-
-    public JButton getBtnEdit() {
-        return btnEdit;
-    }
-
-    public JButton getBtnExport() {
-        return btnExport;
     }
 }

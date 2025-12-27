@@ -70,7 +70,6 @@ public class MainFrame extends JFrame {
         add(new Footer(), BorderLayout.SOUTH);
 
         initMenuActions(role);
-        initHeaderActions();
     }
 
     // ===================== SCREENS =====================
@@ -132,23 +131,6 @@ public class MainFrame extends JFrame {
         dispose();
     }
 
-    // ===================== HEADER ACTIONS =====================
-    private void initHeaderActions() {
-        header.getBtnAdd().addActionListener(e ->
-                JOptionPane.showMessageDialog(this,
-                        "Thực hiện chức năng [Thêm] tại module: " + currentModuleTitle,
-                        "Action", JOptionPane.INFORMATION_MESSAGE));
-
-        header.getBtnEdit().addActionListener(e ->
-                JOptionPane.showMessageDialog(this,
-                        "Thực hiện chức năng [Sửa] tại module: " + currentModuleTitle,
-                        "Action", JOptionPane.INFORMATION_MESSAGE));
-
-        header.getBtnExport().addActionListener(e ->
-                JOptionPane.showMessageDialog(this,
-                        "Thực hiện chức năng [Xuất Excel] tại module: " + currentModuleTitle,
-                        "Action", JOptionPane.INFORMATION_MESSAGE));
-    }
 
     // ===================== ROUTER =====================
     private void showByMenuKey(String menuKey) {
