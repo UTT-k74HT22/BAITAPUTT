@@ -9,6 +9,7 @@ import org.example.dto.response.Product.ProductDetailResponse;
 import org.example.dto.response.Product.ProductResponse;
 import org.example.entity.enums.ProductStatus;
 import org.example.service.impl.ProductServiceImpl;
+import org.example.utils.pdf.ProductDetailPdfExporter;
 import org.example.view.base.BaseManagementPanel;
 import org.example.view.base.UiFactory;
 import org.example.view.base.UiTheme;
@@ -181,6 +182,8 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
                 e -> openDetail()));
         row.add(UiFactory.button("🔄 Refresh", new Color(108,117,125),
                 e -> reload()));
+        row.add(UiFactory.button("🖨️ In PDF", new Color(23,162,184),
+                e -> exportPdf()));
 
         return row;
     }
@@ -254,6 +257,61 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
         ) == JOptionPane.YES_OPTION) {
             controller.delete(code);
             reload();
+        }
+    }
+
+    // ================= EXPORT PDF =================
+    private void exportPdf() {
+        int row = getSelectedModelRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Vui lòng chọn một sản phẩm để xuất PDF",
+                    "Thông báo",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
+        String code = getCellString(row, 1);
+
+        int choice = JOptionPane.showConfirmDialog(
+                this,
+                "Xuất PDF chi tiết cho sản phẩm [" + code + "] ?",
+                "Xác nhận",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (choice != JOptionPane.YES_OPTION) return;
+
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Lưu PDF sản phẩm");
+        chooser.setSelectedFile(new java.io.File("product-" + code + ".pdf"));
+
+        if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+
+        try {
+            ProductDetailResponse detail = controller.getDetail(code);
+
+            ProductDetailPdfExporter.export(
+                    detail,
+                    chooser.getSelectedFile().getAbsolutePath()
+            );
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Xuất PDF thành công!",
+                    "Thành công",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    ex.getMessage(),
+                    "Lỗi xuất PDF",
+                    JOptionPane.ERROR_MESSAGE
+            );
         }
     }
 

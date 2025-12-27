@@ -29,6 +29,9 @@ public interface ProductRepository {
     * @return an Optional containing the product if found, or an empty Optional if not found
     * */
     Optional<ProductResponse> findByCode(String code);
+    /**
+     *  Get information product for Edit
+     * */
     Optional<ProductResponse> findById(long id);
 
     /**

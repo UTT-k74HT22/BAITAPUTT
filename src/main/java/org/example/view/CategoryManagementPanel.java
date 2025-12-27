@@ -10,6 +10,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
+import java.io.File;
 import java.util.List;
 
 /**
@@ -95,6 +96,7 @@ public class CategoryManagementPanel extends JPanel {
         row.add(createButton("🔄 Refresh", new Color(108,117,125), e -> loadCategories()));
         row.add(Box.createHorizontalStrut(20));
         row.add(createButton("📊 Excel", new Color(23,162,184), e -> exportExcel()));
+        row.add(createButton("📊 PDF", new Color(23,162,184), e -> exportPdf()));
 
         return row;
     }
@@ -438,7 +440,7 @@ public class CategoryManagementPanel extends JPanel {
 
 
 
-    // ===================== EXPORT =====================
+    // ===================== EXPORT Exel====================
     private void exportExcel() {
         int choice = JOptionPane.showConfirmDialog(
                 this,
@@ -452,6 +454,30 @@ public class CategoryManagementPanel extends JPanel {
 
         controller.exportExcel(null);
     }
+    // ===================== EXPORT PDF=====================
+    private void exportPdf() {
+        int choice = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có muốn xuất danh sách category ra file PDF không?",
+                "Xác nhận xuất PDF",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (choice != JOptionPane.YES_OPTION) return;
+
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Chọn nơi lưu file PDF");
+        chooser.setSelectedFile(new File("categories.pdf"));
+
+        int result = chooser.showSaveDialog(this);
+        if (result != JFileChooser.APPROVE_OPTION) return;
+
+        File file = chooser.getSelectedFile();
+
+        controller.exportPdf(file.getAbsolutePath());
+    }
+
 
     // ===================== FOOTER =====================
     private JPanel buildFooter() {
