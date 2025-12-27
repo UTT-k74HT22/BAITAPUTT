@@ -32,16 +32,13 @@ public class CustomerController {
     }
 
     public void updateCustomer(String code,
-                               String fullName,
-                               String phone,
                                CustomerType customerType,
                                String taxCode) {
 
         System.out.println("[Controller] Cập nhật khách hàng: " + code);
+
         customerService.update(
                 code,
-                fullName,
-                phone,
                 customerType,
                 taxCode
         );

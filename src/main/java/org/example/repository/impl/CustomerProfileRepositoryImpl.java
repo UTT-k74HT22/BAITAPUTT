@@ -112,29 +112,21 @@ public class CustomerProfileRepositoryImpl extends BaseRepository implements Cus
     }
 
     @Override
-    public void update(String code,
-                       String full_name,
-                       String phone,
-                       CustomerType customerType,
-                       String taxCode) {
+    public void update(String code, CustomerType customerType, String taxCode) {
         String sql = """
-                UPDATE customer_profiles cp
-                JOIN user_profiles up ON cp.profile_id = up.id
-                SET up.full_name = ?,
-                    up.phone = ?,
-                    cp.customer_type = ?,
-                    cp.tax_code = ?
-                WHERE up.code = ?
-                """;
+            UPDATE customer_profiles cp
+            SET cp.customer_type = ?,
+                cp.tax_code = ?
+            WHERE cp.profile_id = (SELECT id FROM user_profiles WHERE code = ?)
+            """;
 
         executeUpdate(sql, params(
-                full_name,
-                phone,
                 customerType.name(),
                 taxCode,
                 code
         ));
     }
+
 
     @Override
     public void delete(String code) {

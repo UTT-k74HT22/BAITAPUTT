@@ -30,14 +30,10 @@ public interface CustomerService {
     /**
      *
      * @param code
-     * @param fullName
-     * @param phone
      * @param customerType
      * @param taxCode
      */
     void update(String code,
-                String fullName,
-                String phone,
                 CustomerType customerType,
                 String taxCode);
 

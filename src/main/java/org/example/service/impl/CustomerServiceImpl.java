@@ -38,18 +38,14 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public void update(String code,
-                       String fullName,
-                       String phone,
-                       CustomerType customerType,
-                       String taxCode) {
+    public void update(String code, CustomerType customerType, String taxCode) {
         System.out.println("[Service] Cập nhật khách hàng: " + code);
 
         if (code == null || code.isEmpty()) {
             throw new IllegalArgumentException("Code không được để trống");
         }
 
-        customerProfileRepository.update(code, fullName, phone, customerType, taxCode);
+        customerProfileRepository.update(code, customerType, taxCode);
     }
 
     @Override

@@ -40,11 +40,9 @@ public interface CustomerProfileRepository {
     Optional<CustomerProfileResponse> findByCode(String code);
 
     /// @param code
-    /// @param full_name
-    /// @param phone
     /// @param customerType
     /// @param taxCode
-    void update(String code, String full_name, String phone, CustomerType customerType, String taxCode);
+    void update(String code, CustomerType customerType, String taxCode);
 
     /**
      *

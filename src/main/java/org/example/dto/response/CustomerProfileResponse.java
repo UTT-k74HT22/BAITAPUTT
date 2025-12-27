@@ -11,6 +11,7 @@ public class CustomerProfileResponse {
     private String phone;
     private CustomerType customerType;
     private ProfileStatus profileStatus;
+    private String taxCode;
 
     public Long getProfileId() {
         return profileId;
@@ -67,6 +68,10 @@ public class CustomerProfileResponse {
     public void setProfileStatus(ProfileStatus profileStatus) {
         this.profileStatus = profileStatus;
     }
+
+    public String getTaxCode() {return taxCode;}
+
+    public void setTaxCode(String taxCode) {this.taxCode = taxCode;}
 }
 
 
