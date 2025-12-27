@@ -131,9 +131,9 @@ public class CustomerProfileRepositoryImpl extends BaseRepository implements Cus
     @Override
     public void delete(String code) {
         String sql = """
-                DELETE up
-                FROM user_profiles up
-                WHERE up.code = ?
+                UPDATE user_profiles
+                SET status = 'INACTIVE'
+                WHERE code = ?
                 """;
 
         executeUpdate(sql, params(code));

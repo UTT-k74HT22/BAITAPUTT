@@ -296,7 +296,35 @@ public class CustomerManagementPanel extends BaseManagementPanel<CustomerProfile
         dialog.setVisible(true);
     }
 
-    private void deleteCustomer() { JOptionPane.showMessageDialog(this, "TODO delete customer"); }
+    private void deleteCustomer() {
+        int row = getSelectedModelRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn khách hàng để xóa!");
+            return;
+        }
+
+        String code = getCellString(row, 2);
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có chắc muốn xóa khách hàng " + code + "?",
+                "Xác nhận xóa",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        try {
+            controller.deleteCustomer(code);  // soft delete
+            JOptionPane.showMessageDialog(this, "Đã xóa khách hàng!");
+            reload();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Xóa thất bại: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+
     private String safe(Object v) { return v == null ? "" : v.toString(); }
 
     private JTextField roField(Object v) {
