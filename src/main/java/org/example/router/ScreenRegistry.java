@@ -13,6 +13,6 @@ public class ScreenRegistry {
 
         // TODO sau này:
         // factory.register("screen_employees", EmployeeManagementPanel::new);
-        // factory.register("screen_customers", CustomerManagementPanel::new);
+         factory.register("screen_customer", CustomerManagementPanel::new);
     }
 }
