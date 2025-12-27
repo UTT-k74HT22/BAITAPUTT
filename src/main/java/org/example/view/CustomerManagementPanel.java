@@ -20,7 +20,7 @@ public class CustomerManagementPanel extends BaseManagementPanel<CustomerProfile
     private JComboBox<String> statusFilter;
 
     private static final String[] COLS = {
-            "STT", "Profile ID", "Code", "Full Name", "Phone", "Status"
+            "STT", "Profile ID", "Code", "Full Name", "Phone", "CustomerType", "Status"
     };
 
     public CustomerManagementPanel() {
@@ -37,11 +37,10 @@ public class CustomerManagementPanel extends BaseManagementPanel<CustomerProfile
 
     @Override protected String[] columns() { return COLS; }
 
-    @Override protected int[] columnWidths() { return new int[]{60, 90, 120, 220, 140, 110}; }
+    @Override protected int[] columnWidths() { return new int[]{60, 90, 120, 220, 140,110, 110}; }
 
     @Override protected List<CustomerProfileResponse> fetchData() {
-//        return controller.getAllCustomers();
-        return List.of();
+        return controller.getCustomers();
     }
 
     @Override protected Object[] mapRow(CustomerProfileResponse c, int stt) {
@@ -51,7 +50,8 @@ public class CustomerManagementPanel extends BaseManagementPanel<CustomerProfile
                 safe(c.getCode()),
                 safe(c.getFullName()),
                 safe(c.getPhone()),
-                safe(c.getCustomerType())
+                safe(c.getCustomerType()),
+                safe(c.getProfileStatus())
         };
     }
 
@@ -104,7 +104,8 @@ public class CustomerManagementPanel extends BaseManagementPanel<CustomerProfile
                 String code = val((Map.Entry<? extends DefaultTableModel, ? extends Integer>) e, 2);
                 String fullName = val((Map.Entry<? extends DefaultTableModel, ? extends Integer>) e, 3);
                 String phone = val((Map.Entry<? extends DefaultTableModel, ? extends Integer>) e, 4);
-                String status = val((Map.Entry<? extends DefaultTableModel, ? extends Integer>) e, 5);
+                String  customerType = val((Map.Entry<? extends DefaultTableModel, ? extends Integer>) e, 5);
+                String status = val((Map.Entry<? extends DefaultTableModel, ? extends Integer>) e, 6);
 
                 if (!kw.isEmpty()) {
                     String hay = (code + " " + fullName + " " + phone).toLowerCase();

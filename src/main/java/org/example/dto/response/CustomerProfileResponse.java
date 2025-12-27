@@ -1,6 +1,7 @@
 package org.example.dto.response;
 
 import org.example.entity.enums.CustomerType;
+import org.example.entity.enums.ProfileStatus;
 
 public class CustomerProfileResponse {
     private Long profileId;
@@ -9,6 +10,7 @@ public class CustomerProfileResponse {
     private String fullName;
     private String phone;
     private CustomerType customerType;
+    private ProfileStatus profileStatus;
 
     public Long getProfileId() {
         return profileId;
@@ -56,6 +58,14 @@ public class CustomerProfileResponse {
 
     public void setCustomerType(CustomerType customerType) {
         this.customerType = customerType;
+    }
+
+    public ProfileStatus getProfileStatus() {
+        return profileStatus;
+    }
+
+    public void setProfileStatus(ProfileStatus profileStatus) {
+        this.profileStatus = profileStatus;
     }
 }
 
