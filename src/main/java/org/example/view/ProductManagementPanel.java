@@ -1,33 +1,21 @@
 package org.example.view;
 
 import org.example.controller.ProductController;
-import org.example.dto.request.ImportProductRequest;
 import org.example.dto.request.Product.CreateProductRequest;
 import org.example.dto.request.Product.UpdateProductRequest;
 import org.example.dto.response.CategoryResponse;
-import org.example.dto.response.ImportPreviewResponse;
 import org.example.dto.response.ManufacturerResponse;
 import org.example.dto.response.Product.ProductDetailResponse;
 import org.example.dto.response.Product.ProductResponse;
 import org.example.entity.enums.ProductStatus;
-import org.example.repository.CategoryRepository;
-import org.example.repository.ManufacturerReponsitory;
-import org.example.repository.ProductRepository;
-import org.example.repository.impl.CategoryRepositoryImpl;
-import org.example.repository.impl.ManufacturerReponsitoryImpl;
-import org.example.repository.impl.ProductRepositoryImpl;
-import org.example.service.impl.ProductImportService;
 import org.example.service.impl.ProductServiceImpl;
-import org.example.utils.pdf.ProductDetailPdfExporter;
 import org.example.view.base.BaseManagementPanel;
 import org.example.view.base.UiFactory;
 import org.example.view.base.UiTheme;
-import org.example.view.dialog.ImportPreviewDialog;
+
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.io.File;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -36,47 +24,33 @@ import java.util.List;
  * PRODUCT MANAGEMENT PANEL
  * ============================
  *
- * VAI TRÒ:
- * - Chỉ làm UI
- * - KHÔNG gọi Repository
- * - KHÔNG viết SQL
- * - Mọi dữ liệu đi qua Controller
+ * Vai trò:
+ * - Chỉ xử lý UI
+ * - Không gọi Repository
+ * - Không viết SQL
+ * - Mọi nghiệp vụ đi qua Controller
  */
-public class ProductManagementPanel extends BaseManagementPanel<ProductResponse> {
+public class ProductManagementPanel
+        extends BaseManagementPanel<ProductResponse> {
+
     private final ProductController controller;
-
-    /**
-     * NOTE:
-     * parentFrame chỉ dùng để mở dialog
-     * nếu null → sẽ lấy frame động
-     */
-    private final JFrame parentFrame;
-
     private JTextField keywordField;
     private JComboBox<String> statusFilter;
 
     private static final String[] COLS = {
-            "STT", "Mã SP", "Tên sản phẩm",
-            "Danh mục", "Nhà sản xuất",
-            "Giá", "Toa thuốc", "Trạng thái"
+            "STT",
+            "Mã sản phẩm",
+            "Tên sản phẩm",
+            "Danh mục",
+            "Nhà sản xuất",
+            "Giá",
+            "Toa thuốc",
+            "Trạng thái"
     };
 
-    /**
-     * NOTE:
-     * Constructor rỗng để KHỚP ScreenRegistry
-     */
-    public ProductManagementPanel() {
-        this(null);
-    }
+    // ================= CONSTRUCTOR =================
 
-    /**
-     * NOTE:
-     * Constructor chính
-     * - Tạo controller
-     * - Load bảng lần đầu
-     */
-    public ProductManagementPanel(JFrame parentFrame) {
-        this.parentFrame = parentFrame;
+    public ProductManagementPanel() {
         this.controller = new ProductController(new ProductServiceImpl());
         reload();
     }
@@ -95,14 +69,9 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
 
     @Override
     protected int[] columnWidths() {
-        return new int[]{60, 120, 220, 160, 160, 110, 100, 120};
+        return new int[]{60, 140, 240, 180, 180, 120, 100, 120};
     }
 
-    /**
-     * NOTE:
-     * Bảng CHỈ dùng ProductResponse
-     * vì chỉ hiển thị
-     */
     @Override
     protected List<ProductResponse> fetchData() {
         return controller.getAll();
@@ -131,7 +100,7 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
 
         keywordField = UiFactory.textField(20, 240);
         JButton searchBtn =
-                UiFactory.button("🔍 Tìm", UiTheme.PRIMARY, e -> applyFilters());
+                UiFactory.button("Tìm", UiTheme.PRIMARY, e -> applyFilters());
 
         statusFilter = new JComboBox<>(new String[]{
                 "ALL",
@@ -161,16 +130,17 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
         sorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
             @Override
             public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> e) {
-                String hay = (
+                String haystack = (
                         e.getValue(1) + " " +
                                 e.getValue(2) + " " +
                                 e.getValue(3) + " " +
                                 e.getValue(4)
                 ).toLowerCase();
 
-                if (!kw.isEmpty() && !hay.contains(kw)) return false;
+                if (!kw.isEmpty() && !haystack.contains(kw)) return false;
                 if (!"ALL".equals(st)
                         && !e.getValue(7).toString().equalsIgnoreCase(st)) return false;
+
                 return true;
             }
         });
@@ -183,37 +153,29 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
         JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         row.setOpaque(false);
 
-        row.add(UiFactory.button("➕ Thêm", new Color(40,167,69),
+        row.add(UiFactory.button("Thêm", new Color(40, 167, 69),
                 e -> openProductDialog(null)));
-        row.add(UiFactory.button("✏️ Sửa", new Color(255,193,7),
+
+        row.add(UiFactory.button("Sửa", new Color(255, 193, 7),
                 e -> openEdit()));
-        row.add(UiFactory.button("🗑️ Xóa", new Color(220,53,69),
+
+        row.add(UiFactory.button("Xóa", new Color(220, 53, 69),
                 e -> deleteProduct()));
-        row.add(UiFactory.button("🔍 Chi tiết", new Color(108,117,125),
+
+        row.add(UiFactory.button("Chi tiết", new Color(108, 117, 125),
                 e -> openDetail()));
-        row.add(UiFactory.button("🔄 Refresh", new Color(108,117,125),
+
+        row.add(UiFactory.button("Refresh", new Color(108, 117, 125),
                 e -> reload()));
-        row.add(UiFactory.button("🖨️ In PDF", new Color(23,162,184),
+
+        row.add(UiFactory.button("In PDF", new Color(23, 162, 184),
                 e -> exportPdf()));
-        row.add(UiFactory.button("Thêm", new Color(40,167,69), e -> openProductDialog(null)));
-        row.add(UiFactory.button("Sửa", new Color(255,193,7), e -> openEdit()));
-        row.add(UiFactory.button("Xóa", new Color(220,53,69), e -> deleteProduct()));
-        row.add(UiFactory.button("Chi tiết", new Color(108,117,125), e -> openDetail()));
-        row.add(UiFactory.button("Refresh", new Color(108,117,125), e -> reload()));
-        row.add(Box.createHorizontalStrut(20));
-        row.add(UiFactory.button("Download Template", new Color(23,162,184), e -> downloadTemplate()));
-        row.add(UiFactory.button("Import Excel", new Color(102,16,242), e -> importFromExcel()));
 
         return row;
     }
 
     // ================= DETAIL =================
 
-    /**
-     * NOTE:
-     * Chi tiết dùng ProductDetailResponse
-     * KHÔNG dùng ProductResponse
-     */
     private void openDetail() {
         int row = getSelectedModelRow();
         if (row < 0) return;
@@ -221,19 +183,20 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
         String code = getCellString(row, 1);
         ProductDetailResponse d = controller.getDetail(code);
 
-        JTextArea area = new JTextArea();
+        JTextArea area = new JTextArea(10, 40);
         area.setEditable(false);
         area.setLineWrap(true);
         area.setWrapStyleWord(true);
 
         area.setText("""
-                Mã: %s
+                Mã sản phẩm: %s
                 Barcode: %s
-                Tên: %s
+                Tên sản phẩm: %s
                 Danh mục: %s
                 Nhà sản xuất: %s
-                Giá: %s
+                Giá bán: %s
                 Toa thuốc: %s
+
                 Mô tả:
                 %s
                 """.formatted(
@@ -255,7 +218,7 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
         );
     }
 
-    // ================= ADD / EDIT =================
+    // ================= CRUD =================
 
     private void openEdit() {
         int row = getSelectedModelRow();
@@ -270,7 +233,7 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
         String code = getCellString(row, 1);
         if (JOptionPane.showConfirmDialog(
                 this,
-                "Xóa [" + code + "] ?",
+                "Xóa sản phẩm [" + code + "] ?",
                 "Xác nhận",
                 JOptionPane.YES_NO_OPTION
         ) == JOptionPane.YES_OPTION) {
@@ -280,12 +243,13 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
     }
 
     // ================= EXPORT PDF =================
+
     private void exportPdf() {
         int row = getSelectedModelRow();
         if (row < 0) {
             JOptionPane.showMessageDialog(
                     this,
-                    "Vui lòng chọn một sản phẩm để xuất PDF",
+                    "Vui lòng chọn một sản phẩm",
                     "Thông báo",
                     JOptionPane.WARNING_MESSAGE
             );
@@ -294,233 +258,107 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
 
         String code = getCellString(row, 1);
 
-        int choice = JOptionPane.showConfirmDialog(
-                this,
-                "Xuất PDF chi tiết cho sản phẩm [" + code + "] ?",
-                "Xác nhận",
-                JOptionPane.YES_NO_OPTION
-        );
-
-        if (choice != JOptionPane.YES_OPTION) return;
-
         JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Lưu PDF sản phẩm");
         chooser.setSelectedFile(new java.io.File("product-" + code + ".pdf"));
 
         if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
 
-        try {
-            ProductDetailResponse detail = controller.getDetail(code);
+        controller.exportProductDetailPdf(
+                code,
+                chooser.getSelectedFile().getAbsolutePath()
+        );
 
-            ProductDetailPdfExporter.export(
-                    detail,
-                    chooser.getSelectedFile().getAbsolutePath()
-            );
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Xuất PDF thành công!",
-                    "Thành công",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
-
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    ex.getMessage(),
-                    "Lỗi xuất PDF",
-                    JOptionPane.ERROR_MESSAGE
-            );
-        }
+        JOptionPane.showMessageDialog(
+                this,
+                "Xuất PDF thành công!",
+                "Thành công",
+                JOptionPane.INFORMATION_MESSAGE
+        );
     }
 
-    /**
-     * ============================
-     * ADD / EDIT DIALOG
-     * ============================
-     */
+    // ================= ADD / EDIT DIALOG =================
+
     private void openProductDialog(String editCode) {
         boolean edit = editCode != null;
 
-        // NOTE: lấy window cha để dialog không bị lỗi focus
-        Window w = SwingUtilities.getWindowAncestor(this);
-        JDialog d = new JDialog((Frame) w,
-                edit ? "Sửa sản phẩm" : "Thêm sản phẩm", true);
-
-        d.setLayout(new BorderLayout());
-
-        // =========================
-        // 1. KHAI BÁO FIELD UI
-        // =========================
+        JDialog dialog = new JDialog(
+                (Frame) SwingUtilities.getWindowAncestor(this),
+                edit ? "Sửa sản phẩm" : "Thêm sản phẩm",
+                true
+        );
 
         JTextField code = new JTextField();
         JTextField name = new JTextField();
-        JTextField barcode = new JTextField();
-        JTextField dosage = new JTextField();
-        JTextField unit = new JTextField();
         JTextField price = new JTextField();
-        JTextArea desc = new JTextArea(4, 20);
+        JTextArea desc = new JTextArea(3, 20);
 
-        JCheckBox rx = new JCheckBox("Cần toa thuốc");
         JComboBox<ProductStatus> statusBox =
                 new JComboBox<>(ProductStatus.values());
 
-        // =========================
-        // 2. LOAD DANH MỤC TỪ DB
-        // =========================
         List<CategoryResponse> categories = controller.getAllCategories();
         JComboBox<CategoryResponse> categoryBox =
                 new JComboBox<>(categories.toArray(new CategoryResponse[0]));
 
-        // NOTE: hiển thị name thay vì toString mặc định
-        categoryBox.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(
-                    JList<?> list, Object value, int index,
-                    boolean isSelected, boolean cellHasFocus) {
-
-                super.getListCellRendererComponent(
-                        list, value, index, isSelected, cellHasFocus);
-
-                if (value instanceof CategoryResponse c) {
-                    setText(c.getName());
-                }
-                return this;
-            }
-        });
-
-        // =========================
-        // 3. LOAD NHÀ SẢN XUẤT
-        // =========================
         List<ManufacturerResponse> manufacturers =
                 controller.getAllManufacturers();
-
         JComboBox<ManufacturerResponse> manufacturerBox =
                 new JComboBox<>(manufacturers.toArray(new ManufacturerResponse[0]));
 
-        manufacturerBox.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(
-                    JList<?> list, Object value, int index,
-                    boolean isSelected, boolean cellHasFocus) {
-
-                super.getListCellRendererComponent(
-                        list, value, index, isSelected, cellHasFocus);
-
-                if (value instanceof ManufacturerResponse m) {
-                    setText(m.getName());
-                }
-                return this;
-            }
-        });
-
-        // =========================
-        // 4. NẾU LÀ EDIT → ĐỔ DỮ LIỆU
-        // =========================
         if (edit) {
             ProductDetailResponse p = controller.getDetail(editCode);
-
             code.setText(p.getCode());
-            code.setEnabled(false); // NOTE: mã không cho sửa
-
+            code.setEnabled(false);
             name.setText(p.getName());
-            barcode.setText(p.getBarcode());
-            dosage.setText(p.getDosageForm());
-            unit.setText(p.getUnit());
             price.setText(p.getStandardPrice().toString());
             desc.setText(p.getDescription());
-
-            rx.setSelected(p.isRequiresPrescription());
             statusBox.setSelectedItem(p.getStatus());
-
-            // NOTE: chọn đúng category
-            categories.stream()
-                    .filter(c -> c.getId().equals(p.getCategoryId()))
-                    .findFirst()
-                    .ifPresent(categoryBox::setSelectedItem);
-
-            // NOTE: chọn đúng manufacturer
-            manufacturers.stream()
-                    .filter(m -> m.getId().equals(p.getManufacturerId()))
-                    .findFirst()
-                    .ifPresent(manufacturerBox::setSelectedItem);
         }
 
-        // =========================
-        // 5. BUILD FORM
-        // =========================
         JPanel form = new JPanel(new GridLayout(0, 2, 8, 8));
         form.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
         form.add(new JLabel("Mã *")); form.add(code);
         form.add(new JLabel("Tên *")); form.add(name);
-        form.add(new JLabel("Barcode")); form.add(barcode);
-        form.add(new JLabel("Danh mục *")); form.add(categoryBox);
+        form.add(new JLabel("Danh mục")); form.add(categoryBox);
         form.add(new JLabel("Nhà sản xuất")); form.add(manufacturerBox);
-        form.add(new JLabel("Dạng bào chế")); form.add(dosage);
-        form.add(new JLabel("Đơn vị")); form.add(unit);
-        form.add(new JLabel("Giá *")); form.add(price);
+        form.add(new JLabel("Giá")); form.add(price);
         form.add(new JLabel("Trạng thái")); form.add(statusBox);
-        form.add(new JLabel("")); form.add(rx);
         form.add(new JLabel("Mô tả")); form.add(new JScrollPane(desc));
 
-        // =========================
-        // 6. NÚT LƯU
-        // =========================
         JButton save = new JButton("Lưu");
         save.addActionListener(e -> {
             try {
-                // NOTE: validate cơ bản
-                if (name.getText().isBlank()) {
-                    throw new IllegalArgumentException("Tên không được để trống");
-                }
-
-                BigDecimal priceValue =
-                        new BigDecimal(price.getText().trim());
-
-                CategoryResponse c =
-                        (CategoryResponse) categoryBox.getSelectedItem();
-                ManufacturerResponse m =
-                        (ManufacturerResponse) manufacturerBox.getSelectedItem();
+                BigDecimal priceValue = new BigDecimal(price.getText().trim());
+                CategoryResponse c = (CategoryResponse) categoryBox.getSelectedItem();
+                ManufacturerResponse m = (ManufacturerResponse) manufacturerBox.getSelectedItem();
 
                 if (edit) {
                     UpdateProductRequest r = new UpdateProductRequest();
                     r.setName(name.getText().trim());
-                    r.setBarcode(barcode.getText().trim());
-                    r.setDosageForm(dosage.getText().trim());
-                    r.setUnit(unit.getText().trim());
-                    r.setDescription(desc.getText().trim());
                     r.setStandardPrice(priceValue);
-                    r.setRequiresPrescription(rx.isSelected());
+                    r.setDescription(desc.getText().trim());
                     r.setStatus((ProductStatus) statusBox.getSelectedItem());
                     r.setCategoryId(c.getId());
                     r.setManufacturerId(m != null ? m.getId() : null);
-
                     controller.update(editCode, r);
-
                 } else {
                     CreateProductRequest r = new CreateProductRequest();
                     r.setCode(code.getText().trim());
                     r.setName(name.getText().trim());
-                    r.setBarcode(barcode.getText().trim());
-                    r.setDosageForm(dosage.getText().trim());
-                    r.setUnit(unit.getText().trim());
-                    r.setDescription(desc.getText().trim());
                     r.setStandardPrice(priceValue);
-                    r.setRequiresPrescription(rx.isSelected());
+                    r.setDescription(desc.getText().trim());
                     r.setStatus((ProductStatus) statusBox.getSelectedItem());
                     r.setCategoryId(c.getId());
                     r.setManufacturerId(m != null ? m.getId() : null);
-
                     controller.create(r);
                 }
 
-                d.dispose();
+                dialog.dispose();
                 reload();
 
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(
-                        d,
+                        dialog,
                         ex.getMessage(),
                         "Lỗi",
                         JOptionPane.ERROR_MESSAGE
@@ -531,130 +369,13 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         actions.add(save);
         actions.add(new JButton("Hủy") {{
-            addActionListener(e -> d.dispose());
+            addActionListener(e -> dialog.dispose());
         }});
 
-        d.add(form, BorderLayout.CENTER);
-        d.add(actions, BorderLayout.SOUTH);
-        d.pack();
-        d.setLocationRelativeTo(w);
-        d.setVisible(true);
-    }
-
-    // ================= IMPORT/EXPORT =================
-
-    /**
-     * Download file template Excel để user có thể điền dữ liệu
-     */
-    private void downloadTemplate() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Lưu Template Excel");
-        fileChooser.setSelectedFile(new File("Product_Import_Template.xlsx"));
-        fileChooser.setFileFilter(new FileNameExtensionFilter("Excel Files (*.xlsx)", "xlsx"));
-
-        if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            String path = file.getAbsolutePath();
-            if (!path.toLowerCase().endsWith(".xlsx")) {
-                path += ".xlsx";
-            }
-
-            try {
-                ProductTemplateGenerator.generateTemplate(path);
-                JOptionPane.showMessageDialog(this,
-                        "Template đã được tạo thành công!\n" + path,
-                        "Success",
-                        JOptionPane.INFORMATION_MESSAGE);
-
-                // Mở thư mục chứa file
-                if (Desktop.isDesktopSupported()) {
-                    Desktop.getDesktop().open(file.getParentFile());
-                }
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this,
-                        "Lỗi khi tạo template: " + ex.getMessage(),
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-
-    /**
-     * Import dữ liệu từ file Excel
-     */
-    private void importFromExcel() {
-        // Chọn file
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Chọn file Excel để import");
-        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
-                "Excel Files (*.xlsx, *.xls)", "xlsx", "xls"));
-
-        if (fileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
-            return;
-        }
-
-        File file = fileChooser.getSelectedFile();
-
-        // Hiển thị loading
-        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-
-        try {
-            CategoryRepository categoryRepo = new CategoryRepositoryImpl();
-            ManufacturerReponsitory manufacturerRepo = new ManufacturerReponsitoryImpl();
-            ProductRepository productRepo = new ProductRepositoryImpl();
-            ProductImportService importService = new ProductImportService(productRepo, categoryRepo, manufacturerRepo);
-
-            // Preview dữ liệu
-            ImportPreviewResponse<ImportProductRequest> preview = importService.previewFromFile(file);
-            setCursor(Cursor.getDefaultCursor());
-
-            // Hiển thị preview dialog
-            String[] columnNames = {
-                "Code", "Name", "Category", "Manufacturer",
-                "Barcode", "Dosage Form", "Unit", "Price", "Prescription"
-            };
-
-            ImportPreviewDialog<ImportProductRequest> dialog =
-                new ImportPreviewDialog<>(
-                    (Frame) SwingUtilities.getWindowAncestor(this),
-                    preview,
-                    columnNames,
-                    dto -> new Object[]{
-                        dto.getCode(),
-                        dto.getName(),
-                        dto.getCategoryCode(),
-                        dto.getManufacturerCode(),
-                        dto.getBarcode(),
-                        dto.getDosageForm(),
-                        dto.getUnit(),
-                        dto.getStandardPrice(),
-                        dto.getRequiresPrescription() ? "Yes" : "No"
-                    }
-                );
-
-            dialog.setVisible(true);
-
-            // Nếu user confirm, thực hiện import
-            if (dialog.isConfirmed()) {
-                setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                int imported = importService.applyImport(dialog.getValidData());
-                setCursor(Cursor.getDefaultCursor());
-
-                JOptionPane.showMessageDialog(this,
-                        "Đã import thành công " + imported + " sản phẩm!",
-                        "Success",
-                        JOptionPane.INFORMATION_MESSAGE);
-
-                reload(); // Refresh table
-            }
-
-        } catch (Exception ex) {
-            setCursor(Cursor.getDefaultCursor());
-            JOptionPane.showMessageDialog(this,
-                    "Lỗi khi import: " + ex.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
-        }
+        dialog.add(form, BorderLayout.CENTER);
+        dialog.add(actions, BorderLayout.SOUTH);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
     }
 }
