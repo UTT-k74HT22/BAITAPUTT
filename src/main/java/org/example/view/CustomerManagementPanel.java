@@ -82,10 +82,10 @@ public class CustomerManagementPanel extends BaseManagementPanel<CustomerProfile
         JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         row.setOpaque(false);
 
-        row.add(UiFactory.button("➕ Thêm", new Color(40,167,69), e -> openCreate()));
-        row.add(UiFactory.button("✏️ Sửa", new Color(255,193,7), e -> openEdit()));
-        row.add(UiFactory.button("🗑️ Xóa", new Color(220,53,69), e -> deleteCustomer()));
-        row.add(UiFactory.button("🔄 Refresh", new Color(108,117,125), e -> reload()));
+        row.add(UiFactory.button("Thêm", new Color(40,167,69), e -> openCreate()));
+        row.add(UiFactory.button("Sửa", new Color(255,193,7), e -> openEdit()));
+        row.add(UiFactory.button("Xóa", new Color(220,53,69), e -> deleteCustomer()));
+        row.add(UiFactory.button("Refresh", new Color(108,117,125), e -> reload()));
 
         return row;
     }

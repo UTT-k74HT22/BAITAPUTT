@@ -1,22 +1,33 @@
 package org.example.view;
 
 import org.example.controller.ProductController;
+import org.example.dto.request.ImportProductRequest;
 import org.example.dto.request.Product.CreateProductRequest;
 import org.example.dto.request.Product.UpdateProductRequest;
 import org.example.dto.response.CategoryResponse;
+import org.example.dto.response.ImportPreviewResponse;
 import org.example.dto.response.ManufacturerResponse;
 import org.example.dto.response.Product.ProductDetailResponse;
 import org.example.dto.response.Product.ProductResponse;
 import org.example.entity.enums.ProductStatus;
+import org.example.repository.CategoryRepository;
+import org.example.repository.ManufacturerReponsitory;
+import org.example.repository.ProductRepository;
+import org.example.repository.impl.CategoryRepositoryImpl;
+import org.example.repository.impl.ManufacturerReponsitoryImpl;
+import org.example.repository.impl.ProductRepositoryImpl;
+import org.example.service.impl.ProductImportService;
 import org.example.service.impl.ProductServiceImpl;
 import org.example.utils.pdf.ProductDetailPdfExporter;
 import org.example.view.base.BaseManagementPanel;
 import org.example.view.base.UiFactory;
 import org.example.view.base.UiTheme;
-
+import org.example.view.dialog.ImportPreviewDialog;
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.io.File;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -184,6 +195,14 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
                 e -> reload()));
         row.add(UiFactory.button("🖨️ In PDF", new Color(23,162,184),
                 e -> exportPdf()));
+        row.add(UiFactory.button("Thêm", new Color(40,167,69), e -> openProductDialog(null)));
+        row.add(UiFactory.button("Sửa", new Color(255,193,7), e -> openEdit()));
+        row.add(UiFactory.button("Xóa", new Color(220,53,69), e -> deleteProduct()));
+        row.add(UiFactory.button("Chi tiết", new Color(108,117,125), e -> openDetail()));
+        row.add(UiFactory.button("Refresh", new Color(108,117,125), e -> reload()));
+        row.add(Box.createHorizontalStrut(20));
+        row.add(UiFactory.button("Download Template", new Color(23,162,184), e -> downloadTemplate()));
+        row.add(UiFactory.button("Import Excel", new Color(102,16,242), e -> importFromExcel()));
 
         return row;
     }
@@ -522,5 +541,120 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
         d.setVisible(true);
     }
 
+    // ================= IMPORT/EXPORT =================
 
+    /**
+     * Download file template Excel để user có thể điền dữ liệu
+     */
+    private void downloadTemplate() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Lưu Template Excel");
+        fileChooser.setSelectedFile(new File("Product_Import_Template.xlsx"));
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Excel Files (*.xlsx)", "xlsx"));
+
+        if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            String path = file.getAbsolutePath();
+            if (!path.toLowerCase().endsWith(".xlsx")) {
+                path += ".xlsx";
+            }
+
+            try {
+                ProductTemplateGenerator.generateTemplate(path);
+                JOptionPane.showMessageDialog(this,
+                        "Template đã được tạo thành công!\n" + path,
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                // Mở thư mục chứa file
+                if (Desktop.isDesktopSupported()) {
+                    Desktop.getDesktop().open(file.getParentFile());
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this,
+                        "Lỗi khi tạo template: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    /**
+     * Import dữ liệu từ file Excel
+     */
+    private void importFromExcel() {
+        // Chọn file
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Chọn file Excel để import");
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+                "Excel Files (*.xlsx, *.xls)", "xlsx", "xls"));
+
+        if (fileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        File file = fileChooser.getSelectedFile();
+
+        // Hiển thị loading
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+        try {
+            CategoryRepository categoryRepo = new CategoryRepositoryImpl();
+            ManufacturerReponsitory manufacturerRepo = new ManufacturerReponsitoryImpl();
+            ProductRepository productRepo = new ProductRepositoryImpl();
+            ProductImportService importService = new ProductImportService(productRepo, categoryRepo, manufacturerRepo);
+
+            // Preview dữ liệu
+            ImportPreviewResponse<ImportProductRequest> preview = importService.previewFromFile(file);
+            setCursor(Cursor.getDefaultCursor());
+
+            // Hiển thị preview dialog
+            String[] columnNames = {
+                "Code", "Name", "Category", "Manufacturer",
+                "Barcode", "Dosage Form", "Unit", "Price", "Prescription"
+            };
+
+            ImportPreviewDialog<ImportProductRequest> dialog =
+                new ImportPreviewDialog<>(
+                    (Frame) SwingUtilities.getWindowAncestor(this),
+                    preview,
+                    columnNames,
+                    dto -> new Object[]{
+                        dto.getCode(),
+                        dto.getName(),
+                        dto.getCategoryCode(),
+                        dto.getManufacturerCode(),
+                        dto.getBarcode(),
+                        dto.getDosageForm(),
+                        dto.getUnit(),
+                        dto.getStandardPrice(),
+                        dto.getRequiresPrescription() ? "Yes" : "No"
+                    }
+                );
+
+            dialog.setVisible(true);
+
+            // Nếu user confirm, thực hiện import
+            if (dialog.isConfirmed()) {
+                setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                int imported = importService.applyImport(dialog.getValidData());
+                setCursor(Cursor.getDefaultCursor());
+
+                JOptionPane.showMessageDialog(this,
+                        "Đã import thành công " + imported + " sản phẩm!",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                reload(); // Refresh table
+            }
+
+        } catch (Exception ex) {
+            setCursor(Cursor.getDefaultCursor());
+            JOptionPane.showMessageDialog(this,
+                    "Lỗi khi import: " + ex.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        }
+    }
 }

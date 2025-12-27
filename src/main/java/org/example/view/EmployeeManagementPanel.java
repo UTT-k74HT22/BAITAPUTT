@@ -423,9 +423,9 @@ public class EmployeeManagementPanel extends JPanel {
         actions.setBackground(Color.WHITE);
 
         JButton btnClose = createOutlineButton("Close");
-        JButton btnEdit  = createButton("✏ Update", new Color(255,193,7), null);
-        JButton btnSave  = createButton("💾 Save", new Color(40,167,69), null);
-        JButton btnExcel = createButton("📄 Excel", new Color(111,66,193), e -> {
+        JButton btnEdit  = createButton("Update", new Color(255,193,7), null);
+        JButton btnSave  = createButton("Save", new Color(40,167,69), null);
+        JButton btnExcel = createButton("Excel", new Color(111,66,193), e -> {
             controller.exportEmployeeDetailExcel(d.getCode(), dialog);
         });
         btnSave.setVisible(false);
