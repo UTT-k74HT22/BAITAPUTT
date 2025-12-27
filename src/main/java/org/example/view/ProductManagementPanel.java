@@ -1,21 +1,34 @@
 package org.example.view;
 
 import org.example.controller.ProductController;
+import org.example.dto.request.ImportProductRequest;
 import org.example.dto.request.Product.CreateProductRequest;
 import org.example.dto.request.Product.UpdateProductRequest;
 import org.example.dto.response.CategoryResponse;
+import org.example.dto.response.ImportPreviewResponse;
 import org.example.dto.response.ManufacturerResponse;
 import org.example.dto.response.Product.ProductDetailResponse;
 import org.example.dto.response.Product.ProductResponse;
 import org.example.entity.enums.ProductStatus;
+import org.example.repository.CategoryRepository;
+import org.example.repository.ManufacturerReponsitory;
+import org.example.repository.ProductRepository;
+import org.example.repository.impl.CategoryRepositoryImpl;
+import org.example.repository.impl.ManufacturerReponsitoryImpl;
+import org.example.repository.impl.ProductRepositoryImpl;
+import org.example.service.impl.ProductImportService;
 import org.example.service.impl.ProductServiceImpl;
+import org.example.utils.importer.template.ProductTemplateGenerator;
 import org.example.view.base.BaseManagementPanel;
 import org.example.view.base.UiFactory;
 import org.example.view.base.UiTheme;
+import org.example.view.dialog.ImportPreviewDialog;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.io.File;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -26,14 +39,15 @@ import java.util.List;
  *
  * Vai trò:
  * - Chỉ xử lý UI
- * - Không gọi Repository
+ * - Không gọi Repository trực tiếp (trừ import batch)
  * - Không viết SQL
- * - Mọi nghiệp vụ đi qua Controller
+ * - CRUD + PDF đi qua Controller
  */
 public class ProductManagementPanel
         extends BaseManagementPanel<ProductResponse> {
 
     private final ProductController controller;
+
     private JTextField keywordField;
     private JComboBox<String> statusFilter;
 
@@ -155,21 +169,23 @@ public class ProductManagementPanel
 
         row.add(UiFactory.button("Thêm", new Color(40, 167, 69),
                 e -> openProductDialog(null)));
-
         row.add(UiFactory.button("Sửa", new Color(255, 193, 7),
                 e -> openEdit()));
-
         row.add(UiFactory.button("Xóa", new Color(220, 53, 69),
                 e -> deleteProduct()));
-
         row.add(UiFactory.button("Chi tiết", new Color(108, 117, 125),
                 e -> openDetail()));
-
         row.add(UiFactory.button("Refresh", new Color(108, 117, 125),
                 e -> reload()));
-
         row.add(UiFactory.button("In PDF", new Color(23, 162, 184),
                 e -> exportPdf()));
+
+        row.add(Box.createHorizontalStrut(20));
+
+        row.add(UiFactory.button("Download Template", new Color(23, 162, 184),
+                e -> downloadTemplate()));
+        row.add(UiFactory.button("Import Excel", new Color(102, 16, 242),
+                e -> importFromExcel()));
 
         return row;
     }
@@ -259,7 +275,7 @@ public class ProductManagementPanel
         String code = getCellString(row, 1);
 
         JFileChooser chooser = new JFileChooser();
-        chooser.setSelectedFile(new java.io.File("product-" + code + ".pdf"));
+        chooser.setSelectedFile(new File("product-" + code + ".pdf"));
 
         if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
 
@@ -377,5 +393,71 @@ public class ProductManagementPanel
         dialog.pack();
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
+    }
+
+    // ================= IMPORT / TEMPLATE =================
+
+    private void downloadTemplate() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setSelectedFile(new File("Product_Import_Template.xlsx"));
+        chooser.setFileFilter(new FileNameExtensionFilter("Excel Files (*.xlsx)", "xlsx"));
+
+        if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+
+        try {
+            ProductTemplateGenerator.generateTemplate(chooser.getSelectedFile().getAbsolutePath());
+            JOptionPane.showMessageDialog(this, "Tạo template thành công!");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void importFromExcel() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileFilter(new FileNameExtensionFilter("Excel Files", "xlsx", "xls"));
+
+        if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
+
+        try {
+            CategoryRepository categoryRepo = new CategoryRepositoryImpl();
+            ManufacturerReponsitory manufacturerRepo = new ManufacturerReponsitoryImpl();
+            ProductRepository productRepo = new ProductRepositoryImpl();
+            ProductImportService importService =
+                    new ProductImportService(productRepo, categoryRepo, manufacturerRepo);
+
+            ImportPreviewResponse<ImportProductRequest> preview =
+                    importService.previewFromFile(chooser.getSelectedFile());
+
+            ImportPreviewDialog<ImportProductRequest> dialog =
+                    new ImportPreviewDialog<>(
+                            (Frame) SwingUtilities.getWindowAncestor(this),
+                            preview,
+                            new String[]{
+                                    "Code", "Name", "Category", "Manufacturer",
+                                    "Barcode", "Dosage", "Unit", "Price", "Rx"
+                            },
+                            dto -> new Object[]{
+                                    dto.getCode(),
+                                    dto.getName(),
+                                    dto.getCategoryCode(),
+                                    dto.getManufacturerCode(),
+                                    dto.getBarcode(),
+                                    dto.getDosageForm(),
+                                    dto.getUnit(),
+                                    dto.getStandardPrice(),
+                                    dto.getRequiresPrescription() ? "Yes" : "No"
+                            }
+                    );
+
+            dialog.setVisible(true);
+
+            if (dialog.isConfirmed()) {
+                importService.applyImport(dialog.getValidData());
+                reload();
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Lỗi import", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }
