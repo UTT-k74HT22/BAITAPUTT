@@ -53,4 +53,14 @@ public interface StockMovementRepository {
      * Lấy lịch sử xuất nhập của một sản phẩm tại một kho
      */
     List<StockMovementResponse> getHistoryByProductAndWarehouse(Long productId, Long warehouseId);
+    
+    /**
+     * Tạo giao dịch xuất/nhập kho với tracking quantity before/after (dùng trong transaction)
+     * @return ID của giao dịch
+     */
+    long insertWithQuantityTracking(
+        CreateStockMovementRequest request,
+        Integer quantityBefore,
+        Integer quantityAfter
+    );
 }

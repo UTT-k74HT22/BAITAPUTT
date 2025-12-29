@@ -55,4 +55,25 @@ public interface InventoryRepository {
      * Kiểm tra còn hàng hay không
      */
     boolean hasStock(Long productId, Long warehouseId, Integer requiredQuantity);
+    
+    /**
+     * Lấy hoặc tạo mới inventory item (dùng trong transaction)
+     * Trả về ID và quantity hiện tại
+     */
+    InventoryItemInfo getOrCreateInventoryItem(Long productId, Long batchId, Long warehouseId);
+    
+    /**
+     * Cập nhật số lượng tồn kho (dùng trong transaction)
+     */
+    void updateQuantity(Long inventoryItemId, Integer newQuantity);
+    
+    /**
+     * Lấy số lượng hiện tại của inventory item
+     */
+    Integer getCurrentQuantity(Long productId, Long batchId, Long warehouseId);
+    
+    /**
+     * DTO để trả về thông tin inventory item cơ bản
+     */
+    record InventoryItemInfo(Long inventoryItemId, Integer quantityOnHand) {}
 }

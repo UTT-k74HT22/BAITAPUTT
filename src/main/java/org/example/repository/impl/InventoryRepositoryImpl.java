@@ -7,6 +7,7 @@ import org.example.repository.InventoryRepository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -271,6 +272,82 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
         ).orElse(0);
         
         return availableQuantity >= requiredQuantity;
+    }
+
+    @Override
+    public InventoryItemInfo getOrCreateInventoryItem(Long productId, Long batchId, Long warehouseId) {
+        // Kiểm tra đã tồn tại chưa
+        String selectSql = """
+            SELECT id, quantity_on_hand
+            FROM inventory_items
+            WHERE product_id = ? 
+              AND warehouse_id = ?
+              AND (batch_id = ? OR (batch_id IS NULL AND ? IS NULL))
+        """;
+        
+        Optional<InventoryItemInfo> existing = queryForObject(
+            selectSql,
+            params(productId, warehouseId, batchId, batchId),
+            rs -> new InventoryItemInfo(rs.getLong("id"), rs.getInt("quantity_on_hand"))
+        );
+        
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+        
+        // Chưa tồn tại → Tạo mới với quantity = 0
+        String insertSql = """
+            INSERT INTO inventory_items
+            (product_id, batch_id, warehouse_id, quantity_on_hand, quantity_reserved, min_threshold, max_threshold)
+            VALUES (?, ?, ?, 0, 0, 10, 1000)
+        """;
+        
+        long newId = executeInsertAndReturnId(insertSql, ps -> {
+            ps.setLong(1, productId);
+            
+            if (batchId != null) {
+                ps.setLong(2, batchId);
+            } else {
+                ps.setNull(2, Types.BIGINT);
+            }
+            
+            ps.setLong(3, warehouseId);
+        });
+        
+        return new InventoryItemInfo(newId, 0);
+    }
+
+    @Override
+    public void updateQuantity(Long inventoryItemId, Integer newQuantity) {
+        String sql = """
+            UPDATE inventory_items
+            SET quantity_on_hand = ?,
+                last_stock_check = CURDATE()
+            WHERE id = ?
+        """;
+        
+        executeUpdateOrThrow(
+            sql,
+            params(newQuantity, inventoryItemId),
+            "Inventory item not found with id: " + inventoryItemId
+        );
+    }
+
+    @Override
+    public Integer getCurrentQuantity(Long productId, Long batchId, Long warehouseId) {
+        String sql = """
+            SELECT quantity_on_hand
+            FROM inventory_items
+            WHERE product_id = ? 
+              AND warehouse_id = ?
+              AND (batch_id = ? OR (batch_id IS NULL AND ? IS NULL))
+        """;
+        
+        return queryForObject(
+            sql,
+            params(productId, warehouseId, batchId, batchId),
+            rs -> rs.getInt("quantity_on_hand")
+        ).orElse(0);
     }
 
     /**

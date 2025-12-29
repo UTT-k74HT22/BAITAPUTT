@@ -5,14 +5,13 @@ import org.example.dto.request.CreateStockMovementRequest;
 import org.example.dto.response.StockMovementResponse;
 import org.example.entity.enums.StockMovementType;
 import org.example.repository.InventoryRepository;
+import org.example.repository.InventoryRepository.InventoryItemInfo;
 import org.example.repository.StockMovementRepository;
 import org.example.repository.impl.InventoryRepositoryImpl;
 import org.example.repository.impl.StockMovementRepositoryImpl;
 import org.example.service.StockMovementService;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,15 +40,14 @@ public class StockMovementServiceImpl implements StockMovementService {
             
             try {
                 // 1. Lấy thông tin inventory hiện tại
-                InventoryItemInfo inventoryInfo = getOrCreateInventoryItem(
-                    conn,
+                InventoryItemInfo inventoryInfo = inventoryRepository.getOrCreateInventoryItem(
                     request.getProductId(),
                     request.getBatchId(),
                     request.getWarehouseId()
                 );
                 
                 // 2. Tính toán quantity mới
-                int quantityBefore = inventoryInfo.quantityOnHand;
+                int quantityBefore = inventoryInfo.quantityOnHand();
                 int quantityAfter = calculateQuantityAfter(
                     request.getMovementType(),
                     quantityBefore,
@@ -60,10 +58,10 @@ public class StockMovementServiceImpl implements StockMovementService {
                 validateMovement(request.getMovementType(), quantityBefore, request.getQuantity(), quantityAfter);
                 
                 // 4. Cập nhật inventory
-                updateInventoryQuantity(conn, inventoryInfo.inventoryItemId, quantityAfter);
+                inventoryRepository.updateQuantity(inventoryInfo.inventoryItemId(), quantityAfter);
                 
                 // 5. Tạo stock movement record với quantity_before và quantity_after
-                insertStockMovement(conn, request, quantityBefore, quantityAfter);
+                stockMovementRepository.insertWithQuantityTracking(request, quantityBefore, quantityAfter);
                 
                 conn.commit();
                 
@@ -184,161 +182,6 @@ public class StockMovementServiceImpl implements StockMovementService {
         // Quantity sau phải >= 0
         if (quantityAfter < 0) {
             throw new IllegalStateException("Quantity sau giao dịch không được âm");
-        }
-    }
-
-    /**
-     * Lấy hoặc tạo mới inventory item
-     */
-    private InventoryItemInfo getOrCreateInventoryItem(
-        Connection conn,
-        Long productId,
-        Long batchId,
-        Long warehouseId
-    ) throws SQLException {
-        
-        // Kiểm tra đã tồn tại chưa
-        String selectSql = """
-            SELECT id, quantity_on_hand
-            FROM inventory_items
-            WHERE product_id = ? 
-              AND warehouse_id = ?
-              AND (batch_id = ? OR (batch_id IS NULL AND ? IS NULL))
-        """;
-        
-        try (PreparedStatement ps = conn.prepareStatement(selectSql)) {
-            ps.setLong(1, productId);
-            ps.setLong(2, warehouseId);
-            
-            if (batchId != null) {
-                ps.setLong(3, batchId);
-                ps.setLong(4, batchId);
-            } else {
-                ps.setNull(3, java.sql.Types.BIGINT);
-                ps.setNull(4, java.sql.Types.BIGINT);
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    // Đã tồn tại
-                    return new InventoryItemInfo(
-                        rs.getLong("id"),
-                        rs.getInt("quantity_on_hand")
-                    );
-                }
-            }
-        }
-        
-        // Chưa tồn tại → Tạo mới với quantity = 0
-        String insertSql = """
-            INSERT INTO inventory_items
-            (product_id, batch_id, warehouse_id, quantity_on_hand, quantity_reserved, min_threshold, max_threshold)
-            VALUES (?, ?, ?, 0, 0, 10, 1000)
-        """;
-        
-        try (PreparedStatement ps = conn.prepareStatement(insertSql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            ps.setLong(1, productId);
-            
-            if (batchId != null) {
-                ps.setLong(2, batchId);
-            } else {
-                ps.setNull(2, java.sql.Types.BIGINT);
-            }
-            
-            ps.setLong(3, warehouseId);
-            
-            ps.executeUpdate();
-            
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) {
-                    return new InventoryItemInfo(rs.getLong(1), 0);
-                }
-            }
-        }
-        
-        throw new IllegalStateException("Không thể tạo inventory item");
-    }
-
-    /**
-     * Cập nhật quantity trong inventory
-     */
-    private void updateInventoryQuantity(Connection conn, Long inventoryItemId, int newQuantity) throws SQLException {
-        String sql = """
-            UPDATE inventory_items
-            SET quantity_on_hand = ?,
-                last_stock_check = CURDATE()
-            WHERE id = ?
-        """;
-        
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, newQuantity);
-            ps.setLong(2, inventoryItemId);
-            ps.executeUpdate();
-        }
-    }
-
-    /**
-     * Insert stock movement record
-     */
-    private void insertStockMovement(
-        Connection conn,
-        CreateStockMovementRequest request,
-        int quantityBefore,
-        int quantityAfter
-    ) throws SQLException {
-        
-        String sql = """
-            INSERT INTO stock_movements
-            (movement_type, product_id, batch_id, warehouse_id,
-             quantity, quantity_before, quantity_after,
-             reference_type, reference_id, performed_by_user_id, note, movement_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-        """;
-        
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, request.getMovementType().name());
-            ps.setLong(2, request.getProductId());
-            
-            if (request.getBatchId() != null) {
-                ps.setLong(3, request.getBatchId());
-            } else {
-                ps.setNull(3, java.sql.Types.BIGINT);
-            }
-            
-            ps.setLong(4, request.getWarehouseId());
-            ps.setInt(5, request.getQuantity());
-            ps.setInt(6, quantityBefore);
-            ps.setInt(7, quantityAfter);
-            ps.setString(8, request.getReferenceType());
-            
-            if (request.getReferenceId() != null) {
-                ps.setLong(9, request.getReferenceId());
-            } else {
-                ps.setNull(9, java.sql.Types.BIGINT);
-            }
-            
-            if (request.getPerformedByUserId() != null) {
-                ps.setLong(10, request.getPerformedByUserId());
-            } else {
-                ps.setNull(10, java.sql.Types.BIGINT);
-            }
-            
-            ps.setString(11, request.getNote());
-            
-            ps.executeUpdate();
-        }
-    }
-
-    /**
-     * Helper class để lưu thông tin inventory item
-     */
-    private static class InventoryItemInfo {
-        final Long inventoryItemId;
-        final int quantityOnHand;
-        
-        InventoryItemInfo(Long inventoryItemId, int quantityOnHand) {
-            this.inventoryItemId = inventoryItemId;
-            this.quantityOnHand = quantityOnHand;
         }
     }
 }

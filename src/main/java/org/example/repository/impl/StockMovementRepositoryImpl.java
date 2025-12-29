@@ -315,6 +315,52 @@ public class StockMovementRepositoryImpl extends BaseRepository implements Stock
         return queryForList(sql, params(productId, warehouseId), this::mapToResponse);
     }
 
+    @Override
+    public long insertWithQuantityTracking(
+        CreateStockMovementRequest request,
+        Integer quantityBefore,
+        Integer quantityAfter
+    ) {
+        String sql = """
+            INSERT INTO stock_movements
+            (movement_type, product_id, batch_id, warehouse_id,
+             quantity, quantity_before, quantity_after,
+             reference_type, reference_id, performed_by_user_id, note, movement_date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        """;
+        
+        return executeInsertAndReturnId(sql, ps -> {
+            ps.setString(1, request.getMovementType().name());
+            ps.setLong(2, request.getProductId());
+            
+            if (request.getBatchId() != null) {
+                ps.setLong(3, request.getBatchId());
+            } else {
+                ps.setNull(3, Types.BIGINT);
+            }
+            
+            ps.setLong(4, request.getWarehouseId());
+            ps.setInt(5, request.getQuantity());
+            ps.setInt(6, quantityBefore);
+            ps.setInt(7, quantityAfter);
+            ps.setString(8, request.getReferenceType());
+            
+            if (request.getReferenceId() != null) {
+                ps.setLong(9, request.getReferenceId());
+            } else {
+                ps.setNull(9, Types.BIGINT);
+            }
+            
+            if (request.getPerformedByUserId() != null) {
+                ps.setLong(10, request.getPerformedByUserId());
+            } else {
+                ps.setNull(10, Types.BIGINT);
+            }
+            
+            ps.setString(11, request.getNote());
+        });
+    }
+
     /**
      * Map ResultSet to StockMovementResponse
      */
