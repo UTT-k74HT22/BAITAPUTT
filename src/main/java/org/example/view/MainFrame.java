@@ -68,6 +68,7 @@ public class MainFrame extends JFrame {
         add(new Footer(), BorderLayout.SOUTH);
 
         initMenuActions(role);
+        initHeaderActions();
     }
 
     // ===================== SCREENS =====================
@@ -129,6 +130,15 @@ public class MainFrame extends JFrame {
         dispose();
     }
 
+    // ===================== HEADER ACTIONS =====================
+    private void initHeaderActions() {
+        header.getBtnProfile().addActionListener(e -> {
+            JOptionPane.showMessageDialog(this,
+                    "Thực hiện chức năng [Thêm] tại module: " + currentModuleTitle,
+                    "Action", JOptionPane.INFORMATION_MESSAGE);
+//            showByMenuKey(MENU_PROFILE);
+        });
+    }
 
     // ===================== ROUTER =====================
     private void showByMenuKey(String menuKey) {
