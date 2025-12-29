@@ -17,7 +17,6 @@ import java.awt.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class BatchManagementPanel extends BaseManagementPanel<BatchResponse> {
 
@@ -44,11 +43,9 @@ public class BatchManagementPanel extends BaseManagementPanel<BatchResponse> {
                 new BatchServiceImpl(new BatchRepositoryImpl())
         );
         reload();
-        applyWarningHighlight(); // ← gọi tô màu cột cảnh báo
-        showExpiryPopupIfNeeded();
+        applyWarningHighlight();
     }
 
-    // ================= BASE TABLE =================
     @Override
     protected String titleTotal() {
         return "Tổng số lô hàng";
@@ -61,7 +58,7 @@ public class BatchManagementPanel extends BaseManagementPanel<BatchResponse> {
 
     @Override
     protected int[] columnWidths() {
-        // Cập nhật đúng 9 cột
+
         return new int[]{60, 140, 220, 120, 120, 120, 160, 120, 140};
     }
 
@@ -85,7 +82,7 @@ public class BatchManagementPanel extends BaseManagementPanel<BatchResponse> {
         };
     }
 
-    // ================= FILTER =================
+
     @Override
     protected JPanel buildFilters() {
         JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
@@ -124,7 +121,6 @@ public class BatchManagementPanel extends BaseManagementPanel<BatchResponse> {
         });
     }
 
-    // ================= ACTION BUTTONS =================
     @Override
     protected JPanel buildActions() {
         JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
@@ -147,7 +143,6 @@ public class BatchManagementPanel extends BaseManagementPanel<BatchResponse> {
         return row;
     }
 
-    // ================= WARNING LOGIC =================
     private String resolveWarning(LocalDate expiry) {
         LocalDate today = LocalDate.now();
         if (expiry.isBefore(today)) return "HẾT HẠN";
@@ -220,21 +215,6 @@ public class BatchManagementPanel extends BaseManagementPanel<BatchResponse> {
         // Nếu bạn muốn auto scroll lên đầu bảng khi lọc
         if (!list.isEmpty()) {
             table.scrollRectToVisible(table.getCellRect(0, 0, true));
-        }
-    }
-
-    private void showExpiryPopupIfNeeded() {
-        List<BatchResponse> list = controller.getALl().stream()
-                .filter(b -> resolveWarning(b.getExpiryDate()).contains("HẾT"))
-                .collect(Collectors.toList());
-
-        if (!list.isEmpty()) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Có " + list.size() + " lô hàng sắp hết hạn hoặc đã hết hạn!",
-                    "Cảnh báo hết hạn",
-                    JOptionPane.WARNING_MESSAGE
-            );
         }
     }
 
