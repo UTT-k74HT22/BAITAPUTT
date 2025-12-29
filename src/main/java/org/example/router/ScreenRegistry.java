@@ -15,9 +15,10 @@ public class ScreenRegistry {
         factory.register("screen_products", ProductManagementPanel::new);
         factory.register("screen_warehouses", WarehouseManagementPanel::new);
         factory.register("screen_batches", BatchManagementPanel::new);
+        factory.register("screen_inventory", InventoryManagementPanel::new);
+        factory.register("screen_stock_movements", StockMovementManagementPanel::new);
 
         // TODO sau này:
-        // factory.register("screen_employees", EmployeeManagementPanel::new);
          factory.register("screen_customer", CustomerManagementPanel::new);
     }
 }
