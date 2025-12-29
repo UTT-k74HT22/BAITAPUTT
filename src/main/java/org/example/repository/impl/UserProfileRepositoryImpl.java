@@ -2,6 +2,8 @@ package org.example.repository.impl;
 
 import org.example.dto.request.UpdateEmployeeProfileDetailRequest;
 import org.example.dto.request.UpdateProfileEmployeeRequest;
+import org.example.dto.response.ProfileResponse;
+import org.example.entity.UserProfile;
 import org.example.repository.BaseRepository;
 import org.example.repository.UserProfileRepository;
 import java.sql.Connection;
@@ -133,4 +135,49 @@ public class UserProfileRepositoryImpl extends BaseRepository implements UserPro
             ps.setString(6, code);
         });
     }
+
+    @Override
+    public Optional<UserProfile> findByAccountId(long accountId) {
+        String sql = """
+                SELECT *
+                FROM user_profiles
+                WHERE account_id = ?
+        """;
+        return queryForObject(sql, params(accountId), rs -> {
+            UserProfile p = new UserProfile();
+            p.setId(rs.getLong("id"));
+            p.setAccountId(rs.getLong("account_id"));
+            p.setCode(rs.getString("code"));
+            p.setFullName(rs.getString("full_name"));
+            p.setPhone(rs.getString("phone"));
+            p.setEmail(rs.getString("email"));
+            p.setAddress(rs.getString("address"));
+            return p;
+        });
+    }
+
+    @Override
+    public Optional<ProfileResponse> findProfileByUsername(String username) {
+        String sql = """
+        SELECT a.username,
+               up.full_name,
+               up.phone,
+               up.email,
+               up.address,
+        FROM accounts a
+        JOIN user_profiles up ON a.id = up.account_id
+        WHERE a.username = ?
+        """;
+
+        return queryForObject(sql, params(username), rs -> {
+            ProfileResponse p = new ProfileResponse();
+            p.setUsername(rs.getString("username"));
+            p.setFullName(rs.getString("full_name"));
+            p.setPhone(rs.getString("phone"));
+            p.setEmail(rs.getString("email"));
+            p.setAddress(rs.getString("address"));
+            return p;
+        });
+    }
+
 }

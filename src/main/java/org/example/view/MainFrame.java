@@ -20,6 +20,8 @@ public class MainFrame extends JFrame {
     private final JPanel contentPanel;
     private final CardLayout cardLayout;
 
+    private JPanel profilePanel;
+
     private String currentModuleTitle = "Dashboard";
 
     private final Map<String, AppRoutes.ScreenSpec> routes;
@@ -47,6 +49,9 @@ public class MainFrame extends JFrame {
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
         contentPanel.setOpaque(false);
+        profilePanel = new ProfilePanel(username, role);
+        contentPanel.add(wrapInCard(profilePanel), "PROFILE");
+
 
         ScreenNavigator.init(this::showByMenuKey);
         routes = AppRoutes.build();
@@ -133,10 +138,8 @@ public class MainFrame extends JFrame {
     // ===================== HEADER ACTIONS =====================
     private void initHeaderActions() {
         header.getBtnProfile().addActionListener(e -> {
-            JOptionPane.showMessageDialog(this,
-                    "Thực hiện chức năng [Thêm] tại module: " + currentModuleTitle,
-                    "Action", JOptionPane.INFORMATION_MESSAGE);
-//            showByMenuKey(MENU_PROFILE);
+            cardLayout.show(contentPanel, "PROFILE");
+            header.setModuleTitle("Profile");
         });
     }
 
