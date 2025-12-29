@@ -1,10 +1,7 @@
 package org.example.view;
 
 import org.example.entity.enums.Role;
-import org.example.router.AppRoutes;
-import org.example.router.CustomerScreenRegistry;
-import org.example.router.ScreenFactory;
-import org.example.router.ScreenRegistry;
+import org.example.router.*;
 import org.example.view.layout.Footer;
 import org.example.view.layout.Header;
 import org.example.view.layout.SideBar;
@@ -51,6 +48,7 @@ public class MainFrame extends JFrame {
         contentPanel = new JPanel(cardLayout);
         contentPanel.setOpaque(false);
 
+        ScreenNavigator.init(this::showByMenuKey);
         routes = AppRoutes.build();
         ScreenRegistry.registerAll(screenFactory);
         /**
@@ -190,5 +188,12 @@ public class MainFrame extends JFrame {
             graphics.setColor(backgroundColor);
             graphics.fillRoundRect(0, 0, width - 8, height - 8, arcs.width, arcs.height);
         }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            MainFrame frame = new MainFrame("minhchau", Role.ADMIN);
+            frame.setVisible(true);
+        });
     }
 }

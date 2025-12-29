@@ -7,6 +7,7 @@ import org.example.dto.response.ManufacturerResponse;
 import org.example.dto.response.Product.ProductDetailResponse;
 import org.example.dto.response.Product.ProductResponse;
 import org.example.service.ProductService;
+import org.example.utils.pdf.ProductDetailPdfExporter;
 
 import java.util.List;
 
@@ -16,7 +17,6 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
-
 
     public ProductController(ProductService productService) {
         this.productService = productService;
@@ -78,4 +78,9 @@ public class ProductController {
         return productService.getAllManufacturers();
     }
 
+    public void exportProductDetailPdf(String code, String path){
+        System.out.println("[Controller] Export PDF product detail "+ code);
+        ProductDetailResponse detail = productService.getDetailByCode(code);
+        ProductDetailPdfExporter.export(detail,path);
+   }
 }
