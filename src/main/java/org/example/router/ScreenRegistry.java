@@ -1,7 +1,13 @@
 package org.example.router;
 
+import org.example.controller.ReportSummaryController;
+import org.example.repository.ReportSummaryRepository;
+import org.example.repository.impl.ReportSummaryRepositoryImpl;
+import org.example.service.ReportSummaryService;
+import org.example.service.impl.ReportSummaryServiceImpl;
 import org.example.view.*;
 import org.example.view.WarehouseManagementPanel;
+import org.example.view.ReportSummaryManagementPanel;
 
 public class ScreenRegistry {
 
@@ -15,6 +21,14 @@ public class ScreenRegistry {
         factory.register("screen_products", ProductManagementPanel::new);
         factory.register("screen_warehouses", WarehouseManagementPanel::new);
         factory.register("screen_batches", BatchManagementPanel::new);
+
+        factory.register("screen_report_summary", () -> {
+            ReportSummaryRepository repository = new ReportSummaryRepositoryImpl();
+            ReportSummaryService service = new ReportSummaryServiceImpl(repository);
+            ReportSummaryController controller = new ReportSummaryController(service);
+            return new ReportSummaryManagementPanel(controller);
+        });
+
 
         // TODO sau này:
         // factory.register("screen_employees", EmployeeManagementPanel::new);
