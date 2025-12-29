@@ -24,22 +24,23 @@ public class ClickableStatCard extends JPanel {
         setBackground(bgNormal);
         setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(220, 220, 220)),
-                BorderFactory.createEmptyBorder(16, 18, 16, 18)
+                BorderFactory.createEmptyBorder(18, 20, 18, 20)
         ));
 
         JPanel accentBar = new JPanel();
-        accentBar.setPreferredSize(new Dimension(4, 0));
+        accentBar.setPreferredSize(new Dimension(3, 0));
         accentBar.setBackground(accent);
 
         JLabel titleLbl = new JLabel(title);
         titleLbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         titleLbl.setForeground(new Color(120, 120, 120));
 
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 32));
         valueLabel.setForeground(new Color(45, 45, 45));
 
-        JPanel center = new JPanel(new BorderLayout(0, 6));
+        JPanel center = new JPanel(new BorderLayout(0, 10));
         center.setOpaque(false);
+        center.setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 0));
         center.add(titleLbl, BorderLayout.NORTH);
         center.add(valueLabel, BorderLayout.CENTER);
 

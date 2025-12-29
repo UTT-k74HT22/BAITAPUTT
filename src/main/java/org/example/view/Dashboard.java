@@ -71,7 +71,7 @@ public class Dashboard extends JPanel {
         left.add(title);
         left.add(subtitle);
 
-        refreshBtn = new JButton("↻");
+        refreshBtn = new JButton("Refresh");
         refreshBtn.setFont(new Font("Segoe UI", Font.BOLD, 16));
         refreshBtn.setBackground(UiTheme.PRIMARY);
         refreshBtn.setForeground(Color.WHITE);
@@ -143,8 +143,8 @@ public class Dashboard extends JPanel {
 
     private static JLabel value() {
         JLabel l = new JLabel("0");
-        l.setFont(new Font("Segoe UI", Font.BOLD, 28));
-        l.setForeground(new Color(45, 45, 45));
+        l.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        l.setForeground(new Color(120, 120, 120));
         return l;
     }
 
@@ -181,6 +181,8 @@ public class Dashboard extends JPanel {
                 ? dto.getTodayRevenue()
                 : BigDecimal.ZERO;
         lblTodayRevenue.setText(currencyFmt.format(rev));
+        lblTodayRevenue.setForeground(UiTheme.SUCCESS.darker());
+
     }
 
     // ======================================================

@@ -10,9 +10,7 @@ public class Header extends JPanel {
     private final JLabel moduleLabel;
     private final JLabel userInfoLabel;
 
-    private final JButton btnAdd;
-    private final JButton btnEdit;
-    private final JButton btnExport;
+    private final JButton btnProfile;
 
     public Header(String username, Role role) {
         setPreferredSize(new Dimension(0, 70));
@@ -38,13 +36,8 @@ public class Header extends JPanel {
         JPanel actionRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         actionRow.setOpaque(false);
 
-        btnAdd = createPrimaryButton("+ Thêm");
-        btnEdit = createGhostButton("Sửa");
-        btnExport = createPrimaryButton("↑ Xuất Excel");
-
-        actionRow.add(btnAdd);
-        actionRow.add(btnEdit);
-        actionRow.add(btnExport);
+        btnProfile = createGhostButton("Profile");
+        actionRow.add(btnProfile);
 
         // Hàng user info
         JPanel userRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 2));
@@ -128,15 +121,7 @@ public class Header extends JPanel {
         userInfoLabel.setText(username + " (" + role + ")");
     }
 
-    public JButton getBtnAdd() {
-        return btnAdd;
-    }
-
-    public JButton getBtnEdit() {
-        return btnEdit;
-    }
-
-    public JButton getBtnExport() {
-        return btnExport;
+    public JButton getBtnProfile() {
+        return btnProfile;
     }
 }
