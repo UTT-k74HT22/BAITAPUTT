@@ -132,20 +132,12 @@ public class MainFrame extends JFrame {
 
     // ===================== HEADER ACTIONS =====================
     private void initHeaderActions() {
-        header.getBtnAdd().addActionListener(e ->
-                JOptionPane.showMessageDialog(this,
-                        "Thực hiện chức năng [Thêm] tại module: " + currentModuleTitle,
-                        "Action", JOptionPane.INFORMATION_MESSAGE));
-
-        header.getBtnEdit().addActionListener(e ->
-                JOptionPane.showMessageDialog(this,
-                        "Thực hiện chức năng [Sửa] tại module: " + currentModuleTitle,
-                        "Action", JOptionPane.INFORMATION_MESSAGE));
-
-        header.getBtnExport().addActionListener(e ->
-                JOptionPane.showMessageDialog(this,
-                        "Thực hiện chức năng [Xuất Excel] tại module: " + currentModuleTitle,
-                        "Action", JOptionPane.INFORMATION_MESSAGE));
+        header.getBtnProfile().addActionListener(e -> {
+            JOptionPane.showMessageDialog(this,
+                    "Thực hiện chức năng [Thêm] tại module: " + currentModuleTitle,
+                    "Action", JOptionPane.INFORMATION_MESSAGE);
+//            showByMenuKey(MENU_PROFILE);
+        });
     }
 
     // ===================== ROUTER =====================
