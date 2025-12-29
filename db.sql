@@ -461,3 +461,40 @@ VALUES
 UPDATE accounts
 SET password = '$2a$12$ZbxOL6/mxxY65NraoXE2GeeS2HFNVtZvJhlNt7Vtg.XNJ5HKNnd9q'
 WHERE id = 1;
+
+
+
+
+--Test đơn hàng
+
+INSERT INTO accounts (username, password, role)
+VALUES ('emp01', '123456', 'EMPLOYEE');
+
+INSERT INTO user_profiles (account_id, code, full_name, phone, status)
+VALUES (LAST_INSERT_ID(), 'EMP001', 'Nguyễn Văn Nhân Viên', '0909000001', 'ACTIVE');
+
+INSERT INTO employee_profiles (profile_id, position, department)
+VALUES (LAST_INSERT_ID(), 'Bán hàng', 'Sales');
+
+
+INSERT INTO accounts (username, password, role)
+VALUES ('cus01', '123456', 'CUSTOMER');
+
+INSERT INTO user_profiles (account_id, code, full_name, phone, status)
+VALUES (LAST_INSERT_ID(), 'CUS001123', 'Trần Thị Kháchk', '0909000002', 'ACTIVE');
+
+INSERT INTO customer_profiles (profile_id, customer_type)
+VALUES (LAST_INSERT_ID(), 'RETAIL');
+
+
+INSERT INTO products
+(category_id, manufacturer_id, code, name, standard_price, status)
+VALUES
+(1, 1, 'P001', 'Paracetamol 500mg', 15000, 'ACTIVE'),
+(1, 1, 'P002', 'Amoxicillin 500mg', 45000, 'ACTIVE');
+
+INSERT INTO batches
+(product_id, batch_code, import_price, manufacture_date, expiry_date, status)
+VALUES
+(1, 'BATCH-P001-01', 10000, '2024-01-01', '2026-01-01', 'ACTIVE'),
+(2, 'BATCH-P002-01', 30000, '2024-02-01', '2026-02-01', 'ACTIVE');

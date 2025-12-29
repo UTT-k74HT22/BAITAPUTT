@@ -15,6 +15,7 @@ public class ScreenRegistry {
         factory.register("screen_products", ProductManagementPanel::new);
         factory.register("screen_warehouses", WarehouseManagementPanel::new);
         factory.register("screen_batches", BatchManagementPanel::new);
+        factory.register("screen_orders", OrderManagementPanel::new);
 
         // TODO sau này:
         // factory.register("screen_employees", EmployeeManagementPanel::new);
