@@ -5,6 +5,8 @@ import org.example.entity.Category;
 import org.example.service.CategoryService;
 import org.example.utils.excel.CategoryExcelWriter;
 import org.example.utils.excel.ExcelExporter;
+import org.example.utils.pdf.CategoryPdfExporter;
+
 import java.awt.Component;
 import java.util.List;
 
@@ -108,9 +110,6 @@ public class CategoryController {
         categoryService.delete(code);
     }
 
-
-
-
     /**
      * Xuất danh sách category ra file Excel.
      *
@@ -124,4 +123,13 @@ public class CategoryController {
                 parent
         );
     }
+    /**
+     * Xuất danh sách category ra file PDF
+     * */
+    public void exportPdf(String path) {
+        System.out.println("[Controller] Xuất danh sách category ra file PDF");
+        List<CategoryResponse> categories = categoryService.getAllCategories();
+        CategoryPdfExporter.export(categories, path);
+    }
+
 }
