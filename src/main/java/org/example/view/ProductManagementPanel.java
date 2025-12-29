@@ -245,7 +245,7 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
         JTextField dosage = new JTextField();
         JTextField unit = new JTextField();
         JTextField price = new JTextField();
-        JTextArea desc = new JTextArea(4, 20);
+        JTextArea desc = new JTextArea(1, 20);
 
         JCheckBox rx = new JCheckBox("Cần toa thuốc");
 
