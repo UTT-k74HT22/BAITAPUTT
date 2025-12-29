@@ -1,6 +1,7 @@
 package org.example.router;
 
 import org.example.view.*;
+import org.example.view.WarehouseManagementPanel;
 
 public class ScreenRegistry {
 
@@ -12,6 +13,7 @@ public class ScreenRegistry {
         factory.register("screen_categories", CategoryManagementPanel::new);
         factory.register("screen_manufacturers", ManufacturerManagementPanel::new);
         factory.register("screen_products", ProductManagementPanel::new);
+        factory.register("screen_warehouses", WarehouseManagementPanel::new);
         factory.register("screen_batches", BatchManagementPanel::new);
 
         // TODO sau này:
