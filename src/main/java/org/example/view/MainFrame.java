@@ -184,7 +184,7 @@ public class MainFrame extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            MainFrame frame = new MainFrame("minhchau", Role.ADMIN);
+            MainFrame frame = new MainFrame("minhchau", Role.EMPLOYEE);
             frame.setVisible(true);
         });
     }

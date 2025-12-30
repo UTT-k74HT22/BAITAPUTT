@@ -2,8 +2,8 @@ package org.example.utils.importer.core;
 
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.example.dto.response.ImportPreviewResponse;
-import org.example.dto.response.ImportRowData;
+import org.example.dto.response.importer.ImportPreviewResponse;
+import org.example.dto.response.importer.ImportRowData;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;

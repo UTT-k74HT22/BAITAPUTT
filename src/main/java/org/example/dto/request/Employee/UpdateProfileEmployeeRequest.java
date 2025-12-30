@@ -1,4 +1,4 @@
-package org.example.dto.request;
+package org.example.dto.request.Employee;
 
 import org.example.entity.enums.ProfileStatus;
 

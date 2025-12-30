@@ -1,14 +1,14 @@
 package org.example.controller;
 
-import org.example.dto.request.UpdateEmployeeProfileDetailRequest;
-import org.example.dto.request.UpdateProfileEmployeeRequest;
-import org.example.dto.response.EmployeeProfileDetailResponse;
-import org.example.dto.response.EmployeeProfileResponse;
+import org.example.dto.request.Employee.UpdateEmployeeProfileDetailRequest;
+import org.example.dto.request.Employee.UpdateProfileEmployeeRequest;
+import org.example.dto.response.Employee.EmployeeProfileDetailResponse;
+import org.example.dto.response.Employee.EmployeeProfileResponse;
 import org.example.entity.enums.ProfileStatus;
 import org.example.service.EmployeeService;
 import org.example.utils.excel.employees.EmployeeDetailExcelWriter;
 import org.example.utils.excel.employees.EmployeeExcelWriter;
-import org.example.utils.excel.ExcelExporter;
+import org.example.utils.excel.core.ExcelExporter;
 import java.awt.Component;
 import java.util.List;
 

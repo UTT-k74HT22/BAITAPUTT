@@ -1,10 +1,10 @@
 package org.example.view;
 
 import org.example.controller.EmployeeController;
-import org.example.dto.request.UpdateEmployeeProfileDetailRequest;
-import org.example.dto.request.UpdateProfileEmployeeRequest;
-import org.example.dto.response.EmployeeProfileDetailResponse;
-import org.example.dto.response.EmployeeProfileResponse;
+import org.example.dto.request.Employee.UpdateEmployeeProfileDetailRequest;
+import org.example.dto.request.Employee.UpdateProfileEmployeeRequest;
+import org.example.dto.response.Employee.EmployeeProfileDetailResponse;
+import org.example.dto.response.Employee.EmployeeProfileResponse;
 import org.example.entity.enums.ProfileStatus;
 import org.example.service.impl.EmployeeServiceImpl;
 import javax.swing.*;
@@ -13,7 +13,6 @@ import javax.swing.table.*;
 import java.awt.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 
 public class EmployeeManagementPanel extends JPanel {

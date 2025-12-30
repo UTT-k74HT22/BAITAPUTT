@@ -1,7 +1,7 @@
 package org.example.service;
 
-import org.example.dto.LoginRequest;
-import org.example.dto.RegisterRequest;
+import org.example.dto.request.auth.LoginRequest;
+import org.example.dto.request.auth.RegisterRequest;
 import org.example.entity.Account;
 
 public interface AuthService {

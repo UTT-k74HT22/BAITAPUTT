@@ -1,6 +1,6 @@
 package org.example.view;
 
-import org.example.dto.RegisterRequest;
+import org.example.dto.request.auth.RegisterRequest;
 import org.example.service.AuthService;
 import org.example.service.impl.AuthServiceImpl;
 

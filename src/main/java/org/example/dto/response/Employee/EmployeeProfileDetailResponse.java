@@ -1,4 +1,4 @@
-package org.example.dto.response;
+package org.example.dto.response.Employee;
 
 import org.example.entity.enums.ProfileStatus;
 

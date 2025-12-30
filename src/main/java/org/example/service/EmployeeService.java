@@ -1,13 +1,11 @@
 package org.example.service;
 
-import org.example.dto.request.UpdateEmployeeProfileDetailRequest;
-import org.example.dto.request.UpdateProfileEmployeeRequest;
-import org.example.dto.response.EmployeeProfileDetailResponse;
-import org.example.dto.response.EmployeeProfileResponse;
-import org.example.dto.response.EmployeeResponse;
+import org.example.dto.request.Employee.UpdateEmployeeProfileDetailRequest;
+import org.example.dto.request.Employee.UpdateProfileEmployeeRequest;
+import org.example.dto.response.Employee.EmployeeProfileDetailResponse;
+import org.example.dto.response.Employee.EmployeeProfileResponse;
 import org.example.entity.enums.ProfileStatus;
 
-import java.awt.*;
 import java.util.List;
 
 public interface EmployeeService {

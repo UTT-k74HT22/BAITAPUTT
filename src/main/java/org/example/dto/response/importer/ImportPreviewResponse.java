@@ -1,4 +1,4 @@
-package org.example.dto.response;
+package org.example.dto.response.importer;
 
 import java.util.ArrayList;
 import java.util.List;

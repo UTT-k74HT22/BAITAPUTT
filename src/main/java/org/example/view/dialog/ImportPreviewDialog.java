@@ -1,7 +1,7 @@
 package org.example.view.dialog;
 
-import org.example.dto.response.ImportPreviewResponse;
-import org.example.dto.response.ImportRowData;
+import org.example.dto.response.importer.ImportPreviewResponse;
+import org.example.dto.response.importer.ImportRowData;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;

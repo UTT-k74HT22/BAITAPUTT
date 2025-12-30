@@ -1,6 +1,6 @@
 package org.example.view;
 
-import org.example.dto.LoginRequest;
+import org.example.dto.request.auth.LoginRequest;
 import org.example.entity.Account;
 import org.example.service.AuthService;
 import org.example.service.impl.AuthServiceImpl;

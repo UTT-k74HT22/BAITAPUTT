@@ -1,6 +1,6 @@
 package org.example.service.impl;
 
-import org.example.dto.RegisterRequest;
+import org.example.dto.request.auth.RegisterRequest;
 import org.example.dto.request.CreateAccountRequest;
 import org.example.entity.Account;
 import org.example.entity.enums.CustomerType;

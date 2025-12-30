@@ -1,7 +1,7 @@
 package org.example.repository;
 
-import org.example.dto.request.UpdateEmployeeProfileDetailRequest;
-import org.example.dto.request.UpdateProfileEmployeeRequest;
+import org.example.dto.request.Employee.UpdateEmployeeProfileDetailRequest;
+import org.example.dto.request.Employee.UpdateProfileEmployeeRequest;
 import java.sql.Connection;
 import java.util.Optional;
 

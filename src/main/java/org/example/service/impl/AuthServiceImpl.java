@@ -1,16 +1,14 @@
 package org.example.service.impl;
 
-import org.example.dto.LoginRequest;
-import org.example.dto.RegisterRequest;
+import org.example.dto.request.auth.LoginRequest;
+import org.example.dto.request.auth.RegisterRequest;
 import org.example.entity.Account;
-import org.example.entity.enums.Role;
 import org.example.repository.AccountRepository;
 import org.example.repository.impl.AccountRepositoryImpl;
 import org.example.service.AuthService;
 import org.example.service.UserCreationService;
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.time.LocalDateTime;
 import java.util.logging.Logger;
 
 public class AuthServiceImpl implements AuthService {

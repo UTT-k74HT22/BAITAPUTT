@@ -5,7 +5,7 @@ import org.example.dto.request.ImportProductRequest;
 import org.example.dto.request.Product.CreateProductRequest;
 import org.example.dto.request.Product.UpdateProductRequest;
 import org.example.dto.response.CategoryResponse;
-import org.example.dto.response.ImportPreviewResponse;
+import org.example.dto.response.importer.ImportPreviewResponse;
 import org.example.dto.response.ManufacturerResponse;
 import org.example.dto.response.Product.ProductDetailResponse;
 import org.example.dto.response.Product.ProductResponse;
