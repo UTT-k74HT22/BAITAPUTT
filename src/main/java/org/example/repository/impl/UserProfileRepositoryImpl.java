@@ -1,7 +1,6 @@
 package org.example.repository.impl;
 
 import org.example.dto.request.UpdateEmployeeProfileDetailRequest;
-import org.example.dto.request.UpdateProfileEmployeeRequest;
 import org.example.dto.response.ProfileResponse;
 import org.example.entity.UserProfile;
 import org.example.entity.enums.Role;
@@ -94,25 +93,35 @@ public class UserProfileRepositoryImpl extends BaseRepository implements UserPro
     /**
      * Cập nhật thông tin cơ bản của hồ sơ người dùng dựa trên mã hồ sơ.
      *
-     * @param code    mã hồ sơ
-     * @param request đối tượng yêu cầu chứa thông tin cập nhật
+     * @param
+     * @param
      */
     @Override
-    public void updateBasicByCode(String code, UpdateProfileEmployeeRequest request) {
+    public void updateMyProfileByAccountId(
+            long accountId,
+            String fullName,
+            String phone,
+            String email,
+            String address
+    ) {
         String sql = """
-                UPDATE user_profiles
-                SET full_name = ?,
-                    phone = ?,
-                    status = ?
-                WHERE code = ?
-                """;
+        UPDATE user_profiles
+        SET full_name = ?,
+            phone = ?,
+            email = ?,
+            address = ?
+        WHERE account_id = ?
+    """;
+
         executeUpdate(sql, ps -> {
-            ps.setString(1, request.getFullName());
-            ps.setString(2, request.getPhone());
-            ps.setString(3, request.getStatus().name());
-            ps.setString(4, code);
+            ps.setString(1, fullName);
+            ps.setString(2, phone);
+            ps.setString(3, email);
+            ps.setString(4, address);
+            ps.setLong(5, accountId);
         });
     }
+
 
     /**
      * Cập nhật chi tiết hồ sơ người dùng dựa trên mã hồ sơ.

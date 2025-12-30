@@ -39,11 +39,21 @@ public interface UserProfileRepository {
     Optional<Long> findIdByCode(String code);
 
     /**
-     * Cập nhật thông tin cơ bản của hồ sơ người dùng dựa trên mã hồ sơ.
-     * @param code mã hồ sơ
-     * @param request đối tượng yêu cầu chứa thông tin cập nhật
+     *
+     * @param
+     * @param fullName
+     * @param phone
+     * @param email
+     * @param address
      */
-    void updateBasicByCode(String code, UpdateProfileEmployeeRequest request);
+
+    void updateMyProfileByAccountId(
+            long accountId,
+            String fullName,
+            String phone,
+            String email,
+            String address
+    );
 
     /**
      * Cập nhật chi tiết hồ sơ người dùng dựa trên mã hồ sơ.

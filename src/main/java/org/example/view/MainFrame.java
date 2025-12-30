@@ -12,6 +12,8 @@ import org.example.repository.impl.UserProfileRepositoryImpl;
 import org.example.router.*;
 import org.example.service.ProfileService;
 import org.example.service.impl.ProfileServiceImpl;
+import org.example.service.AuthService;
+import org.example.service.impl.AuthServiceImpl;
 import org.example.view.layout.Footer;
 import org.example.view.layout.Header;
 import org.example.view.layout.SideBar;
@@ -70,8 +72,10 @@ public class MainFrame extends JFrame {
 // Load profile hiện tại
         ProfileResponse profile = profileController.loadProfile(username, role);
 
+        long accountId = AuthServiceImpl.getCurrentAccount().getId();
+
 // Tạo ProfilePanel với dữ liệu thật
-        profilePanel = new ProfilePanel(profile);
+        profilePanel = new ProfilePanel(profile, profileController, accountId);
         contentPanel.add(wrapInCard(profilePanel), "PROFILE");
 
 

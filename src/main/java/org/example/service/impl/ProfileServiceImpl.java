@@ -1,5 +1,6 @@
 package org.example.service.impl;
 
+import org.example.dto.request.UpdateUserProfileRequest;
 import org.example.dto.response.ProfileResponse;
 import org.example.entity.enums.Role;
 import org.example.repository.CustomerProfileRepository;
@@ -51,5 +52,16 @@ public class ProfileServiceImpl implements ProfileService {
                     );
         }
         return p;
+    }
+
+    @Override
+    public void updateMyProfile(long accountId, UpdateUserProfileRequest req) {
+        userProfileRepository.updateMyProfileByAccountId(
+                accountId,
+                req.getFullName(),
+                req.getPhone(),
+                req.getEmail(),
+                req.getAddress()
+        );
     }
 }
