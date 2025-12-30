@@ -196,27 +196,34 @@ public class ReportDetailManagementPanel extends JPanel {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            if (onHand + inQty + outQty == 0) return;
+
+            if (onHand == 0 && inQty == 0 && outQty == 0) {
+                g.drawString("Không có dữ liệu", getWidth() / 2 - 40, getHeight() / 2);
+                return;
+            }
 
             Graphics2D g2 = (Graphics2D) g;
+
             int w = getWidth();
             int h = getHeight();
             int baseY = h - 40;
             int barW = 80;
 
-            int max = Math.max(onHand, Math.max(inQty, outQty));
-            int scale = (h - 80) / max;
+            int max = Math.max(1, Math.max(onHand, Math.max(inQty, outQty)));
+            double scale = (double) (h - 80) / max;
 
-            drawBar(g2, w / 4, baseY, barW, inQty * scale, Color.BLUE, "Nhập");
-            drawBar(g2, w / 2, baseY, barW, outQty * scale, Color.RED, "Xuất");
-            drawBar(g2, 3 * w / 4, baseY, barW, onHand * scale, Color.GREEN, "Tồn");
+            drawBar(g2, w / 4, baseY, barW, (int) (inQty * scale), Color.BLUE, "Nhập");
+            drawBar(g2, w / 2, baseY, barW, (int) (outQty * scale), Color.GREEN, "Xuất");
+            drawBar(g2, 3 * w / 4, baseY, barW, (int) (onHand * scale), Color.RED, "Tồn");
         }
 
         private void drawBar(Graphics2D g, int x, int baseY, int w, int h, Color c, String label) {
             g.setColor(c);
             g.fillRect(x - w / 2, baseY - h, w, h);
             g.setColor(Color.BLACK);
+            g.drawRect(x - w / 2, baseY - h, w, h);
             g.drawString(label, x - 15, baseY + 15);
         }
     }
+
 }
