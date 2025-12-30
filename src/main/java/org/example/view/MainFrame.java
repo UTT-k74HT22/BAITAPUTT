@@ -1,7 +1,17 @@
 package org.example.view;
 
+import org.example.controller.ProfileController;
+import org.example.dto.response.ProfileResponse;
 import org.example.entity.enums.Role;
+import org.example.repository.CustomerProfileRepository;
+import org.example.repository.EmployeeProfileRepository;
+import org.example.repository.UserProfileRepository;
+import org.example.repository.impl.CustomerProfileRepositoryImpl;
+import org.example.repository.impl.EmployeeProfileRepositoryImpl;
+import org.example.repository.impl.UserProfileRepositoryImpl;
 import org.example.router.*;
+import org.example.service.ProfileService;
+import org.example.service.impl.ProfileServiceImpl;
 import org.example.view.layout.Footer;
 import org.example.view.layout.Header;
 import org.example.view.layout.SideBar;
@@ -49,8 +59,21 @@ public class MainFrame extends JFrame {
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
         contentPanel.setOpaque(false);
-        profilePanel = new ProfilePanel(username, role);
+// Khởi tạo Repository, Service, Controller
+        UserProfileRepository userRepo = new UserProfileRepositoryImpl();
+        EmployeeProfileRepository empRepo = new EmployeeProfileRepositoryImpl();
+        CustomerProfileRepository custRepo = new CustomerProfileRepositoryImpl();
+
+        ProfileService profileService = new ProfileServiceImpl(custRepo, empRepo, userRepo);
+        ProfileController profileController = new ProfileController(profileService);
+
+// Load profile hiện tại
+        ProfileResponse profile = profileController.loadProfile(username, role);
+
+// Tạo ProfilePanel với dữ liệu thật
+        profilePanel = new ProfilePanel(profile);
         contentPanel.add(wrapInCard(profilePanel), "PROFILE");
+
 
 
         ScreenNavigator.init(this::showByMenuKey);

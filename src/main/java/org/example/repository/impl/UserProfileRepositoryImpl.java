@@ -4,6 +4,7 @@ import org.example.dto.request.UpdateEmployeeProfileDetailRequest;
 import org.example.dto.request.UpdateProfileEmployeeRequest;
 import org.example.dto.response.ProfileResponse;
 import org.example.entity.UserProfile;
+import org.example.entity.enums.Role;
 import org.example.repository.BaseRepository;
 import org.example.repository.UserProfileRepository;
 import java.sql.Connection;
@@ -160,24 +161,37 @@ public class UserProfileRepositoryImpl extends BaseRepository implements UserPro
     public Optional<ProfileResponse> findProfileByUsername(String username) {
         String sql = """
         SELECT a.username,
+               a.role,
+               up.code,
                up.full_name,
                up.phone,
                up.email,
                up.address,
+               ep.position,
+               ep.department,
+               cp.customer_type,
+               cp.tax_code
         FROM accounts a
         JOIN user_profiles up ON a.id = up.account_id
+        LEFT JOIN employee_profiles ep ON ep.profile_id = up.id
+        LEFT JOIN customer_profiles cp ON cp.profile_id = up.id
         WHERE a.username = ?
-        """;
+    """;
 
         return queryForObject(sql, params(username), rs -> {
             ProfileResponse p = new ProfileResponse();
             p.setUsername(rs.getString("username"));
+            p.setRole(Role.valueOf(rs.getString("role")));
+            p.setCode(rs.getString("code"));
             p.setFullName(rs.getString("full_name"));
             p.setPhone(rs.getString("phone"));
             p.setEmail(rs.getString("email"));
             p.setAddress(rs.getString("address"));
+            p.setPosition(rs.getString("position"));
+            p.setDepartment(rs.getString("department"));
+            p.setCustomerType(rs.getString("customer_type"));
+            p.setTaxCode(rs.getString("tax_code"));
             return p;
         });
     }
-
 }
