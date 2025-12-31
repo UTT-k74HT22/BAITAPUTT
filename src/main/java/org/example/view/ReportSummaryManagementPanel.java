@@ -18,8 +18,8 @@ public class ReportSummaryManagementPanel extends JPanel {
     private Map<String, Number> quantityData;
     private Map<String, Number> revenueData;
 
-    public ReportSummaryManagementPanel(ReportSummaryController controller) {
-        this.controller = controller;
+    public ReportSummaryManagementPanel() {
+        this.controller = new ReportSummaryController();
 
         loadData();
         initUI();
