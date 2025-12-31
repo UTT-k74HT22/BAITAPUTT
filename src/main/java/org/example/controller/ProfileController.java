@@ -22,5 +22,9 @@ public class ProfileController {
     public void updateMyProfile(long accountId, UpdateUserProfileRequest req) {
         profileService.updateMyProfile(accountId, req);
     }
+
+    public void changePassword(long accountId, String oldPassword, String newPassword) {
+        profileService.changePassword(accountId, oldPassword, newPassword);
+    }
 }
 

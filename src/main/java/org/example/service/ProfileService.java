@@ -20,4 +20,12 @@ public interface ProfileService {
      * @param req
      */
     void updateMyProfile(long accountId, UpdateUserProfileRequest req);
+
+    /**
+     *
+     * @param accountId
+     * @param oldPassword
+     * @param newPassword
+     */
+    void changePassword(long accountId, String oldPassword, String newPassword);
 }

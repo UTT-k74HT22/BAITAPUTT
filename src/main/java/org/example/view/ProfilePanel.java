@@ -83,6 +83,7 @@ public class ProfilePanel extends JPanel {
 
         // ===== Sự kiện sửa profile =====
         btnEditProfile.addActionListener(e -> openEditProfileDialog());
+        btnChangePassword.addActionListener(e -> openChangePassword());
 
         add(wrapper, BorderLayout.CENTER);
         revalidate();
@@ -162,7 +163,6 @@ public class ProfilePanel extends JPanel {
         buttonPanel.add(btnSave);
         dialog.add(buttonPanel, BorderLayout.SOUTH);
 
-        // Sự kiện
         btnCancel.addActionListener(e -> dialog.dispose());
 
         btnSave.addActionListener(e -> {
@@ -183,13 +183,10 @@ public class ProfilePanel extends JPanel {
             req.setAddress(address);
 
             try {
-                // Cập nhật dữ liệu
                 profileController.updateMyProfile(accountId, req);
 
-                // Lấy dữ liệu mới từ DB
                 currentProfile = profileController.loadProfile(currentProfile.getUsername(), currentProfile.getRole());
 
-                // Reload panel với dữ liệu mới
                 showProfile(currentProfile);
 
                 JOptionPane.showMessageDialog(dialog, "Cập nhật thành công!");
@@ -197,6 +194,88 @@ public class ProfilePanel extends JPanel {
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(dialog,
                         "Cập nhật thất bại: " + ex.getMessage(),
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        dialog.setVisible(true);
+    }
+
+    public void openChangePassword() {
+        JDialog dialog = new JDialog(
+                SwingUtilities.getWindowAncestor(this),
+                "Đổi mật khẩu",
+                Dialog.ModalityType.APPLICATION_MODAL
+        );
+        dialog.setSize(400, 300);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+
+        JPanel content = new JPanel(new GridBagLayout());
+        content.setBorder(new EmptyBorder(20, 20, 20, 20));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+
+        int row = 0;
+
+        // Mật khẩu cũ
+        gbc.gridy = row++;
+        content.add(new JLabel("Mật khẩu cũ"), gbc);
+        JPasswordField txtOld = new JPasswordField();
+        gbc.gridy = row++;
+        content.add(txtOld, gbc);
+
+        // Mật khẩu mới
+        gbc.gridy = row++;
+        content.add(new JLabel("Mật khẩu mới"), gbc);
+        JPasswordField txtNew = new JPasswordField();
+        gbc.gridy = row++;
+        content.add(txtNew, gbc);
+
+        // Nhập lại mật khẩu mới
+        gbc.gridy = row++;
+        content.add(new JLabel("Nhập lại mật khẩu"), gbc);
+        JPasswordField txtConfirm = new JPasswordField();
+        gbc.gridy = row++;
+        content.add(txtConfirm, gbc);
+
+        dialog.add(content, BorderLayout.CENTER);
+
+        // Buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton btnCancel = new JButton("Hủy");
+        JButton btnSave = new JButton("Đổi");
+        buttonPanel.add(btnCancel);
+        buttonPanel.add(btnSave);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        btnCancel.addActionListener(e -> dialog.dispose());
+
+        btnSave.addActionListener(e -> {
+            String oldPass = new String(txtOld.getPassword()).trim();
+            String newPass = new String(txtNew.getPassword()).trim();
+            String confirm = new String(txtConfirm.getPassword()).trim();
+
+            if (oldPass.isEmpty() || newPass.isEmpty() || confirm.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Không được để trống các trường");
+                return;
+            }
+
+            if (!newPass.equals(confirm)) {
+                JOptionPane.showMessageDialog(dialog, "Mật khẩu mới và xác nhận không khớp");
+                return;
+            }
+
+            try {
+                profileController.changePassword(accountId, oldPass, newPass);
+                JOptionPane.showMessageDialog(dialog, "Đổi mật khẩu thành công!");
+                dialog.dispose();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialog,
+                        "Đổi mật khẩu thất bại: " + ex.getMessage(),
                         "Lỗi",
                         JOptionPane.ERROR_MESSAGE);
             }

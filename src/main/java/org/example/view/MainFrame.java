@@ -6,9 +6,12 @@ import org.example.entity.enums.Role;
 import org.example.repository.CustomerProfileRepository;
 import org.example.repository.EmployeeProfileRepository;
 import org.example.repository.UserProfileRepository;
+import org.example.repository.AccountRepository;
 import org.example.repository.impl.CustomerProfileRepositoryImpl;
 import org.example.repository.impl.EmployeeProfileRepositoryImpl;
 import org.example.repository.impl.UserProfileRepositoryImpl;
+import org.example.repository.impl.AccountRepositoryImpl;
+
 import org.example.router.*;
 import org.example.service.ProfileService;
 import org.example.service.impl.ProfileServiceImpl;
@@ -65,8 +68,9 @@ public class MainFrame extends JFrame {
         UserProfileRepository userRepo = new UserProfileRepositoryImpl();
         EmployeeProfileRepository empRepo = new EmployeeProfileRepositoryImpl();
         CustomerProfileRepository custRepo = new CustomerProfileRepositoryImpl();
+        AccountRepository accRepo = new AccountRepositoryImpl();
 
-        ProfileService profileService = new ProfileServiceImpl(custRepo, empRepo, userRepo);
+        ProfileService profileService = new ProfileServiceImpl(custRepo, empRepo, userRepo, accRepo);
         ProfileController profileController = new ProfileController(profileService);
 
 // Load profile hiện tại

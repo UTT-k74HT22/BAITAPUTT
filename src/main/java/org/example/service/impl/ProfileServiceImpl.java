@@ -6,21 +6,27 @@ import org.example.entity.enums.Role;
 import org.example.repository.CustomerProfileRepository;
 import org.example.repository.EmployeeProfileRepository;
 import org.example.repository.UserProfileRepository;
+import org.example.repository.AccountRepository;
 import org.example.service.ProfileService;
+
+import org.mindrot.jbcrypt.BCrypt;
 
 public class ProfileServiceImpl implements ProfileService {
 
     private final CustomerProfileRepository customerProfileRepository;
     private final EmployeeProfileRepository employeeProfileRepository;
     private final UserProfileRepository userProfileRepository;
+    private final AccountRepository accountRepository;
 
     public ProfileServiceImpl(
             CustomerProfileRepository customerProfileRepository,
             EmployeeProfileRepository employeeProfileRepository,
-            UserProfileRepository userProfileRepository) {
+            UserProfileRepository userProfileRepository,
+            AccountRepository accountRepository) {
         this.customerProfileRepository = customerProfileRepository;
         this.employeeProfileRepository = employeeProfileRepository;
         this.userProfileRepository = userProfileRepository;
+        this.accountRepository = accountRepository;;
     }
 
     @Override
@@ -63,5 +69,20 @@ public class ProfileServiceImpl implements ProfileService {
                 req.getEmail(),
                 req.getAddress()
         );
+    }
+
+    @Override
+    public void changePassword(long accountId, String oldPassword, String newPassword) {
+        var account = accountRepository.findById(accountId);
+        if (account == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        if (!BCrypt.checkpw(oldPassword, account.getPassword())) {
+            throw new RuntimeException("Mật khẩu cũ không đúng");
+        }
+
+        String hashed = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+        accountRepository.updatePassword(accountId, hashed);
     }
 }
