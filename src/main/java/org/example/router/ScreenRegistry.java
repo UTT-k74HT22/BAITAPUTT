@@ -17,7 +17,7 @@ public class ScreenRegistry {
         factory.register("screen_inventory", InventoryManagementPanel::new);
         factory.register("screen_stock_movements", StockMovementManagementPanel::new);
 
-        factory.register("screen_report_summary",WarehouseManagementPanel::new);
+        factory.register("screen_report_summary",ReportSummaryManagementPanel::new);
 
         factory.register("screen_report_detail", ReportDetailManagementPanel::new);
 
