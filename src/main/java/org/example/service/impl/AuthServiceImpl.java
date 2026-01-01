@@ -19,6 +19,8 @@ public class AuthServiceImpl implements AuthService {
     private final AccountRepository accountRepository;
     private final UserCreationService userCreationService;
 
+    private static Account currentAccount;
+
     public AuthServiceImpl() {
         this.accountRepository = new AccountRepositoryImpl();
         this.userCreationService = new UserCreationServiceImpl();
@@ -55,6 +57,8 @@ public class AuthServiceImpl implements AuthService {
             return null;
         }
 
+        currentAccount = account;
+
         log.info("Login successful: " + username);
         return account;
     }
@@ -72,6 +76,10 @@ public class AuthServiceImpl implements AuthService {
         }
         validateInfo(request);
         userCreationService.registerCustomer(request);
+    }
+
+    public static Account getCurrentAccount() {
+        return currentAccount;
     }
 
     // ===================== PRIVATE METHODS =====================

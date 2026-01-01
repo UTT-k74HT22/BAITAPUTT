@@ -129,7 +129,7 @@ public class EmployeeProfileRepositoryImpl extends BaseRepository implements Emp
                 request.getFullName(),
                 request.getPhone(),
                 request.getPosition(),
-                request.getStatus().name(), // LƯU ENUM DẠNG UPPERCASE
+                request.getStatus().name(),
                 code
         ));
     }

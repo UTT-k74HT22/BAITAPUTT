@@ -1,9 +1,24 @@
 package org.example.view;
 
+import org.example.controller.ProfileController;
+import org.example.dto.response.ProfileResponse;
 import org.example.entity.enums.Role;
+import org.example.repository.CustomerProfileRepository;
+import org.example.repository.EmployeeProfileRepository;
+import org.example.repository.UserProfileRepository;
+import org.example.repository.AccountRepository;
+import org.example.repository.impl.CustomerProfileRepositoryImpl;
+import org.example.repository.impl.EmployeeProfileRepositoryImpl;
+import org.example.repository.impl.UserProfileRepositoryImpl;
+import org.example.repository.impl.AccountRepositoryImpl;
+
 import org.example.router.*;
 import org.example.view.customer.CustomerOrderPanel;
 import org.example.view.customer.ProductCatalogPanel;
+import org.example.service.ProfileService;
+import org.example.service.impl.ProfileServiceImpl;
+import org.example.service.AuthService;
+import org.example.service.impl.AuthServiceImpl;
 import org.example.view.layout.Footer;
 import org.example.view.layout.Header;
 import org.example.view.layout.SideBar;
@@ -21,6 +36,8 @@ public class MainFrame extends JFrame {
 
     private final JPanel contentPanel;
     private final CardLayout cardLayout;
+
+    private JPanel profilePanel;
 
     private String currentModuleTitle = "Dashboard";
 
@@ -49,6 +66,25 @@ public class MainFrame extends JFrame {
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
         contentPanel.setOpaque(false);
+// Khởi tạo Repository, Service, Controller
+        UserProfileRepository userRepo = new UserProfileRepositoryImpl();
+        EmployeeProfileRepository empRepo = new EmployeeProfileRepositoryImpl();
+        CustomerProfileRepository custRepo = new CustomerProfileRepositoryImpl();
+        AccountRepository accRepo = new AccountRepositoryImpl();
+
+        ProfileService profileService = new ProfileServiceImpl(custRepo, empRepo, userRepo, accRepo);
+        ProfileController profileController = new ProfileController(profileService);
+
+// Load profile hiện tại
+        ProfileResponse profile = profileController.loadProfile(username, role);
+
+        long accountId = AuthServiceImpl.getCurrentAccount().getId();
+
+// Tạo ProfilePanel với dữ liệu thật
+        profilePanel = new ProfilePanel(profile, profileController, accountId);
+        contentPanel.add(wrapInCard(profilePanel), "PROFILE");
+
+
 
         ScreenNavigator.init(this::showByMenuKey);
         routes = AppRoutes.build();
@@ -129,10 +165,8 @@ public class MainFrame extends JFrame {
     // ===================== HEADER ACTIONS =====================
     private void initHeaderActions() {
         header.getBtnProfile().addActionListener(e -> {
-            JOptionPane.showMessageDialog(this,
-                    "Thực hiện chức năng [Thêm] tại module: " + currentModuleTitle,
-                    "Action", JOptionPane.INFORMATION_MESSAGE);
-//            showByMenuKey(MENU_PROFILE);
+            cardLayout.show(contentPanel, "PROFILE");
+            header.setModuleTitle("Profile");
         });
     }
 
