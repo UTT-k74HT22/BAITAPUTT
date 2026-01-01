@@ -3,7 +3,22 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class OrderResponse {
-
+    /**
+     * ID đơn hàng
+     * Số đơn hàng
+     * Trạng thái
+     * Tổng tiền
+     * Ngày tạo
+     * Ghi chú
+     * Tên khách hàng
+     * SĐT
+     * Email
+     * ID khách hàng
+     * Địa chỉ giao hàng
+     * Tên người tạo
+     * Email người tạo
+     * SĐT người tạo
+     * */
     private Long id;
     private String orderNumber;
     private String status;

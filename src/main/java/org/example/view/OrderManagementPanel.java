@@ -9,6 +9,7 @@ import org.example.view.dialog.OrderDetailDialog;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
+import java.math.BigDecimal;
 import java.util.List;
 
 public class OrderManagementPanel extends BaseManagementPanel<OrderResponse> {
@@ -26,6 +27,9 @@ public class OrderManagementPanel extends BaseManagementPanel<OrderResponse> {
     }
 
     /* ================= BASE CONTRACT ================= */
+    private String formatMoney(BigDecimal money) {
+        return money.stripTrailingZeros().toPlainString();
+    }
 
     @Override
     protected String titleTotal() {
@@ -53,7 +57,7 @@ public class OrderManagementPanel extends BaseManagementPanel<OrderResponse> {
     @Override
     protected Object[] mapRow(OrderResponse o, int stt) {
         return new Object[]{
-                stt, o.getId(), o.getOrderNumber(), o.getOrderDate(), o.getStatus(), o.getTotalAmount()
+                stt, o.getId(), o.getOrderNumber(), o.getOrderDate(), o.getStatus(), formatMoney(o.getTotalAmount())
         };
     }
 

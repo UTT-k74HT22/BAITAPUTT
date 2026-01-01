@@ -3,113 +3,131 @@ package org.example.view.customer;
 import org.example.controller.OrderController;
 import org.example.dto.response.Order.OrderResponse;
 import org.example.router.AuthContextManager;
+import org.example.view.base.BaseManagementPanel;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 import java.util.Objects;
 
-public class CustomerOrderPanel extends JPanel {
+public class CustomerOrderPanel extends BaseManagementPanel<OrderResponse> {
 
     private final OrderController controller = new OrderController();
     private final Long customerId = AuthContextManager.getUserId();
-
-    private JTable table;
-    private DefaultTableModel model;
     private List<OrderResponse> data;
 
-    public CustomerOrderPanel() {
-        setLayout(new BorderLayout(10, 10));
-        buildUI();
-        load();
+    @Override
+    protected String titleTotal() {
+        return "Tổng số đơn hàng";
     }
 
-    private void buildUI() {
-        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
-        JTextField txt = new JTextField(14);
-        JButton btn = new JButton(" Tìm đơn");
-
-        btn.addActionListener(e -> search(txt.getText()));
-
-        top.add(new JLabel("Mã đơn:"));
-        top.add(txt);
-        top.add(btn);
-        add(top, BorderLayout.NORTH);
-
-        model = new DefaultTableModel(
-                new String[]{"Mã đơn","Ngày tạo","Trạng thái","Tổng tiền"}, 0
-        ) {
-            @Override
-            public boolean isCellEditable(int row, int col) {
-                return false;
-            }
-        };
-
-        table = new JTable(model);
-        table.setRowHeight(26);
-        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
-        add(new JScrollPane(table), BorderLayout.CENTER);
+    @Override
+    protected String[] columns() {
+        return new String[]{"Mã đơn", "Ngày tạo", "Trạng thái", "Tổng tiền"};
     }
 
-    private void load() {
-        model.setRowCount(0);
+    @Override
+    protected int[] columnWidths() {
+        return new int[]{140, 120, 120, 120};
+    }
 
-        if (customerId == null) {
-            addPlaceholder(" Bạn chưa đăng nhập!");
-            return;
+    @Override
+    protected List<OrderResponse> fetchData() {
+        System.out.println("\n===== DEBUG ORDER API =====");
+        System.out.println("Customer ID đang login = " + customerId);
+
+        List<OrderResponse> all = controller.getAll();
+        System.out.println("Tổng số order API trả về = " + all.size());
+
+        if (all.isEmpty()) {
+            System.out.println("⚠ API không có dữ liệu order!");
         }
 
-        data = controller.getAll().stream()
+        System.out.println("\n-- Chi tiết từng Order từ API --");
+        for (OrderResponse o : all) {
+            System.out.println("OrderNumber = " + o.getOrderNumber()
+                    + " | orderDate = " + o.getOrderDate()
+                    + " | status = " + o.getStatus()
+                    + " | total = " + o.getTotalAmount()
+                    + " | customerId = " + o.getCustomerId());
+        }
+
+        System.out.println("\n-- Sau khi filter theo customer đang login --");
+        List<OrderResponse> filtered = all.stream()
                 .filter(o -> Objects.equals(o.getCustomerId(), customerId))
                 .toList();
 
-        if (data.isEmpty()) {
-            addPlaceholder(" Bạn chưa có đơn hàng nào.");
-            return;
+        System.out.println("Số đơn khớp với customer login = " + filtered.size());
+        for (OrderResponse o : filtered) {
+            System.out.println("✔ MATCH → " + o.getOrderNumber());
         }
 
-        for (OrderResponse o : data) {
-            model.addRow(new Object[]{
-                    o.getOrderNumber(),
-                    o.getOrderDate(),
-                    o.getStatus(),
-                    o.getTotalAmount()
-            });
-        }
+        System.out.println("===========================\n");
+
+        return filtered;
     }
 
-    private void addPlaceholder(String msg) {
-        JPanel p = new JPanel(new BorderLayout());
-        p.setOpaque(false);
+    @Override
+    protected Object[] mapRow(OrderResponse o, int stt) {
+        return new Object[]{
+                o.getOrderNumber(),
+                o.getOrderDate(),
+                o.getStatus(),
+                o.getTotalAmount()
+
+
+        };
+    }
+
+    @Override
+    protected void afterTableCreated() {
+        System.out.println("Table đã được tạo, số row hiện tại = " + model.getRowCount());
+    }
+
+    @Override
+    protected void applyFilters() {
+        System.out.println("applyFilters() được gọi — sorter đang active = " + (sorter != null));
+    }
+
+    public CustomerOrderPanel() {
+        super();
+
+        System.out.println("\n===== DEBUG PANEL CONSTRUCTOR =====");
+        System.out.println("Panel khởi tạo với customerId = " + customerId);
+
+        data = fetchData();
+
+        if (data.isEmpty()) {
+            System.out.println("⚠ Không có đơn sau filter → hiển thị placeholder");
+            showPlaceholder("Không có đơn hàng nào để hiển thị!");
+        } else {
+            System.out.println("✔ Có dữ liệu → reload table");
+            reload();
+        }
+
+        System.out.println("Số row trong model sau reload = " + model.getRowCount());
+        System.out.println("=================================\n");
+    }
+
+    private void showPlaceholder(String msg) {
+        System.out.println("Placeholder message = " + msg);
+
+        removeAll();
+        setLayout(new BorderLayout());
         JLabel lbl = new JLabel(msg, SwingConstants.CENTER);
-        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        lbl.setForeground(new Color(150,150,180));
-        p.add(lbl, BorderLayout.CENTER);
-        add(p, BorderLayout.CENTER);
+        add(lbl, BorderLayout.CENTER);
+
         revalidate();
         repaint();
     }
 
-    private void search(String key) {
-        if (data == null || data.isEmpty()) return;
-        key = key.trim().toLowerCase();
-
-        if (key.isEmpty()) {
-            load();
-            return;
-        }
-        String searchKey = key.trim().toLowerCase();
-        List<OrderResponse> result = data.stream()
-                .filter(o -> o.getOrderNumber().toLowerCase().contains(searchKey))
-                .toList();
-
-        model.setRowCount(0);
-        for (OrderResponse o : result) {
-            model.addRow(new Object[]{
-                    o.getOrderNumber(), o.getOrderDate(), o.getStatus(), o.getTotalAmount()
-            });
-        }
+    /** Chạy độc lập để debug UI nếu cần */
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Customer Order Debug");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(900, 400);
+        frame.setLocationRelativeTo(null);
+        frame.add(new CustomerOrderPanel());
+        frame.setVisible(true);
     }
 }

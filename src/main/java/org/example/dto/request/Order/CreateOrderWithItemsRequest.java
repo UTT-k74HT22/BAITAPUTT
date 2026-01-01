@@ -4,14 +4,32 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public class CreateOrderWithItemsRequest {
-
+    /**
+     * ID khách hàng
+     */
     private Long customerId;
+    /**
+     * Địa chỉ giao hàng
+     */
     private String shippingAddress;
+    /**
+     * Ghi chú
+     * */
     private String note;
+    /**
+     *
+     * Giảm giá
+     * */
     private BigDecimal discount;
+    /**
+     *
+     * Danh sách sản phẩm
+     * */
     private List<OrderItemRequest> items;
 
-    public Long getCustomerId() { return customerId; }
+    public Long getCustomerId() {
+        return customerId;
+    }
     public void setCustomerId(Long customerId) { this.customerId = customerId; }
 
     public String getShippingAddress() {

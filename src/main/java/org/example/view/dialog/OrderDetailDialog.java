@@ -9,12 +9,17 @@ import org.example.view.base.UiTheme;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.math.BigDecimal;
 import java.util.List;
 
 public class OrderDetailDialog extends JDialog {
 
     private final OrderController controller = new OrderController();
     private final Long orderId;
+
+    private String formatMoney(BigDecimal money) {
+        return money.stripTrailingZeros().toPlainString();
+    }
 
     public OrderDetailDialog(Window owner, Long orderId) {
         super(owner, "Chi tiết đơn hàng", ModalityType.APPLICATION_MODAL);
@@ -55,7 +60,7 @@ public class OrderDetailDialog extends JDialog {
         p.add(label("Trạng thái: " + o.getStatus()), c);
 
         c.gridx = 3; c.weightx = 0.25;
-        p.add(label("Tổng tiền: " + o.getTotalAmount()), c);
+        p.add(label("Tổng tiền: " + formatMoney(o.getTotalAmount())), c);
 
         // ===== Dòng 2 =====
         c.gridy = 1;
@@ -87,10 +92,10 @@ public class OrderDetailDialog extends JDialog {
         p.add(label("Người tạo: " + safe(o.getCreatorName())), c);
 
         c.gridx = 1; c.weightx = 0.4;
-        p.add(label("Email tạo: " + safe(o.getCreatorEmail())), c);
+        p.add(label("Email: " + safe(o.getCreatorEmail())), c);
 
         c.gridx = 2; c.weightx = 0.4;
-        p.add(label("SĐT tạo: " + safe(o.getCreatorPhone())), c);
+        p.add(label("SĐT: " + safe(o.getCreatorPhone())), c);
 
         return p;
     }

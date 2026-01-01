@@ -3,10 +3,25 @@ package org.example.dto.request.Order;
 import java.math.BigDecimal;
 
 public class OrderItemRequest {
+    /**
+     * ID sản phẩm
+     * */
     private Long productId;
+    /**
+     * ID lô hàng
+     * */
     private Long batchId;
+    /**
+     * Số lượng
+     * */
     private int quantity;
+    /**
+     * Giá
+     * */
     private BigDecimal unitPrice;
+    /**
+     * Ghi chú
+     * */
     private String note;
 
     public Long getBatchId() {
