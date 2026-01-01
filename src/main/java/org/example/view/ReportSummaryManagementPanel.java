@@ -2,6 +2,8 @@ package org.example.view;
 
 import org.example.controller.ReportSummaryController;
 import org.example.dto.response.ReportSummaryResponse;
+import org.example.service.ReportSummaryService;
+import org.example.service.impl.ReportSummaryServiceImpl;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -18,11 +20,19 @@ public class ReportSummaryManagementPanel extends JPanel {
     private Map<String, Number> quantityData;
     private Map<String, Number> revenueData;
 
+    // ===================== CONSTRUCTOR =====================
+    public ReportSummaryManagementPanel() {
+        this(new ReportSummaryController(new ReportSummaryServiceImpl()));
+    }
+
     public ReportSummaryManagementPanel(ReportSummaryController controller) {
         this.controller = controller;
+        setLayout(new BorderLayout(0, 12));
+        setOpaque(false);
 
         loadData();
         initUI();
+
     }
 
     /* ================= LOAD DATA ================= */

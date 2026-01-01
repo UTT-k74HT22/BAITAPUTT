@@ -1,13 +1,6 @@
 package org.example.router;
 
-import org.example.controller.ReportSummaryController;
-import org.example.repository.ReportSummaryRepository;
-import org.example.repository.impl.ReportSummaryRepositoryImpl;
-import org.example.service.ReportSummaryService;
-import org.example.service.impl.ReportSummaryServiceImpl;
 import org.example.view.*;
-import org.example.view.WarehouseManagementPanel;
-import org.example.view.ReportSummaryManagementPanel;
 
 public class ScreenRegistry {
 
@@ -24,12 +17,7 @@ public class ScreenRegistry {
         factory.register("screen_inventory", InventoryManagementPanel::new);
         factory.register("screen_stock_movements", StockMovementManagementPanel::new);
 
-        factory.register("screen_report_summary", () -> {
-            ReportSummaryRepository repository = new ReportSummaryRepositoryImpl();
-            ReportSummaryService service = new ReportSummaryServiceImpl(repository);
-            ReportSummaryController controller = new ReportSummaryController(service);
-            return new ReportSummaryManagementPanel(controller);
-        });
+        factory.register("screen_report_summary",ReportSummaryManagementPanel::new);
 
         factory.register("screen_report_detail", ReportDetailManagementPanel::new);
 
