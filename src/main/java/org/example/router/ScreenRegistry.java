@@ -31,6 +31,8 @@ public class ScreenRegistry {
             return new ReportSummaryManagementPanel(controller);
         });
 
+        factory.register("screen_report_detail", ReportDetailManagementPanel::new);
+
 
         // TODO sau này:
          factory.register("screen_customer", CustomerManagementPanel::new);
