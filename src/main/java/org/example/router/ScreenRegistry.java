@@ -1,7 +1,6 @@
 package org.example.router;
 
 import org.example.view.*;
-import org.example.view.WarehouseManagementPanel;
 
 public class ScreenRegistry {
 
@@ -21,6 +20,7 @@ public class ScreenRegistry {
         factory.register("screen_report_summary",ReportSummaryManagementPanel::new);
 
         factory.register("screen_report_detail", ReportDetailManagementPanel::new);
+        factory.register("screen_invoices", InvoiceManagementPanel::new);
 
         factory.register("screen_payments", PaymentManagementPanel::new);
 
