@@ -22,7 +22,7 @@ public class WarehouseManagementPanel extends JPanel {
     private JLabel totalLabel;
 
     private static final String[] TABLE_COLUMNS = {
-            "STT", "Code", "Name", "Address", "Phone", "Manager"
+            "STT", "Code", "Name", "Address", "Phone", "Manager", "Status"
     };
 
     // Theme màu
@@ -163,11 +163,18 @@ public class WarehouseManagementPanel extends JPanel {
         int i = 1;
         for (WarehouseResponse w : list) {
             tableModel.addRow(new Object[]{
-                    i++, w.getCode(), w.getName(), w.getAddress(), w.getPhone(), w.getManagerName()
+                    i++,
+                    w.getCode(),
+                    w.getName(),
+                    w.getAddress(),
+                    w.getPhone(),
+                    w.getManagerName(),
+                    w.isActive() ? "ACTIVE" : "INACTIVE"
             });
         }
         totalLabel.setText("Tổng số kho: " + list.size());
     }
+
 
     // ================== CRUD ==================
     private void openForm(WarehouseResponse w, boolean isCreate) {
@@ -231,17 +238,27 @@ public class WarehouseManagementPanel extends JPanel {
 
     private void delete() {
         WarehouseResponse w = getSelected();
-        if(w == null) return;
+        if (w == null) return;
 
-        int c = JOptionPane.showConfirmDialog(this,
-                "Xóa kho " + w.getName() + " ?",
-                "Xác nhận", JOptionPane.YES_NO_OPTION);
+        if (!w.isActive()) {
+            JOptionPane.showMessageDialog(this,
+                    "Kho này đã bị vô hiệu hóa rồi");
+            return;
+        }
 
-        if(c == JOptionPane.YES_OPTION) {
+        int c = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có chắc muốn vô hiệu hóa kho [" + w.getName() + "] không?",
+                "Xác nhận",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (c == JOptionPane.YES_OPTION) {
             controller.deleteWarehouse(w.getCode());
             reloadTable();
         }
     }
+
 
     private WarehouseResponse getSelected() {
         int r = table.getSelectedRow();

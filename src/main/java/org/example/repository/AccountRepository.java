@@ -64,4 +64,11 @@ public interface AccountRepository {
      * @return true nếu tồn tại, false nếu không
      */
     boolean existsByEmail(String email);
+
+    /**
+     *
+     * @param accountId
+     * @param hashedPassword
+     */
+    void updatePassword(long accountId, String hashedPassword);
 }
