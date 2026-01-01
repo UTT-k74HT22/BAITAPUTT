@@ -150,6 +150,16 @@ public class AccountRepositoryImpl extends BaseRepository implements AccountRepo
         return exists(sql, params(email));
     }
 
+    @Override
+    public void updatePassword(long accountId, String hashedPassword) {
+        String sql = "UPDATE accounts SET password = ? WHERE id = ?";
+        executeUpdate(sql, ps -> {
+            ps.setString(1, hashedPassword);
+            ps.setLong(2, accountId);
+        });
+    }
+
+
     /**
      * Map ResultSet to Entity.
      */

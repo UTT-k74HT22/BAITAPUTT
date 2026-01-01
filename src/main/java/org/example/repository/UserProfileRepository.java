@@ -2,6 +2,9 @@ package org.example.repository;
 
 import org.example.dto.request.UpdateEmployeeProfileDetailRequest;
 import org.example.dto.request.UpdateProfileEmployeeRequest;
+import org.example.dto.response.ProfileResponse;
+import org.example.entity.UserProfile;
+
 import java.sql.Connection;
 import java.util.Optional;
 
@@ -36,11 +39,21 @@ public interface UserProfileRepository {
     Optional<Long> findIdByCode(String code);
 
     /**
-     * Cập nhật thông tin cơ bản của hồ sơ người dùng dựa trên mã hồ sơ.
-     * @param code mã hồ sơ
-     * @param request đối tượng yêu cầu chứa thông tin cập nhật
+     *
+     * @param
+     * @param fullName
+     * @param phone
+     * @param email
+     * @param address
      */
-    void updateBasicByCode(String code, UpdateProfileEmployeeRequest request);
+
+    void updateMyProfileByAccountId(
+            long accountId,
+            String fullName,
+            String phone,
+            String email,
+            String address
+    );
 
     /**
      * Cập nhật chi tiết hồ sơ người dùng dựa trên mã hồ sơ.
@@ -48,4 +61,18 @@ public interface UserProfileRepository {
      * @param request đối tượng yêu cầu chứa thông tin cập nhật chi tiết
      */
     void updateDetailByCode(String code, UpdateEmployeeProfileDetailRequest request);
+
+    /**
+     *
+     * @param accountId
+     * @return
+     */
+    Optional<UserProfile> findByAccountId(long accountId);
+
+    /**
+     *
+     * @param username
+     * @return
+     */
+    Optional<ProfileResponse> findProfileByUsername(String username);
 }

@@ -30,13 +30,13 @@ public class WarehouseRepositoryImpl extends BaseRepository implements Warehouse
     @Override
     public List<WarehouseResponse> getAll() {
         String sql = """
-                SELECT id, code, name, address, phone, manager_name, is_active
-                FROM warehouses
-                WHERE is_active = 1
-                ORDER BY id DESC
-                """;
+        SELECT id, code, name, address, phone, manager_name, is_active
+        FROM warehouses
+        ORDER BY id DESC
+    """;
         return queryForList(sql, this::mapToResponse);
     }
+
 
     @Override
     public Optional<WarehouseResponse> getByCode(String code) {
