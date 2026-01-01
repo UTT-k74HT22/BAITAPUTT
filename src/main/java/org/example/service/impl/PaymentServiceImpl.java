@@ -45,12 +45,6 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public void update(Payment payment) {
-        Payment current = getById(payment.getId());
-
-        if (current.getStatus() == PaymentStatus.CANCELED) {
-            throw new RuntimeException("Không thể cập nhật payment đã bị hủy");
-        }
-
         paymentRepository.update(payment);
     }
 
