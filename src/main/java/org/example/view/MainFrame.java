@@ -2,6 +2,8 @@ package org.example.view;
 
 import org.example.entity.enums.Role;
 import org.example.router.*;
+import org.example.view.customer.CustomerOrderPanel;
+import org.example.view.customer.ProductCatalogPanel;
 import org.example.view.layout.Footer;
 import org.example.view.layout.Header;
 import org.example.view.layout.SideBar;
@@ -51,12 +53,6 @@ public class MainFrame extends JFrame {
         ScreenNavigator.init(this::showByMenuKey);
         routes = AppRoutes.build();
         ScreenRegistry.registerAll(screenFactory);
-        /**
-         * Chỉ khách hàng mới có menu shop (test)
-         * */
-        if (role == Role.CUSTOMER) {
-            CustomerScreenRegistry.registerAll(screenFactory);
-        }
 
         initScreens(role);
 

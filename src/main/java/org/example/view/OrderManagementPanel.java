@@ -2,9 +2,10 @@ package org.example.view;
 
 import org.example.controller.OrderController;
 import org.example.dto.response.Order.OrderResponse;
+import org.example.entity.enums.OrderStatus;
 import org.example.view.base.BaseManagementPanel;
-import org.example.view.base.UiTheme;
-
+import org.example.view.dialog.CreateOrderDialog;
+import org.example.view.dialog.OrderDetailDialog;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
@@ -13,12 +14,16 @@ import java.util.List;
 public class OrderManagementPanel extends BaseManagementPanel<OrderResponse> {
 
     private final OrderController controller = new OrderController();
+    private final Long userId; // đổi tên cho đúng nghĩa
+    private List<OrderResponse> allOrders;
 
-    private JTextField keywordField;
-
-    private JButton btnCreate;
-    private JButton btnConfirm;
-    private JButton btnCancel;
+    public OrderManagementPanel(Long userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("userId is null");
+        }
+        this.userId = userId;
+        reload();
+    }
 
     /* ================= BASE CONTRACT ================= */
 
@@ -30,177 +35,130 @@ public class OrderManagementPanel extends BaseManagementPanel<OrderResponse> {
     @Override
     protected String[] columns() {
         return new String[]{
-                "STT",
-                "Mã đơn",
-                "Khách hàng",
-                "Ngày đặt",
-                "Trạng thái",
-                "Tổng tiền"
+                "STT", "ID", "Mã đơn", "Ngày tạo", "Trạng thái", "Tổng tiền"
         };
     }
 
     @Override
     protected int[] columnWidths() {
-        return new int[]{60, 140, 220, 160, 140, 140};
+        return new int[]{60, 150, 180, 140, 160};
     }
 
     @Override
     protected List<OrderResponse> fetchData() {
-        return controller.getAllOrders();
+        allOrders = controller.getAll();
+        return allOrders;
     }
 
     @Override
     protected Object[] mapRow(OrderResponse o, int stt) {
         return new Object[]{
-                stt,
-                o.getOrderNumber(),
-                o.getCustomerName(),
-                o.getOrderDate(),
-                o.getStatus(),
-                o.getTotalAmount()
+                stt, o.getId(), o.getOrderNumber(), o.getOrderDate(), o.getStatus(), o.getTotalAmount()
         };
     }
 
-    /* ================= TOOLBAR ================= */
-
-    @Override
-    protected JPanel buildFilters() {
-        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 8));
-        p.setOpaque(false);
-
-        keywordField = new JTextField(20);
-
-        JButton btnSearch = new JButton("Tìm");
-        btnSearch.addActionListener(e -> applyFilters());
-
-        p.add(new JLabel("Tìm kiếm:"));
-        p.add(keywordField);
-        p.add(btnSearch);
-
-        return p;
-    }
+    /* ================= FILTER ================= */
 
     @Override
     protected JPanel buildActions() {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 8));
         p.setOpaque(false);
 
-        btnCreate = new JButton("Tạo đơn");
-        btnConfirm = new JButton("Xác nhận");
-        btnCancel = new JButton("Hủy");
+        JButton btnCreate = new JButton("Tạo đơn");
+        JButton btnView = new JButton("Xem chi tiết");
+        JButton btnConfirm = new JButton("Xác nhận");
+        JButton btnCancel = new JButton("Hủy đơn");
 
-        btnCreate.setFont(UiTheme.FONT_BOLD);
+        JTextField txtSearch = new JTextField(18);
+        JButton btnSearch = new JButton("Tìm kiếm");
 
         btnCreate.addActionListener(e -> onCreate());
+        btnView.addActionListener(e -> onViewDetail());
         btnConfirm.addActionListener(e -> onConfirm());
         btnCancel.addActionListener(e -> onCancel());
+        btnSearch.addActionListener(e -> applySearch(txtSearch.getText()));
+        txtSearch.addActionListener(e -> applySearch(txtSearch.getText())); // ENTER để tìm
 
         p.add(btnCreate);
+        p.add(btnView);
         p.add(btnConfirm);
         p.add(btnCancel);
+        p.add(txtSearch);
+        p.add(btnSearch);
 
         return p;
     }
 
-    /* ================= TABLE HOOK ================= */
+    private void applySearch(String keyword) {
+        if (sorter == null) return;
+        keyword = keyword.trim();
+        sorter.setRowFilter(keyword.isBlank() ? null : RowFilter.regexFilter("(?i)" + keyword, 2));
+    }
+
+    /* ================= TABLE ================= */
 
     @Override
     protected void afterTableCreated() {
-        // căn giữa cột trạng thái
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
         center.setHorizontalAlignment(SwingConstants.CENTER);
         table.getColumnModel().getColumn(4).setCellRenderer(center);
     }
 
-    /* ================= FILTER ================= */
-
-    @Override
-    protected void applyFilters() {
-        String kw = keywordField.getText().trim().toLowerCase();
-
-        if (kw.isEmpty()) {
-            sorter.setRowFilter(null);
-            return;
-        }
-
-        sorter.setRowFilter(RowFilter.regexFilter("(?i)" + kw, 1, 2));
-    }
-
     /* ================= ACTION HANDLERS ================= */
+
+    private OrderResponse getSelectedOrder() {
+        int viewRow = table.getSelectedRow();
+        if (viewRow < 0) return null;
+        int modelRow = table.convertRowIndexToModel(viewRow);
+        Long id = (Long) table.getModel().getValueAt(modelRow, 1);
+        return allOrders.stream().filter(o -> o.getId().equals(id)).findFirst().orElse(null);
+    }
 
     private void onCreate() {
         Window win = SwingUtilities.getWindowAncestor(this);
-        OrderFormDialog dlg = new OrderFormDialog(win, 1L); // TODO: lấy employeeId thật
+        CreateOrderDialog dlg = new CreateOrderDialog(win,userId);
         dlg.setVisible(true);
+        if (dlg.isSubmitted()) reload();
+    }
 
-        if (dlg.isSubmitted()) {
-            reload();
+    private void onViewDetail() {
+        OrderResponse order = getSelectedOrder();
+        if (order == null) {
+            JOptionPane.showMessageDialog(this, "Chọn đơn hàng!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
         }
+        Window win = SwingUtilities.getWindowAncestor(this);
+        new OrderDetailDialog(win, order.getId()).setVisible(true);
     }
 
     private void onConfirm() {
-        int row = getSelectedModelRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this,
-                    "Vui lòng chọn đơn hàng",
-                    "Thông báo",
-                    JOptionPane.WARNING_MESSAGE);
+        OrderResponse order = getSelectedOrder();
+        if (order == null) {
+            JOptionPane.showMessageDialog(this, "Chọn đơn!", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
-        String status = getCellString(row, 4);
-        if (!"NEW".equals(status)) {
-            JOptionPane.showMessageDialog(this,
-                    "Chỉ xác nhận đơn ở trạng thái NEW",
-                    "Không hợp lệ",
-                    JOptionPane.WARNING_MESSAGE);
+        if (!OrderStatus.NEW.name().equals(order.getStatus())) {
+            JOptionPane.showMessageDialog(this, "Chỉ xác nhận đơn NEW!", "Lỗi", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
-        int ok = JOptionPane.showConfirmDialog(
-                this,
-                "Xác nhận đơn hàng này?",
-                "Xác nhận",
-                JOptionPane.YES_NO_OPTION
-        );
-
-        if (ok == JOptionPane.YES_OPTION) {
-            controller.confirmOrder(getOrderIdAt(row));
+        if (JOptionPane.showConfirmDialog(this, "Xác nhận trừ kho?", "Xác nhận", JOptionPane.YES_NO_OPTION)
+                == JOptionPane.YES_OPTION) {
+            controller.confirm(order.getId());
             reload();
         }
     }
 
     private void onCancel() {
-        int row = getSelectedModelRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(this,
-                    "Vui lòng chọn đơn hàng",
-                    "Thông báo",
-                    JOptionPane.WARNING_MESSAGE);
+        OrderResponse order = getSelectedOrder();
+        if (order == null) {
+            JOptionPane.showMessageDialog(this, "Chọn đơn!", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
-        int ok = JOptionPane.showConfirmDialog(
-                this,
-                "Hủy đơn hàng này?",
-                "Xác nhận",
-                JOptionPane.YES_NO_OPTION
-        );
-
-        if (ok == JOptionPane.YES_OPTION) {
-            controller.cancelOrder(getOrderIdAt(row));
-            reload();
+        if (!OrderStatus.NEW.name().equals(order.getStatus())) {
+            JOptionPane.showMessageDialog(this, "Chỉ hủy đơn NEW!", "Lỗi", JOptionPane.WARNING_MESSAGE);
+            return;
         }
-    }
-
-    /* ================= HELPER ================= */
-
-    private Long getOrderIdAt(int modelRow) {
-        String orderNumber = getCellString(modelRow, 1);
-        return controller.getAllOrders().stream()
-                .filter(o -> o.getOrderNumber().equals(orderNumber))
-                .findFirst()
-                .map(OrderResponse::getId)
-                .orElse(null);
+        controller.cancel(order.getId());
+        reload();
     }
 }

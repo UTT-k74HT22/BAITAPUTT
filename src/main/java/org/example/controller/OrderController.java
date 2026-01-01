@@ -1,7 +1,6 @@
 package org.example.controller;
 
-import org.example.dto.request.Order.AddOrderItemRequest;
-import org.example.dto.request.Order.CreateOrderRequest;
+import org.example.dto.request.Order.CreateOrderWithItemsRequest;
 import org.example.dto.response.Order.OrderItemResponse;
 import org.example.dto.response.Order.OrderResponse;
 import org.example.service.OrderService;
@@ -11,58 +10,32 @@ import java.util.List;
 
 public class OrderController {
 
-    private final OrderService orderService = new OrderServiceImpl();
+    private final OrderService service = new OrderServiceImpl();
 
-    /**
-     * Tạo mới đơn hàng
-     *
-     * @param request dữ liệu tạo đơn
-     * @param employeeId nhân viên tạo đơn
-     * @return ID đơn hàng vừa tạo
-     */
-    public Long createOrder(CreateOrderRequest request, Long employeeId) {
-        return orderService.createOrder(request, employeeId);
+
+    public Long createOrder(CreateOrderWithItemsRequest req, Long employeeId) {
+        return service.createOrder(req, employeeId);
     }
 
-    /**
-     * Thêm sản phẩm vào đơn hàng
-     */
-    public void addItem(Long orderId, AddOrderItemRequest request) {
-        orderService.addItem(orderId, request);
+    public void confirm(Long orderId) {
+        service.confirmOrder(orderId);
     }
 
-    /**
-     * Lấy danh sách tất cả đơn hàng
-     */
-    public List<OrderResponse> getAllOrders() {
-        return orderService.getAll();
+    public List<OrderResponse> getAll() {
+        return service.getAll();
     }
-
-    /**
-     * Lấy chi tiết 1 đơn hàng
-     */
-    public OrderResponse getOrderById(Long orderId) {
-        return orderService.getById(orderId);
+    public OrderResponse getById(Long orderId) {
+        return service.getById(orderId);
     }
+    OrderResponse findById(Long orderId){
+        return service.getById(orderId);
 
-    /**
-     * Lấy danh sách sản phẩm trong đơn
-     */
-    public List<OrderItemResponse> getOrderItems(Long orderId) {
-        return orderService.getItems(orderId);
     }
-
-    /**
-     * Xác nhận đơn hàng
-     */
-    public void confirmOrder(Long orderId) {
-        orderService.confirm(orderId);
+    public void cancel(Long orderId){
+        service.cancelOrder(orderId);
     }
-
-    /**
-     * Hủy đơn hàng (xóa mềm)
-     */
-    public void cancelOrder(Long orderId) {
-        orderService.cancel(orderId);
+    // Lấy danh sách thuốc trong đơn
+    public List<OrderItemResponse> getItems(Long orderId) {
+        return service.getItems(orderId);
     }
 }

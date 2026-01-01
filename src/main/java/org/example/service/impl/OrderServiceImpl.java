@@ -1,76 +1,68 @@
 package org.example.service.impl;
 
-import org.example.dto.request.Order.AddOrderItemRequest;
-import org.example.dto.request.Order.CreateOrderRequest;
+import org.example.dto.request.Order.CreateOrderWithItemsRequest;
+import org.example.dto.request.Order.OrderItemRequest;
 import org.example.dto.response.Order.OrderItemResponse;
 import org.example.dto.response.Order.OrderResponse;
-import org.example.entity.Order;
-import org.example.entity.OrderItem;
 import org.example.entity.enums.OrderStatus;
 import org.example.repository.OrderRepository;
 import org.example.repository.impl.OrderRepositoryImpl;
 import org.example.service.OrderService;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 public class OrderServiceImpl implements OrderService {
 
-    private final OrderRepository orderRepository = new OrderRepositoryImpl();
+    private final OrderRepository repo = new OrderRepositoryImpl();
 
     @Override
-    public Long createOrder(CreateOrderRequest request, Long employeeId) {
-        Order order = new Order();
-        order.setOrderNumber("ORD-" + UUID.randomUUID().toString().substring(0, 8));
-        order.setCustomerId(request.getCustomerId());
-        order.setOrderDate(LocalDateTime.now());
-        order.setStatus(OrderStatus.NEW);
-        order.setCreatedByEmployeeId(employeeId);
-        order.setNote(request.getNote());
+    public Long createOrder(CreateOrderWithItemsRequest req, Long employeeId) {
 
-        return orderRepository.insertOrder(order);
+        BigDecimal discount = BigDecimal.ZERO;
+        if (req.getDiscount() != null) {
+            discount = req.getDiscount();
+        }
+        Long orderId = repo.insertOrder(
+                req.getCustomerId(),
+                req.getShippingAddress(),
+                req.getNote(),
+                discount,
+                employeeId
+        );
+        List<OrderItemRequest> items = req.getItems();
+        if (items != null) {
+            for (OrderItemRequest item : items) {
+                repo.insertItem(orderId, item);
+            }
+        }
+
+        repo.updateOrderTotal(orderId);
+        // trả về id của đơn hàng vừa tạo
+        return orderId;
     }
 
+
     @Override
-    public void addItem(Long orderId, AddOrderItemRequest request) {
-        OrderItem item = new OrderItem();
-        item.setOrderId(orderId);
-        item.setProductId(request.getProductId());
-        item.setBatchId(request.getBatchId());
-        item.setQuantity(request.getQuantity());
-        item.setUnitPrice(request.getUnitPrice());
-
-        BigDecimal total = request.getUnitPrice()
-                .multiply(BigDecimal.valueOf(request.getQuantity()));
-        item.setLineTotal(total);
-
-        orderRepository.insertItem(item);
+    public void confirmOrder(Long orderId) {
+        // NOTE: Ở đây sẽ trừ kho + stock_movements
+        repo.updateStatus(orderId, OrderStatus.CONFIRMED.name());
     }
 
     @Override
     public List<OrderResponse> getAll() {
-        return orderRepository.findAll();
+        return repo.findAll();
     }
-
     @Override
     public OrderResponse getById(Long orderId) {
-        return orderRepository.findById(orderId);
+        return repo.findById(orderId);
     }
-
     @Override
     public List<OrderItemResponse> getItems(Long orderId) {
-        return orderRepository.findItems(orderId);
+        return repo.getItems(orderId);
     }
-
     @Override
-    public void confirm(Long orderId) {
-        orderRepository.updateOrderStatus(orderId, OrderStatus.CONFIRMED.name());
-    }
-
-    @Override
-    public void cancel(Long orderId) {
-        orderRepository.cancelOrder(orderId);
+    public void cancelOrder(Long orderId) {
+        repo.cancelOrder(orderId);
     }
 }

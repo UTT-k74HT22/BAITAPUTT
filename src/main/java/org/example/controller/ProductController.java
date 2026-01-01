@@ -6,6 +6,7 @@ import org.example.dto.response.CategoryResponse;
 import org.example.dto.response.ManufacturerResponse;
 import org.example.dto.response.Product.ProductDetailResponse;
 import org.example.dto.response.Product.ProductResponse;
+import org.example.repository.impl.ProductRepositoryImpl;
 import org.example.service.ProductService;
 import org.example.utils.pdf.ProductDetailPdfExporter;
 
@@ -17,6 +18,8 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final ProductRepositoryImpl repo = new ProductRepositoryImpl();
+
 
     public ProductController(ProductService productService) {
         this.productService = productService;
@@ -77,7 +80,15 @@ public class ProductController {
     public List<ManufacturerResponse> getAllManufacturers() {
         return productService.getAllManufacturers();
     }
-
+    /**
+     * Lấy danh sách sản phẩm theo category (phục vụ tạo đơn hàng)
+     */
+    public List<ProductResponse> getByCategory(Long categoryId) {
+        return repo.findByCategory(categoryId);
+    }
+    /**
+     * Thực hiện xuất PDF
+     * */
     public void exportProductDetailPdf(String code, String path){
         System.out.println("[Controller] Export PDF product detail "+ code);
         ProductDetailResponse detail = productService.getDetailByCode(code);

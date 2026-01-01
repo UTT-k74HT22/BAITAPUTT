@@ -18,8 +18,26 @@ public class OrderItemResponse {
     private BigDecimal unitPrice;
     private BigDecimal discount;
     private BigDecimal lineTotal;
+    private String note;
+    private String shippingAddress;
+
+    public String getShippingAddress() {
+        return shippingAddress;
+    }
+
+    public void setShippingAddress(String shippingAddress) {
+        this.shippingAddress = shippingAddress;
+    }
 
     public OrderItemResponse() {
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 
     public Long getId() {

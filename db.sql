@@ -466,6 +466,10 @@ WHERE id = 1;
 
 
 --Test đơn hàng
+-- thêm để miêu tả thuốc dùng như nào
+ALTER TABLE order_items
+ADD COLUMN note VARCHAR(255);
+
 
 INSERT INTO accounts (username, password, role)
 VALUES ('emp01', '123456', 'EMPLOYEE');

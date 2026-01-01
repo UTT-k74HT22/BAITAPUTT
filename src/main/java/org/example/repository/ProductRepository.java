@@ -57,5 +57,8 @@ public interface ProductRepository {
     * @param code the code of the product to delete
     * */
     void softDeleteByCode(String code);
-
+    /**
+     *
+     * */
+    List<ProductResponse> findByCategory(Long categoryId);
 }

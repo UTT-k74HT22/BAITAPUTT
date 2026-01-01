@@ -2,6 +2,7 @@ package org.example.view;
 
 import org.example.dto.LoginRequest;
 import org.example.entity.Account;
+import org.example.router.AuthContextManager;
 import org.example.service.AuthService;
 import org.example.service.impl.AuthServiceImpl;
 import javax.swing.*;
@@ -159,6 +160,8 @@ public class LoginForm extends JFrame {
                     "Thông báo",
                     JOptionPane.INFORMATION_MESSAGE);
 
+            // set user info
+            AuthContextManager.setUser(account.getId(), account.getRole());
             new MainFrame(account.getUsername(), account.getRole()).setVisible(true);
             this.dispose();
         } else {

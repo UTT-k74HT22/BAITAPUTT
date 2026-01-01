@@ -252,6 +252,29 @@ public class ProductRepositoryImpl extends BaseRepository implements ProductRepo
 
         return exists(sql, params(code));
     }
+    public List<ProductResponse> findByCategory(Long categoryId) {
+        String sql = """
+        SELECT
+            p.id,
+            p.code,
+            p.name,
+            p.standard_price,
+            p.status
+        FROM products p
+        WHERE p.category_id = ?
+          AND p.status = 'ACTIVE'
+        ORDER BY p.name
+    """;
+
+        return queryForList(sql, params(categoryId), rs -> {
+            ProductResponse p = new ProductResponse();
+            p.setId(rs.getLong("id"));
+            p.setName(rs.getString("name"));
+            p.setStandardPrice(rs.getBigDecimal("standard_price"));
+            return p;
+        });
+    }
+
 
     /**
      * Map ResultSet sang ProductResponse.

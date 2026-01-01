@@ -2,14 +2,23 @@ package org.example.dto.request.Order;
 
 import java.math.BigDecimal;
 
-public class AddOrderItemRequest {
+public class OrderItemRequest {
     private Long productId;
     private Long batchId;
     private int quantity;
     private BigDecimal unitPrice;
+    private String note;
 
     public Long getBatchId() {
         return batchId;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 
     public void setBatchId(Long batchId) {
