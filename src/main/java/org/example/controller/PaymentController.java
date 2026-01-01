@@ -41,7 +41,7 @@ public class PaymentController {
     }
 
     // ===================== SOFT DELETE =====================
-    public void cancelPayment(Long id) {
+    public void deletePayment(Long id) {
         try {
             paymentService.cancel(id);
         } catch (RuntimeException e) {

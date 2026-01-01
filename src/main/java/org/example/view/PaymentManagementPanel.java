@@ -481,17 +481,51 @@ public class PaymentManagementPanel extends JPanel {
         Payment payment = getSelectedPayment();
         if (payment == null) return;
 
-        JOptionPane.showMessageDialog(this, "TODO: Chức năng hủy thanh toán");
+        // Không cho xóa payment đã bị hủy
+        if (payment.getStatus() == PaymentStatus.CANCELED) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Thanh toán này đã bị hủy trước đó.",
+                    "Thông báo",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Bạn có chắc chắn muốn hủy thanh toán này?\n" +
+                        "Mã thanh toán: " + payment.getPaymentNumber(),
+                "Xác nhận hủy thanh toán",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        try {
+            controller.deletePayment(payment.getId());
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Hủy thanh toán thành công!",
+                    "Thành công",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+            reloadPaymentTable();
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    ex.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
     }
 
-    // ===================== EXPORT =====================
-    private void exportExcel() {
-        JOptionPane.showMessageDialog(this, "TODO: Export Excel");
-    }
 
-    private void exportPdf() {
-        JOptionPane.showMessageDialog(this, "TODO: Export PDF");
-    }
 
     // ===================== UTIL =====================
     private JTextField createTextField(int cols) {
