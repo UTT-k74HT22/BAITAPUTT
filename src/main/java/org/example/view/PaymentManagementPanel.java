@@ -84,7 +84,7 @@ public class PaymentManagementPanel extends JPanel {
         searchField = createTextField(20);
         JButton searchBtn = createButton("Tìm", COLOR_PRIMARY, e -> searchByPaymentNumber());
 
-        statusFilter = new JComboBox<>(new String[]{"ALL", "PENDING", "COMPLETED", "FAILED", "CANCELED"});
+        statusFilter = new JComboBox<>(new String[]{"ALL", "SUCCESS", "FAILED", "PENDING", "CANCELED"});
         methodFilter = new JComboBox<>(new String[]{"ALL", "CASH", "BANK_TRANSFER", "CREDIT_CARD", "E_WALLET"});
 
         statusFilter.addActionListener(e -> applyFilters());
@@ -109,12 +109,9 @@ public class PaymentManagementPanel extends JPanel {
 
         row.add(createButton("Thêm", new Color(40,167,69), e -> openCreateDialog()));
         row.add(createButton("Sửa", new Color(255,193,7), e -> openEditDialog()));
-        row.add(createButton("Hủy", new Color(220,53,69), e -> cancelSelectedPayment()));
+        row.add(createButton("Xoá", new Color(220,53,69), e -> deletePayment()));
         row.add(createButton("Refresh", new Color(108,117,125), e -> reloadPaymentTable()));
         row.add(Box.createHorizontalStrut(20));
-        row.add(createButton("Excel", new Color(23,162,184), e -> exportExcel()));
-        row.add(createButton("PDF", new Color(111,66,193), e -> exportPdf()));
-
         return row;
     }
 
@@ -268,8 +265,106 @@ public class PaymentManagementPanel extends JPanel {
 
     // ===================== CRUD =====================
     private void openCreateDialog() {
-        JOptionPane.showMessageDialog(this, "TODO: Chức năng tạo thanh toán");
+        JDialog dialog = new JDialog(
+                (Frame) SwingUtilities.getWindowAncestor(this),
+                "Thêm thanh toán",
+                true
+        );
+        dialog.setSize(520, 360);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout(12, 12));
+
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(6, 6, 6, 6);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+
+        JTextField tfInvoiceId = new JTextField(20);
+        JTextField tfAmount = new JTextField(20);
+
+        JComboBox<String> cbMethod = new JComboBox<>(
+                new String[]{"CASH", "BANK_TRANSFER", "CREDIT_CARD", "E_WALLET"}
+        );
+
+        JComboBox<PaymentStatus> cbStatus =
+                new JComboBox<>(PaymentStatus.values());
+
+        int row = 0;
+
+        // ===== Invoice ID =====
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        form.add(new JLabel("Mã hóa đơn"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1;
+        form.add(tfInvoiceId, gbc);
+
+        // ===== Amount =====
+        row++;
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        form.add(new JLabel("Số tiền"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1;
+        form.add(tfAmount, gbc);
+
+        // ===== Method =====
+        row++;
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        form.add(new JLabel("Phương thức"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1;
+        form.add(cbMethod, gbc);
+
+        // ===== Status =====
+        row++;
+        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        form.add(new JLabel("Trạng thái"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1;
+        form.add(cbStatus, gbc);
+
+        // ===== ACTIONS =====
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
+        JButton btnCancel = new JButton("Hủy");
+        JButton btnSave = new JButton("Lưu");
+
+        btnCancel.addActionListener(e -> dialog.dispose());
+
+        btnSave.addActionListener(e -> {
+            try {
+                int invoiceId = Integer.parseInt(tfInvoiceId.getText().trim());
+                java.math.BigDecimal amount =
+                        new java.math.BigDecimal(tfAmount.getText().trim());
+
+                Payment payment = new Payment();
+                payment.setInvoiceId(invoiceId);
+                payment.setAmount(amount);
+                payment.setMethod((String) cbMethod.getSelectedItem());
+                payment.setStatus((PaymentStatus) cbStatus.getSelectedItem());
+                payment.setPaymentDate(java.time.LocalDateTime.now());
+                payment.setPaymentNumber("PM" + System.currentTimeMillis());
+
+                controller.createPayment(payment);
+
+                JOptionPane.showMessageDialog(dialog,
+                        "Thêm thanh toán thành công!");
+                dialog.dispose();
+                reloadPaymentTable();
+
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialog,
+                        ex.getMessage(),
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        actions.add(btnCancel);
+        actions.add(btnSave);
+
+        dialog.add(form, BorderLayout.CENTER);
+        dialog.add(actions, BorderLayout.SOUTH);
+        dialog.setVisible(true);
     }
+
 
     private void openEditDialog() {
         Payment payment = getSelectedPayment();
@@ -278,7 +373,7 @@ public class PaymentManagementPanel extends JPanel {
         JOptionPane.showMessageDialog(this, "TODO: Chức năng sửa thanh toán");
     }
 
-    private void cancelSelectedPayment() {
+    private void deletePayment() {
         Payment payment = getSelectedPayment();
         if (payment == null) return;
 
