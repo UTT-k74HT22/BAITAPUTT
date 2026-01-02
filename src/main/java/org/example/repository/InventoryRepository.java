@@ -76,4 +76,10 @@ public interface InventoryRepository {
      * DTO để trả về thông tin inventory item cơ bản
      */
     record InventoryItemInfo(Long inventoryItemId, Integer quantityOnHand) {}
+
+    void updateStock(Long productId, Long batchId, Long warehouseId, Integer newQuantity);
+
+    void insertStockMovement(Long productId, Long batchId, Long warehouseId,
+                             Integer quantity, Integer before, Integer after,
+                             Long userId, String note);
 }

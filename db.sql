@@ -1,186 +1,4 @@
--- =========================================================
---  HMS - RESET & RECREATE (SPLIT USER SCHEMA)
--- =========================================================
-
-SET FOREIGN_KEY_CHECKS = 0;
-
--- Drop tables (order matters)
-DROP TABLE IF EXISTS payments;
-DROP TABLE IF EXISTS invoices;
-DROP TABLE IF EXISTS order_items;
-DROP TABLE IF EXISTS orders;
-
-DROP TABLE IF EXISTS stock_movements;
-DROP TABLE IF EXISTS inventory_items;
-DROP TABLE IF EXISTS batches;
-DROP TABLE IF EXISTS warehouses;
-
-DROP TABLE IF EXISTS products;
-DROP TABLE IF EXISTS manufacturers;
-DROP TABLE IF EXISTS categories;
-
-DROP TABLE IF EXISTS customer_profiles;
-DROP TABLE IF EXISTS employee_profiles;
-DROP TABLE IF EXISTS user_profiles;
-DROP TABLE IF EXISTS accounts;
-
-SET FOREIGN_KEY_CHECKS = 1;
-
--- =========================================================
---  ACCOUNTS (AUTH)
--- =========================================================
-CREATE TABLE accounts (
-                          id            INT AUTO_INCREMENT PRIMARY KEY,
-                          username      VARCHAR(50)  NOT NULL UNIQUE,
-                          password      VARCHAR(255) NOT NULL,
-                          role          ENUM('ADMIN','EMPLOYEE','CUSTOMER') NOT NULL,
-                          is_active     TINYINT(1) NOT NULL DEFAULT 1,
-                          last_login_at DATETIME,
-                          created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                          updated_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
-CREATE INDEX idx_accounts_role ON accounts(role);
-
--- =========================================================
---  USER PROFILES (COMMON)
--- =========================================================
-CREATE TABLE user_profiles (
-                               id          INT AUTO_INCREMENT PRIMARY KEY,
-                               account_id  INT NOT NULL UNIQUE,
-
-                               code        VARCHAR(50)  NOT NULL UNIQUE,   -- EMP001 / CUS001
-                               full_name   VARCHAR(150) NOT NULL,
-                               phone       VARCHAR(20) UNIQUE,
-                               email       VARCHAR(100),
-                               address     VARCHAR(255),
-
-                               status      ENUM('ACTIVE','INACTIVE','SUSPENDED') NOT NULL DEFAULT 'ACTIVE',
-                               created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                               updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-                               CONSTRAINT fk_profiles_account
-                                   FOREIGN KEY (account_id) REFERENCES accounts(id)
-                                       ON UPDATE CASCADE ON DELETE CASCADE
-) ENGINE=InnoDB;
-
-CREATE INDEX idx_user_profiles_status ON user_profiles(status);
-
--- =========================================================
---  EMPLOYEE PROFILES (EMPLOYEE-SPECIFIC)
--- =========================================================
-CREATE TABLE employee_profiles (
-                                   id          INT AUTO_INCREMENT PRIMARY KEY,
-                                   profile_id  INT NOT NULL UNIQUE,
-
-                                   position    VARCHAR(100),
-                                   department  VARCHAR(100),
-                                   hired_date  DATE,
-                                   base_salary DECIMAL(18,2) NOT NULL DEFAULT 0,
-
-                                   created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                   updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-                                   CONSTRAINT fk_employee_profile
-                                       FOREIGN KEY (profile_id) REFERENCES user_profiles(id)
-                                           ON UPDATE CASCADE ON DELETE CASCADE
-) ENGINE=InnoDB;
-
-CREATE INDEX idx_emp_department ON employee_profiles(department);
-CREATE INDEX idx_emp_position ON employee_profiles(position);
-
--- =========================================================
---  CUSTOMER PROFILES (CUSTOMER-SPECIFIC)
--- =========================================================
-CREATE TABLE customer_profiles (
-                                   id            INT AUTO_INCREMENT PRIMARY KEY,
-                                   profile_id    INT NOT NULL UNIQUE,
-
-                                   customer_type ENUM('RETAIL','WHOLESALE') NOT NULL,
-                                   tax_code      VARCHAR(50),
-
-                                   created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                   updated_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-                                   CONSTRAINT fk_customer_profile
-                                       FOREIGN KEY (profile_id) REFERENCES user_profiles(id)
-                                           ON UPDATE CASCADE ON DELETE CASCADE
-) ENGINE=InnoDB;
-
-CREATE INDEX idx_customer_type ON customer_profiles(customer_type);
-
--- =========================================================
---  PRODUCT CATALOG
--- =========================================================
-CREATE TABLE categories (
-                            id              INT AUTO_INCREMENT PRIMARY KEY,
-                            code            VARCHAR(50) NOT NULL UNIQUE,
-                            name            VARCHAR(100) NOT NULL,
-                            description     TEXT,
-                            parent_id       INT,
-                            is_active       TINYINT(1) NOT NULL DEFAULT 1,
-                            display_order   INT NOT NULL DEFAULT 0,
-                            created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                            updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                            CONSTRAINT fk_categories_parent
-                                FOREIGN KEY (parent_id) REFERENCES categories(id)
-                                    ON UPDATE CASCADE ON DELETE SET NULL
-) ENGINE=InnoDB;
-
-CREATE TABLE manufacturers (
-                               id              INT AUTO_INCREMENT PRIMARY KEY,
-                               code            VARCHAR(50) NOT NULL UNIQUE,
-                               name            VARCHAR(150) NOT NULL,
-                               country         VARCHAR(100),
-                               address         VARCHAR(255),
-                               phone           VARCHAR(20),
-                               email           VARCHAR(100),
-                               contact_person  VARCHAR(100),
-                               created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                               updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
-CREATE TABLE products (
-                          id                      INT AUTO_INCREMENT PRIMARY KEY,
-                          category_id             INT NOT NULL,
-                          manufacturer_id         INT,
-                          code                    VARCHAR(50) NOT NULL UNIQUE,
-                          barcode                 VARCHAR(100) UNIQUE,
-                          name                    VARCHAR(150) NOT NULL,
-                          dosage_form             VARCHAR(100),
-                          unit                    VARCHAR(50),
-                          description             TEXT,
-                          image_url               VARCHAR(255),
-                          standard_price          DECIMAL(18,2) NOT NULL DEFAULT 0,
-                          requires_prescription   TINYINT(1) NOT NULL DEFAULT 0,
-                          status                  ENUM('ACTIVE','INACTIVE','DISCONTINUED') NOT NULL DEFAULT 'ACTIVE',
-                          created_at              DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                          updated_at              DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                          CONSTRAINT fk_products_category
-                              FOREIGN KEY (category_id) REFERENCES categories(id)
-                                  ON UPDATE CASCADE ON DELETE RESTRICT,
-                          CONSTRAINT fk_products_manufacturer
-                              FOREIGN KEY (manufacturer_id) REFERENCES manufacturers(id)
-                                  ON UPDATE CASCADE ON DELETE SET NULL
-) ENGINE=InnoDB;
-
--- =========================================================
---  INVENTORY
--- =========================================================
-CREATE TABLE warehouses (
-                            id              INT AUTO_INCREMENT PRIMARY KEY,
-                            code            VARCHAR(50) NOT NULL UNIQUE,
-                            name            VARCHAR(150) NOT NULL,
-                            address         VARCHAR(255),
-                            phone           VARCHAR(20),
-                            manager_name    VARCHAR(100),
-                            is_active       TINYINT(1) NOT NULL DEFAULT 1,
-                            created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                            updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
-CREATE TABLE batches (
-                         id               INT AUTO_INCREMENT PRIMARY KEY,
+AUTO_INCREMENT PRIMARY KEY,
                          product_id       INT NOT NULL,
                          batch_code       VARCHAR(100) NOT NULL UNIQUE,
                          import_price     DECIMAL(18,2) NOT NULL DEFAULT 0,
@@ -331,10 +149,10 @@ UPDATE accounts SET role = 'ADMIN' WHERE id = 1;
 
 
 
-INSERT INTO categories (code, name, description, parent_id, display_order)
-VALUES ('MED', 'Thuốc', 'Nhóm thuốc điều trị', NULL, 1),
-       ('OTC', 'Thuốc không kê đơn', 'Thuốc OTC', 1, 1),
-       ('ETC', 'Thuốc kê đơn', 'Thuốc ETC', 1, 2),
+    INSERT INTO categories (code, name, description, parent_id, display_order)
+    VALUES ('MED', 'Thuốc', 'Nhóm thuốc điều trị', NULL, 1),
+           ('OTC', 'Thuốc không kê đơn', 'Thuốc OTC', 1, 1),
+           ('ETC', 'Thuốc kê đơn', 'Thuốc ETC', 1, 2),
 
        ('SUP', 'Thực phẩm chức năng', 'Nhóm thực phẩm chức năng', NULL, 2),
        ('VIT', 'Vitamin & Khoáng chất', 'Vitamin và khoáng', 4, 1),
@@ -461,3 +279,48 @@ VALUES
 UPDATE accounts
 SET password = '$2a$12$ZbxOL6/mxxY65NraoXE2GeeS2HFNVtZvJhlNt7Vtg.XNJ5HKNnd9q'
 WHERE id = 1;
+
+
+
+
+--Test đơn hàng
+-- thêm để miêu tả thuốc dùng như nào
+ALTER TABLE order_items
+ADD COLUMN note VARCHAR(255);
+
+
+INSERT INTO accounts (username, password, role)
+VALUES ('emp01', '123456', 'EMPLOYEE');
+
+INSERT INTO user_profiles (account_id, code, full_name, phone, status)
+VALUES (LAST_INSERT_ID(), 'EMP001', 'Nguyễn Văn Nhân Viên', '0909000001', 'ACTIVE');
+
+INSERT INTO employee_profiles (profile_id, position, department)
+VALUES (LAST_INSERT_ID(), 'Bán hàng', 'Sales');
+
+
+INSERT INTO accounts (username, password, role)
+VALUES ('cus01', '123456', 'CUSTOMER');
+
+INSERT INTO user_profiles (account_id, code, full_name, phone, status)
+VALUES (LAST_INSERT_ID(), 'CUS001123', 'Trần Thị Kháchk', '0909000002', 'ACTIVE');
+
+INSERT INTO customer_profiles (profile_id, customer_type)
+VALUES (LAST_INSERT_ID(), 'RETAIL');
+
+
+INSERT INTO products
+(category_id, manufacturer_id, code, name, standard_price, status)
+VALUES
+(1, 1, 'P001', 'Paracetamol 500mg', 15000, 'ACTIVE'),
+(1, 1, 'P002', 'Amoxicillin 500mg', 45000, 'ACTIVE');
+
+INSERT INTO batches
+(product_id, batch_code, import_price, manufacture_date, expiry_date, status)
+VALUES
+(1, 'BATCH-P001-01', 10000, '2024-01-01', '2026-01-01', 'ACTIVE'),
+(2, 'BATCH-P002-01', 30000, '2024-02-01', '2026-02-01', 'ACTIVE');
+
+
+ALTER TABLE order_items ADD COLUMN warehouse_id BIGINT NULL;
+ALTER TABLE order_items ADD COLUMN note varchar(255);

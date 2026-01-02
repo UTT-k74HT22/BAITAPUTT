@@ -87,4 +87,26 @@ public class InventoryServiceImpl implements InventoryService {
         
         return inventoryRepository.hasStock(productId, warehouseId, requiredQuantity);
     }
+    /**
+     * Cập nhật số lượng tồn kho
+     * */
+    @Override
+    public void updateStock(Long productId, Long batchId, Long warehouseId, Integer newQuantity) {
+        inventoryRepository.updateStock(productId, batchId, warehouseId, newQuantity);
+    }
+    /**
+     * Thêm giao dịch tồn kho
+     * */
+    @Override
+    public void insertStockMovement(Long productId, Long batchId, Long warehouseId,
+                                    Integer quantity, Integer before, Integer after,
+                                    Long userId, String note) {
+        inventoryRepository.insertStockMovement(productId, batchId, warehouseId,
+                quantity, before, after, userId, note);
+    }
+
+    @Override
+    public Integer getCurrentQuantity(Long productId, Long batchId, Long warehouseId) {
+        return inventoryRepository.getCurrentQuantity(productId, batchId, warehouseId);
+    }
 }

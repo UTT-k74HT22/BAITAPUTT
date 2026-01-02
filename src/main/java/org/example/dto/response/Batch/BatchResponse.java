@@ -21,7 +21,10 @@ public class BatchResponse {
     private String status;
 
     // ===== Getter / Setter =====
-
+    @Override
+    public String toString() {
+        return batchCode; // ComboBox sẽ hiện mã lô
+    }
     public Long getId() {
         return id;
     }
