@@ -23,6 +23,18 @@ public class OrderItemRequest {
      * Ghi chú
      * */
     private String note;
+    /**
+     * ID kho
+     * */
+    private Long warehouseId;
+
+    public Long getWarehouseId() {
+        return warehouseId;
+    }
+
+    public void setWarehouseId(Long warehouseId) {
+        this.warehouseId = warehouseId;
+    }
 
     public Long getBatchId() {
         return batchId;

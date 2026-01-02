@@ -5,6 +5,7 @@ import org.example.dto.response.InventoryResponse;
 import org.example.repository.BaseRepository;
 import org.example.repository.InventoryRepository;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -35,7 +36,7 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
                 ii.quantity_on_hand,
                 ii.quantity_reserved,
                 (ii.quantity_on_hand - ii.quantity_reserved) AS quantity_available,
-                ii.min_threshold,
+                ii.min_threshold,   
                 ii.max_threshold,
                 ii.last_stock_check,
                 CASE WHEN ii.quantity_on_hand <= ii.min_threshold THEN 1 ELSE 0 END AS is_low_stock,
@@ -47,7 +48,7 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
             INNER JOIN warehouses w ON ii.warehouse_id = w.id
             ORDER BY ii.id DESC
         """;
-        
+
         return queryForList(sql, this::mapToResponse);
     }
 
@@ -82,7 +83,7 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
             WHERE ii.warehouse_id = ?
             ORDER BY p.name
         """;
-        
+
         return queryForList(sql, params(warehouseId), this::mapToResponse);
     }
 
@@ -117,7 +118,7 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
             WHERE ii.product_id = ?
             ORDER BY w.name, b.expiry_date
         """;
-        
+
         return queryForList(sql, params(productId), this::mapToResponse);
     }
 
@@ -153,7 +154,7 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
               AND ii.warehouse_id = ?
               AND (ii.batch_id = ? OR (ii.batch_id IS NULL AND ? IS NULL))
         """;
-        
+
         return queryForObject(sql, params(productId, warehouseId, batchId, batchId), this::mapToResponse);
     }
 
@@ -188,7 +189,7 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
             WHERE ii.quantity_on_hand <= ii.min_threshold
             ORDER BY ii.quantity_on_hand ASC
         """;
-        
+
         return queryForList(sql, this::mapToResponse);
     }
 
@@ -225,7 +226,7 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
               AND DATEDIFF(b.expiry_date, CURDATE()) >= 0
             ORDER BY b.expiry_date ASC
         """;
-        
+
         return queryForList(sql, this::mapToResponse);
     }
 
@@ -237,7 +238,7 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
                 max_threshold = ?
             WHERE id = ?
         """;
-        
+
         executeUpdateOrThrow(
             sql,
             params(request.getMinThreshold(), request.getMaxThreshold(), inventoryItemId),
@@ -252,7 +253,7 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
             FROM inventory_items
             WHERE product_id = ?
         """;
-        
+
         return queryForObject(sql, params(productId), rs -> rs.getInt("total_quantity"))
                 .orElse(0);
     }
@@ -264,13 +265,13 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
             FROM inventory_items
             WHERE product_id = ? AND warehouse_id = ?
         """;
-        
+
         Integer availableQuantity = queryForObject(
-            sql, 
-            params(productId, warehouseId), 
+            sql,
+            params(productId, warehouseId),
             rs -> rs.getInt("available_quantity")
         ).orElse(0);
-        
+
         return availableQuantity >= requiredQuantity;
     }
 
@@ -284,36 +285,36 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
               AND warehouse_id = ?
               AND (batch_id = ? OR (batch_id IS NULL AND ? IS NULL))
         """;
-        
+
         Optional<InventoryItemInfo> existing = queryForObject(
             selectSql,
             params(productId, warehouseId, batchId, batchId),
             rs -> new InventoryItemInfo(rs.getLong("id"), rs.getInt("quantity_on_hand"))
         );
-        
+
         if (existing.isPresent()) {
             return existing.get();
         }
-        
+
         // Chưa tồn tại → Tạo mới với quantity = 0
         String insertSql = """
             INSERT INTO inventory_items
             (product_id, batch_id, warehouse_id, quantity_on_hand, quantity_reserved, min_threshold, max_threshold)
             VALUES (?, ?, ?, 0, 0, 10, 1000)
         """;
-        
+
         long newId = executeInsertAndReturnId(insertSql, ps -> {
             ps.setLong(1, productId);
-            
+
             if (batchId != null) {
                 ps.setLong(2, batchId);
             } else {
                 ps.setNull(2, Types.BIGINT);
             }
-            
+
             ps.setLong(3, warehouseId);
         });
-        
+
         return new InventoryItemInfo(newId, 0);
     }
 
@@ -325,7 +326,7 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
                 last_stock_check = CURDATE()
             WHERE id = ?
         """;
-        
+
         executeUpdateOrThrow(
             sql,
             params(newQuantity, inventoryItemId),
@@ -342,7 +343,7 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
               AND warehouse_id = ?
               AND (batch_id = ? OR (batch_id IS NULL AND ? IS NULL))
         """;
-        
+
         return queryForObject(
             sql,
             params(productId, warehouseId, batchId, batchId),
@@ -350,46 +351,89 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
         ).orElse(0);
     }
 
+    @Override
+    public void updateStock(Long productId, Long batchId, Long warehouseId, Integer newQuantity) {
+        String sql = """
+        UPDATE inventory_items
+        SET quantity_on_hand = ?, last_stock_check = CURDATE()
+        WHERE product_id = ? AND warehouse_id = ?
+          AND (batch_id = ? OR (batch_id IS NULL AND ? IS NULL))
+    """;
+
+        executeUpdateOrThrow(
+                sql,
+                params(newQuantity, productId, warehouseId, batchId, batchId),
+                "Không tìm thấy tồn kho để cập nhật!"
+        );
+    }
     /**
-     * Map ResultSet to InventoryResponse
-     */
+     *
+     * */
+    @Override
+    public void insertStockMovement(Long productId, Long batchId, Long warehouseId,
+                                    Integer quantity, Integer before, Integer after,
+                                    Long userId, String note) {
+        String sql = """
+                    INSERT INTO stock_movements
+                    (movement_type, product_id, batch_id, warehouse_id, quantity, quantity_before, quantity_after, note)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """;
+
+        executeUpdate(sql, ps -> {
+            ps.setString(1, "EXPORT"); // vì confirm order là trừ kho
+            ps.setLong(2, productId);
+            if (batchId != null) ps.setLong(3, batchId);
+            else ps.setNull(3, Types.INTEGER);
+            ps.setLong(4, warehouseId);
+            ps.setInt(5, quantity);
+            ps.setInt(6, before);
+            ps.setInt(7, after);
+            if (userId != null) ps.setLong(8, userId);
+            else ps.setNull(8, Types.INTEGER);
+            ps.setString(9, note);
+        });
+    }
+
+    /**
+         * Map ResultSet to InventoryResponse
+         */
     private InventoryResponse mapToResponse(ResultSet rs) throws SQLException {
         InventoryResponse response = new InventoryResponse();
-        
+
         response.setId(rs.getLong("id"));
-        
+
         // Product info
         response.setProductId(rs.getLong("product_id"));
         response.setProductCode(rs.getString("product_code"));
         response.setProductName(rs.getString("product_name"));
         response.setUnit(rs.getString("unit"));
-        
+
         // Batch info
         response.setBatchId(rs.getObject("batch_id", Long.class));
         response.setBatchCode(rs.getString("batch_code"));
         response.setExpiryDate(rs.getObject("expiry_date", LocalDate.class));
-        
+
         // Warehouse info
         response.setWarehouseId(rs.getLong("warehouse_id"));
         response.setWarehouseCode(rs.getString("warehouse_code"));
         response.setWarehouseName(rs.getString("warehouse_name"));
-        
+
         // Quantities
         response.setQuantityOnHand(rs.getInt("quantity_on_hand"));
         response.setQuantityReserved(rs.getInt("quantity_reserved"));
         response.setQuantityAvailable(rs.getInt("quantity_available"));
-        
+
         // Thresholds
         response.setMinThreshold(rs.getInt("min_threshold"));
         response.setMaxThreshold(rs.getInt("max_threshold"));
-        
+
         // Status indicators
         response.setIsLowStock(rs.getBoolean("is_low_stock"));
         response.setIsOverStock(rs.getBoolean("is_over_stock"));
         response.setIsNearExpiry(rs.getBoolean("is_near_expiry"));
-        
+
         response.setLastStockCheck(rs.getObject("last_stock_check", LocalDate.class));
-        
+
         return response;
     }
 }

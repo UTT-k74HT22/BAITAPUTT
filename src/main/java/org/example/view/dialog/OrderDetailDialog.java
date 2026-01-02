@@ -97,6 +97,7 @@ public class OrderDetailDialog extends JDialog {
         c.gridx = 2; c.weightx = 0.4;
         p.add(label("SĐT: " + safe(o.getCreatorPhone())), c);
 
+
         return p;
     }
 

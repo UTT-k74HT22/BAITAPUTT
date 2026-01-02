@@ -43,6 +43,10 @@ public class InventoryResponse {
     public InventoryResponse() {}
 
     // Getters and Setters
+    @Override
+    public String toString() {
+        return warehouseName; // ComboBox sẽ hiện tên kho
+    }
     public Long getId() {
         return id;
     }

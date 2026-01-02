@@ -2,6 +2,7 @@ package org.example.controller;
 
 import org.example.dto.request.Product.CreateProductRequest;
 import org.example.dto.request.Product.UpdateProductRequest;
+import org.example.dto.response.Batch.BatchResponse;
 import org.example.dto.response.CategoryResponse;
 import org.example.dto.response.ManufacturerResponse;
 import org.example.dto.response.Product.ProductDetailResponse;
@@ -85,6 +86,10 @@ public class ProductController {
      */
     public List<ProductResponse> getByCategory(Long categoryId) {
         return repo.findByCategory(categoryId);
+    }
+
+    public List<BatchResponse> getBatchesByProduct(Long productId) {
+        return repo.findBatchesByProduct(productId);
     }
     /**
      * Thực hiện xuất PDF

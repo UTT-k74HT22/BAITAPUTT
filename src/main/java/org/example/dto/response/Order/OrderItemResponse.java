@@ -20,6 +20,24 @@ public class OrderItemResponse {
     private BigDecimal lineTotal;
     private String note;
     private String shippingAddress;
+    private Long warehouseId;
+    private String warehouseName;
+
+    public String getWarehouseName() {
+        return warehouseName;
+    }
+
+    public void setWarehouseName(String warehouseName) {
+        this.warehouseName = warehouseName;
+    }
+
+    public Long getWarehouseId() {
+        return warehouseId;
+    }
+
+    public void setWarehouseId(Long warehouseId) {
+        this.warehouseId = warehouseId;
+    }
 
     public String getShippingAddress() {
         return shippingAddress;

@@ -43,10 +43,6 @@ public class OrderController {
     public OrderResponse getById(Long orderId) {
         return service.getById(orderId);
     }
-    OrderResponse findById(Long orderId){
-        return service.getById(orderId);
-
-    }
     /**
      * Hủy đơn hàng
      * @param orderId

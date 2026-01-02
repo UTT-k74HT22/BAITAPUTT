@@ -3,6 +3,7 @@ package org.example.repository;
 
 import org.example.dto.request.Product.CreateProductRequest;
 import org.example.dto.request.Product.UpdateProductRequest;
+import org.example.dto.response.Batch.BatchResponse;
 import org.example.dto.response.Product.ProductDetailResponse;
 import org.example.dto.response.Product.ProductResponse;
 
@@ -58,7 +59,15 @@ public interface ProductRepository {
     * */
     void softDeleteByCode(String code);
     /**
-     *
+     * Find batches by product ID.
+     * @param productId the ID of the product to find batches for
+     * @return a list of batches for the given product
+     * */
+    List<BatchResponse> findBatchesByProduct(Long productId);
+    /**
+     * Find products by category ID.
+     * @param categoryId the ID of the category to find products for
+     * @return a list of products in the given category
      * */
     List<ProductResponse> findByCategory(Long categoryId);
 }

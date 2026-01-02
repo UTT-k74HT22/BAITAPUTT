@@ -36,31 +36,43 @@ public class OrderServiceImpl implements OrderService {
                 repo.insertItem(orderId, item);
             }
         }
-
         repo.updateOrderTotal(orderId);
         // trả về id của đơn hàng vừa tạo
         return orderId;
     }
-
-
+    /**
+     * Xác nhận đơn hàng
+     * */
     @Override
     public void confirmOrder(Long orderId) {
         // NOTE: Ở đây sẽ trừ kho + stock_movements
         repo.updateStatus(orderId, OrderStatus.CONFIRMED.name());
     }
 
+    /**
+     * Lấy danh sách tất cả đơn hàng
+     * */
     @Override
     public List<OrderResponse> getAll() {
         return repo.findAll();
     }
+    /**
+     * Lấy thông tin đơn hàng theo ID cho việc xem chi tiết
+     * */
     @Override
     public OrderResponse getById(Long orderId) {
         return repo.findById(orderId);
     }
+    /**
+     * Lấy danh sách sản phẩm trong đơn hàng
+     * */
     @Override
     public List<OrderItemResponse> getItems(Long orderId) {
         return repo.getItems(orderId);
     }
+    /**
+     * Hủy đơn hàng
+     * */
     @Override
     public void cancelOrder(Long orderId) {
         repo.cancelOrder(orderId);

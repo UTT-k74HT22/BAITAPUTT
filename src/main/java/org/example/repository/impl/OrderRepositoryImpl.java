@@ -45,34 +45,35 @@ public class OrderRepositoryImpl extends BaseRepository implements OrderReposito
     @Override
     public void insertItem(Long orderId, OrderItemRequest item) {
         String sql = """
-            INSERT INTO order_items
-            (order_id, product_id, batch_id, quantity, unit_price, line_total, note)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """;
+        INSERT INTO order_items
+        (order_id, product_id, batch_id, quantity, unit_price, line_total, warehouse_id, note)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """;
 
         executeUpdate(sql, ps -> {
             ps.setLong(1, orderId);
             ps.setLong(2, item.getProductId());
 
-            if (item.getBatchId() != null) {
+            if (item.getBatchId() != null)
                 ps.setLong(3, item.getBatchId());
-            } else {
+            else
                 ps.setNull(3, java.sql.Types.INTEGER);
-            }
 
-            Integer q = item.getQuantity();
-            int qty = (q == null || q < 1) ? 1 : q;
-            ps.setInt(4, qty);
+            ps.setInt(4, item.getQuantity());
+            ps.setBigDecimal(5, item.getUnitPrice());
+            ps.setBigDecimal(6, item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
 
-            BigDecimal price = item.getUnitPrice() == null ? BigDecimal.ZERO : item.getUnitPrice();
-            ps.setBigDecimal(5, price);
+            // ✅ set warehouseId vào tham số 7
+            if (item.getWarehouseId() != null)
+                ps.setLong(7, item.getWarehouseId());
+            else
+                ps.setNull(7, java.sql.Types.INTEGER);
 
-            BigDecimal lineTotal = price.multiply(BigDecimal.valueOf(qty));
-            ps.setBigDecimal(6, lineTotal);
-
-            ps.setString(7, item.getNote() == null ? "" : item.getNote());
+            // ✅ set note vào tham số 8
+            ps.setString(8, item.getNote() == null ? "" : item.getNote());
         });
     }
+
     /**
      * Cập nhật tổng tiền đơn hàng
      * */
@@ -134,6 +135,7 @@ public class OrderRepositoryImpl extends BaseRepository implements OrderReposito
             u.full_name AS creator_name,
             u.phone     AS creator_phone,
             u.email     AS creator_email
+            
         FROM orders o
         LEFT JOIN user_profiles u ON o.created_by_user_id = u.id
         ORDER BY o.order_date DESC
@@ -153,8 +155,6 @@ public class OrderRepositoryImpl extends BaseRepository implements OrderReposito
      */
         @Override
         public OrderResponse findById(Long orderId) {
-
-
             String sql = """
         SELECT
             o.id,
@@ -175,10 +175,14 @@ public class OrderRepositoryImpl extends BaseRepository implements OrderReposito
             c.full_name AS creator_name,
             c.phone     AS creator_phone,
             c.email     AS creator_email
+           
+            
+            
 
         FROM orders o
         JOIN user_profiles u ON o.customer_id = u.id
         LEFT JOIN user_profiles c ON o.created_by_user_id = c.id  
+        
         WHERE o.id = ?
         """;
 
@@ -218,9 +222,12 @@ public class OrderRepositoryImpl extends BaseRepository implements OrderReposito
     @Override
     public List<OrderItemResponse> getItems(Long orderId) {
         String sql = """
-        SELECT 
+        SELECT
             oi.id,
             p.name AS product_name,
+            oi.product_id,
+            oi.batch_id,
+            oi.warehouse_id,
             oi.quantity,
             oi.unit_price,
             oi.line_total,
@@ -234,6 +241,9 @@ public class OrderRepositoryImpl extends BaseRepository implements OrderReposito
             OrderItemResponse i = new OrderItemResponse();
             i.setId(rs.getLong("id"));
             i.setProductName(rs.getString("product_name"));
+            i.setProductId(rs.getLong("product_id"));     // map product id
+            i.setBatchId(rs.getLong("batch_id"));          // map batch id
+            i.setWarehouseId(rs.getLong("warehouse_id"));  // ✅ map warehouse id
             i.setQuantity(rs.getInt("quantity"));
             i.setUnitPrice(rs.getBigDecimal("unit_price"));
             i.setLineTotal(rs.getBigDecimal("line_total"));
@@ -241,6 +251,7 @@ public class OrderRepositoryImpl extends BaseRepository implements OrderReposito
             return i;
         });
     }
+
 
     /**
      * Mapper liên kết với csdl
