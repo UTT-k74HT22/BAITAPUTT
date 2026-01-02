@@ -4,6 +4,7 @@ import org.example.dto.request.Batch.CreateBatchRequest;
 import org.example.dto.request.Batch.UpdateBatchRequest;
 import org.example.dto.response.Batch.BatchResponse;
 import org.example.service.BatchService;
+import org.example.service.impl.BatchServiceImpl;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -14,6 +15,11 @@ public class BatchController {
     public BatchController(BatchService batchService) {
         this.batchService = batchService;
     }
+
+    public BatchController() {
+        this.batchService = new BatchServiceImpl();
+    }
+
     /**
      * Lấy toàn bộ lô hàng
      * */

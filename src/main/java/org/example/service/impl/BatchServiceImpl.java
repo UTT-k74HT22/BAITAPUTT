@@ -4,6 +4,7 @@ import org.example.dto.request.Batch.CreateBatchRequest;
 import org.example.dto.request.Batch.UpdateBatchRequest;
 import org.example.dto.response.Batch.BatchResponse;
 import org.example.repository.BatchRepository;
+import org.example.repository.impl.BatchRepositoryImpl;
 import org.example.service.BatchService;
 
 import java.time.LocalDate;
@@ -14,6 +15,10 @@ public class BatchServiceImpl implements BatchService {
 
     public BatchServiceImpl(BatchRepository batchRepository) {
         this.batchRepository = batchRepository;
+    }
+
+    public BatchServiceImpl() {
+        this.batchRepository = new BatchRepositoryImpl();
     }
 
     @Override
