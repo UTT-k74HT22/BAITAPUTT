@@ -374,24 +374,29 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
                                     Integer quantity, Integer before, Integer after,
                                     Long userId, String note) {
         String sql = """
-                    INSERT INTO stock_movements
-                    (movement_type, product_id, batch_id, warehouse_id, quantity, quantity_before, quantity_after, note)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """;
+            INSERT INTO stock_movements
+            (movement_type, product_id, batch_id, warehouse_id, quantity, quantity_before, quantity_after, performed_by_user_id, note)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """;
 
         executeUpdate(sql, ps -> {
-            ps.setString(1, "EXPORT"); // vì confirm order là trừ kho
+            ps.setString(1, "EXPORT");
             ps.setLong(2, productId);
+
             if (batchId != null) ps.setLong(3, batchId);
             else ps.setNull(3, Types.INTEGER);
+
             ps.setLong(4, warehouseId);
             ps.setInt(5, quantity);
             ps.setInt(6, before);
             ps.setInt(7, after);
+
             if (userId != null) ps.setLong(8, userId);
             else ps.setNull(8, Types.INTEGER);
+
             ps.setString(9, note);
         });
+
     }
 
     /**

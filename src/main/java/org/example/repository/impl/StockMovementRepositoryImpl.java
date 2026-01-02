@@ -5,6 +5,7 @@ import org.example.dto.response.StockMovementResponse;
 import org.example.entity.enums.StockMovementType;
 import org.example.repository.BaseRepository;
 import org.example.repository.StockMovementRepository;
+import org.example.router.AuthContextManager;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -322,42 +323,26 @@ public class StockMovementRepositoryImpl extends BaseRepository implements Stock
         Integer quantityAfter
     ) {
         String sql = """
-            INSERT INTO stock_movements
-            (movement_type, product_id, batch_id, warehouse_id,
-             quantity, quantity_before, quantity_after,
-             reference_type, reference_id, performed_by_user_id, note, movement_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+               INSERT INTO stock_movements
+                       (movement_type, product_id, batch_id, warehouse_id,
+                        quantity, reference_type, reference_id,
+                        performed_by_user_id, note)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
-        
+
         return executeInsertAndReturnId(sql, ps -> {
             ps.setString(1, request.getMovementType().name());
             ps.setLong(2, request.getProductId());
-            
-            if (request.getBatchId() != null) {
-                ps.setLong(3, request.getBatchId());
-            } else {
-                ps.setNull(3, Types.BIGINT);
-            }
-            
+            ps.setObject(3, request.getBatchId(), Types.BIGINT);
             ps.setLong(4, request.getWarehouseId());
             ps.setInt(5, request.getQuantity());
-            ps.setInt(6, quantityBefore);
-            ps.setInt(7, quantityAfter);
-            ps.setString(8, request.getReferenceType());
-            
-            if (request.getReferenceId() != null) {
-                ps.setLong(9, request.getReferenceId());
-            } else {
-                ps.setNull(9, Types.BIGINT);
-            }
-            
-            if (request.getPerformedByUserId() != null) {
-                ps.setLong(10, request.getPerformedByUserId());
-            } else {
-                ps.setNull(10, Types.BIGINT);
-            }
-            
-            ps.setString(11, request.getNote());
+            ps.setString(6, request.getReferenceType());
+            ps.setObject(7, request.getReferenceId(), Types.BIGINT);
+
+
+            ps.setLong(8, AuthContextManager.getUserId());
+
+            ps.setString(9, request.getNote());
         });
     }
 

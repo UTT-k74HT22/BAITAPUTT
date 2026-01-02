@@ -1,16 +1,15 @@
+
 package org.example.service.impl;
 
 import org.example.dto.LoginRequest;
 import org.example.dto.RegisterRequest;
 import org.example.entity.Account;
-import org.example.entity.enums.Role;
 import org.example.repository.AccountRepository;
 import org.example.repository.impl.AccountRepositoryImpl;
 import org.example.service.AuthService;
 import org.example.service.UserCreationService;
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.time.LocalDateTime;
 import java.util.logging.Logger;
 
 public class AuthServiceImpl implements AuthService {
@@ -20,10 +19,20 @@ public class AuthServiceImpl implements AuthService {
     private final UserCreationService userCreationService;
 
     private static Account currentAccount;
+    private static Long currentUserProfileId; // separate field for user_profile id
 
     public AuthServiceImpl() {
         this.accountRepository = new AccountRepositoryImpl();
         this.userCreationService = new UserCreationServiceImpl();
+    }
+
+    /**
+     * Find user profile id by account id
+     * @param accountId
+     * @return user profile id
+     */
+    public Long findUserIdByAccountId(Long accountId) {
+        return ((AccountRepositoryImpl) accountRepository).findUserIdByAccountId(accountId);
     }
 
     /**
@@ -59,8 +68,18 @@ public class AuthServiceImpl implements AuthService {
 
         currentAccount = account;
 
-        log.info("Login successful: " + username);
-        return account;
+        Long userProfileId = accountRepository.findUserIdByAccountId(account.getId());
+
+        // DO NOT overwrite account id. Store the user_profile id separately.
+        currentUserProfileId = userProfileId;
+
+        log.info("Login successful: " + username + " (user_profile_id=" + userProfileId + ")");
+        return currentAccount;
+    }
+
+    // return the user_profile id (static so callers can use AuthServiceImpl.getCurrentUserProfileId())
+    public static Long getCurrentUserProfileId() {
+        return currentUserProfileId;
     }
 
     /**

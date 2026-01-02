@@ -71,4 +71,6 @@ public interface AccountRepository {
      * @param hashedPassword
      */
     void updatePassword(long accountId, String hashedPassword);
+
+    Long findUserIdByAccountId(Long accountId);
 }
