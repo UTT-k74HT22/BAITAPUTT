@@ -2,10 +2,12 @@ package org.example.service.impl;
 
 import org.example.dto.request.UpdateInventoryThresholdRequest;
 import org.example.dto.response.InventoryResponse;
+import org.example.entity.enums.InventoryStatus;
 import org.example.repository.InventoryRepository;
 import org.example.repository.impl.InventoryRepositoryImpl;
 import org.example.service.InventoryService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,6 +20,23 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public List<InventoryResponse> getAll() {
         return inventoryRepository.getAll();
+    }
+
+    /**
+     * Lấy tất cả tồn kho để xuất file
+     *
+     * @param warehouseId ID kho hàng (có thể null để lấy tất cả kho)
+     * @param status      Trạng thái tồn kho (có thể null để lấy tất cả trạng thái)
+     */
+    @Override
+    public List<InventoryResponse> getForExport(Long warehouseId, InventoryStatus status) {
+
+        List<InventoryResponse> inventoryResponses = inventoryRepository.getAll();
+
+        return inventoryResponses.stream()
+                .filter(i -> warehouseId == null || i.getWarehouseId().equals(warehouseId))
+                .filter(i -> status == null || checkStatus(status, i))
+                .toList();
     }
 
     @Override
@@ -86,5 +105,13 @@ public class InventoryServiceImpl implements InventoryService {
         }
         
         return inventoryRepository.hasStock(productId, warehouseId, requiredQuantity);
+    }
+
+    public boolean checkStatus(InventoryStatus status, InventoryResponse response) {
+        return switch (status) {
+            case LOW_STOCK -> Boolean.TRUE.equals(response.getIsLowStock());
+            case NEAR_EXPIRY -> Boolean.TRUE.equals(response.getIsNearExpiry());
+            case OVER_STOCK ->  Boolean.TRUE.equals(response.getIsOverStock());
+        };
     }
 }

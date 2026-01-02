@@ -129,6 +129,7 @@ public class InventoryManagementPanel extends BaseManagementPanel<InventoryRespo
 
         // Warehouse filter
         List<WarehouseResponse> warehouses = warehouseController.getAllWarehouses();
+        System.out.println("[InventoryManagementPanel] Lấy danh sách kho: " + warehouses.size() + " kho");
         WarehouseOption[] warehouseOptions = new WarehouseOption[warehouses.size() + 1];
         warehouseOptions[0] = new WarehouseOption(null, "TẤT CẢ KHO");
         for (int i = 0; i < warehouses.size(); i++) {
@@ -209,6 +210,8 @@ public class InventoryManagementPanel extends BaseManagementPanel<InventoryRespo
             e -> showNearExpiry()));
         row.add(UiFactory.button("Refresh", new Color(108, 117, 125),
             e -> reload()));
+        row.add(UiFactory.button("Xuất Excel", new Color(40, 167, 69),
+                e -> exportExcel()));
 
         return row;
     }
@@ -318,6 +321,24 @@ public class InventoryManagementPanel extends BaseManagementPanel<InventoryRespo
 
         // Set filter to near expiry
         stockStatusFilter.setSelectedItem("SẮP HẾT HẠN");
+    }
+
+    /**
+     * Xuất tồn kho ra file Excel
+     */
+    private void exportExcel() {
+        WarehouseOption selected = (WarehouseOption) warehouseFilter.getSelectedItem();
+        String statusText = String.valueOf(stockStatusFilter.getSelectedItem());
+        Long warehouseId = (selected != null) ? selected.id : null;
+        String status = null;
+        switch (statusText) {
+            case "SẮP HẾT HÀNG" -> status = "LOW_STOCK";
+            case "SẮP HẾT HẠN" -> status = "NEAR_EXPIRY";
+            case "DƯ THỪA" -> status = "OVER_STOCK";
+            case "BÌNH THƯỜNG" -> status = "NORMAL";
+        }
+
+        inventoryController.exportInventory(warehouseId, status, this);
     }
 
     // ================= HELPER =================

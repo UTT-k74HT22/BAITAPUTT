@@ -2,7 +2,10 @@ package org.example.controller;
 
 import org.example.dto.request.UpdateInventoryThresholdRequest;
 import org.example.dto.response.InventoryResponse;
+import org.example.entity.enums.InventoryStatus;
 import org.example.service.InventoryService;
+import org.example.utils.excel.ExcelExporter;
+import org.example.utils.excel.InventoryExcelWriter;
 
 import java.util.List;
 
@@ -71,5 +74,22 @@ public class InventoryController {
      */
     public boolean hasStock(Long productId, Long warehouseId, Integer requiredQuantity) {
         return inventoryService.hasStock(productId, warehouseId, requiredQuantity);
+    }
+
+    /**
+     * Xuất tồn kho ra file Excel
+     *
+     * @param warehouseId ID kho hàng (có thể null để lấy tất cả kho)
+     * @param status      Trạng thái tồn kho (có thể null để lấy tất cả trạng thái)
+     * @param parent      Component cha để hiển thị dialog
+     */
+    public void exportInventory(Long warehouseId, String status, java.awt.Component parent) {
+        System.out.println("[Controller] Xuất tồn kho với warehouseId: " + warehouseId + ", status: " + status);
+        List<InventoryResponse> data = inventoryService.getForExport(warehouseId, status == null ? null : Enum.valueOf(InventoryStatus.class, status));
+        ExcelExporter.exportWithDialog(
+                data,
+                new InventoryExcelWriter(),
+                parent
+        );
     }
 }

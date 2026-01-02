@@ -2,6 +2,7 @@ package org.example.service;
 
 import org.example.dto.request.UpdateInventoryThresholdRequest;
 import org.example.dto.response.InventoryResponse;
+import org.example.entity.enums.InventoryStatus;
 
 import java.util.List;
 
@@ -14,6 +15,14 @@ public interface InventoryService {
      * Lấy tất cả tồn kho
      */
     List<InventoryResponse> getAll();
+
+    /**
+     * Lấy tất cả tồn kho để xuất file
+     *
+     * @param warehouseId ID kho hàng (có thể null để lấy tất cả kho)
+     * @param status      Trạng thái tồn kho (có thể null để lấy tất cả trạng thái)
+     */
+    List<InventoryResponse> getForExport(Long warehouseId, InventoryStatus status);
     
     /**
      * Lấy tồn kho theo warehouse

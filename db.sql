@@ -458,6 +458,50 @@ VALUES
 ('ADJUST', 6, 4, 1, -10, 150, 140, 'STOCK_CHECK', NULL, 1, 'Hỏng bao bì');
 
 
-UPDATE accounts
-SET password = '$2a$12$ZbxOL6/mxxY65NraoXE2GeeS2HFNVtZvJhlNt7Vtg.XNJ5HKNnd9q'
-WHERE id = 1;
+-- LOW STOCK
+INSERT INTO inventory_items
+(product_id, batch_id, warehouse_id, quantity_on_hand, quantity_reserved, min_threshold, max_threshold)
+VALUES
+    (2, 3, 2, 20, 5, 50, 300),
+    (5, 5, 3, 10, 0, 30, 200);
+
+-- OVER STOCK
+INSERT INTO inventory_items
+(product_id, batch_id, warehouse_id, quantity_on_hand, quantity_reserved, min_threshold, max_threshold)
+VALUES
+    (6, 4, 2, 900, 20, 50, 300),
+    (1, 1, 3, 1600, 100, 100, 1000);
+
+-- Batch sắp hết hạn
+INSERT INTO batches
+(product_id, batch_code, import_price, manufacture_date, expiry_date, supplier_name)
+VALUES
+    (2, 'AMOX-NEAR-EXP', 36000, '2024-08-01', '2025-01-15', 'Công ty Dược F');
+
+INSERT INTO inventory_items
+(product_id, batch_id, warehouse_id, quantity_on_hand, min_threshold, max_threshold)
+VALUES
+    (2, LAST_INSERT_ID(), 1, 60, 30, 300);
+
+-- Batch expired còn tồn
+INSERT INTO inventory_items
+(product_id, batch_id, warehouse_id, quantity_on_hand, min_threshold, max_threshold)
+VALUES
+    (3, 6, 2, 40, 20, 200);
+
+-- TRANSFER HN → HCM
+INSERT INTO stock_movements
+(movement_type, product_id, batch_id, warehouse_id,
+ quantity, quantity_before, quantity_after,
+ reference_type, reference_id, performed_by_user_id, note)
+VALUES
+    ('TRANSFER', 1, 1, 1, -100, 450, 350, 'TRANSFER_OUT', 4001, 2, 'Chuyển kho'),
+    ('TRANSFER', 1, 1, 2, 100, 400, 500, 'TRANSFER_IN', 4001, 2, 'Nhận kho');
+
+-- FIFO export batch cũ
+INSERT INTO stock_movements
+(movement_type, product_id, batch_id, warehouse_id,
+ quantity, quantity_before, quantity_after,
+ reference_type, reference_id, performed_by_user_id, note)
+VALUES
+    ('EXPORT', 1, 2, 1, 120, 300, 180, 'SALE_ORDER', 4002, 3, 'Xuất FIFO');
