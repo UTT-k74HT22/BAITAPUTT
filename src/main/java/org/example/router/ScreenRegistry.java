@@ -22,6 +22,8 @@ public class ScreenRegistry {
         factory.register("screen_report_detail", ReportDetailManagementPanel::new);
         factory.register("screen_invoices", InvoiceManagementPanel::new);
 
+        factory.register("screen_payments", PaymentManagementPanel::new);
+
         // TODO sau này:
          factory.register("screen_customer", CustomerManagementPanel::new);
     }
