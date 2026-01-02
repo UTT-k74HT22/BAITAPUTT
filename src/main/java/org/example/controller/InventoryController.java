@@ -72,4 +72,26 @@ public class InventoryController {
     public boolean hasStock(Long productId, Long warehouseId, Integer requiredQuantity) {
         return inventoryService.hasStock(productId, warehouseId, requiredQuantity);
     }
+    /**
+     * Cập nhật số lượng tồn kho theo product + batch + warehouse
+     */
+    public void updateStock(Long productId, Long batchId, Long warehouseId, Integer newQuantity) {
+        inventoryService.updateStock(productId, batchId, warehouseId, newQuantity);
+    }
+
+    /**
+     * Ghi log lịch sử nhập/xuất kho
+     */
+    public void insertStockMovement(Long productId, Long batchId, Long warehouseId,
+                                    Integer quantity, Integer before, Integer after,
+                                    Long performedByUserId, String note) {
+        inventoryService.insertStockMovement(productId, batchId, warehouseId,
+                quantity, before, after, performedByUserId, note);
+    }
+    /**
+     * Lấy số lượng tồn kho hiện tại
+     */
+    public Integer getCurrentQuantity(Long productId, Long batchId, Long warehouseId) {
+        return inventoryService.getCurrentQuantity(productId, batchId, warehouseId);
+    }
 }

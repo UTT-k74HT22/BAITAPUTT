@@ -413,9 +413,6 @@ public class CategoryManagementPanel extends JPanel {
                 JOptionPane.INFORMATION_MESSAGE);
     }
 
-
-
-
     private void deleteCategory() {
         int row = categoryTable.getSelectedRow();
         if (row < 0) return;
@@ -435,11 +432,6 @@ public class CategoryManagementPanel extends JPanel {
         JOptionPane.showMessageDialog(this, "Đã xoá category thành công!");
         loadCategories();
     }
-
-
-
-
-
     // ===================== EXPORT Exel====================
     private void exportExcel() {
         int choice = JOptionPane.showConfirmDialog(

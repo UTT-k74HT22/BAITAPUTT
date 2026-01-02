@@ -2,6 +2,7 @@ package org.example.repository.impl;
 
 import org.example.dto.request.Product.CreateProductRequest;
 import org.example.dto.request.Product.UpdateProductRequest;
+import org.example.dto.response.Batch.BatchResponse;
 import org.example.dto.response.Product.ProductDetailResponse;
 import org.example.dto.response.Product.ProductResponse;
 import org.example.entity.enums.ProductStatus;
@@ -111,6 +112,29 @@ public class ProductRepositoryImpl extends BaseRepository implements ProductRepo
                 "Product not found with code: " + code
         );
     }
+    /**
+     * Lấy danh sách batch theo sản phẩm.
+     * */
+    @Override
+    public List<BatchResponse> findBatchesByProduct(Long productId) {
+        String sql = """
+        SELECT id, batch_code, expiry_date
+        FROM batches
+        WHERE product_id = ?
+        ORDER BY expiry_date ASC
+    """;
+
+        return queryForList(sql, params(productId), rs -> {
+            BatchResponse b = new BatchResponse();
+            b.setId(rs.getLong("id"));
+            b.setBatchCode(rs.getString("batch_code"));
+            if (rs.getDate("expiry_date") != null) {
+                b.setExpiryDate(rs.getDate("expiry_date").toLocalDate());
+            }
+            return b;
+        });
+    }
+
     /**
      * Lấy danh sách tất cả sản phẩm.
      */
@@ -252,6 +276,29 @@ public class ProductRepositoryImpl extends BaseRepository implements ProductRepo
 
         return exists(sql, params(code));
     }
+    public List<ProductResponse> findByCategory(Long categoryId) {
+        String sql = """
+        SELECT
+            p.id,
+            p.code,
+            p.name,
+            p.standard_price,
+            p.status
+        FROM products p
+        WHERE p.category_id = ?
+          AND p.status = 'ACTIVE'
+        ORDER BY p.name
+    """;
+
+        return queryForList(sql, params(categoryId), rs -> {
+            ProductResponse p = new ProductResponse();
+            p.setId(rs.getLong("id"));
+            p.setName(rs.getString("name"));
+            p.setStandardPrice(rs.getBigDecimal("standard_price"));
+            return p;
+        });
+    }
+
 
     /**
      * Map ResultSet sang ProductResponse.

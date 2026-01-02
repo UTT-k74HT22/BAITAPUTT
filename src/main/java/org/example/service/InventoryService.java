@@ -49,4 +49,19 @@ public interface InventoryService {
      * Kiểm tra còn hàng
      */
     boolean hasStock(Long productId, Long warehouseId, Integer requiredQuantity);
+    /**
+     * Cập nhật số lượng tồn kho theo product + batch + warehouse
+     */
+    void updateStock(Long productId, Long batchId, Long warehouseId, Integer newQuantity);
+    /**
+     * Ghi log lịch sử nhập/xuất kho
+     */
+    void insertStockMovement(Long productId, Long batchId, Long warehouseId,
+                             Integer quantity, Integer before, Integer after,
+                             Long userId, String note);
+    /**
+     * Lấy số lượng tồn kho hiện tại
+     */
+    Integer getCurrentQuantity(Long productId, Long batchId, Long warehouseId);
+
 }

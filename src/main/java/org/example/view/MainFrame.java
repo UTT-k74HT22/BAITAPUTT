@@ -13,6 +13,8 @@ import org.example.repository.impl.UserProfileRepositoryImpl;
 import org.example.repository.impl.AccountRepositoryImpl;
 
 import org.example.router.*;
+import org.example.view.customer.CustomerOrderPanel;
+import org.example.view.customer.ProductCatalogPanel;
 import org.example.service.ProfileService;
 import org.example.service.impl.ProfileServiceImpl;
 import org.example.service.AuthService;
@@ -87,12 +89,6 @@ public class MainFrame extends JFrame {
         ScreenNavigator.init(this::showByMenuKey);
         routes = AppRoutes.build();
         ScreenRegistry.registerAll(screenFactory);
-        /**
-         * Chỉ khách hàng mới có menu shop (test)
-         * */
-        if (role == Role.CUSTOMER) {
-            CustomerScreenRegistry.registerAll(screenFactory);
-        }
 
         initScreens(role);
 

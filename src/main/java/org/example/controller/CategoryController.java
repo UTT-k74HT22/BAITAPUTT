@@ -124,6 +124,12 @@ public class CategoryController {
         );
     }
     /**
+     * Dùng cho màn hình tạo đơn hàng
+     */
+    public List<CategoryResponse> getAllForOrder() {
+        return categoryService.getAllCategories();
+    }
+    /**
      * Xuất danh sách category ra file PDF
      * */
     public void exportPdf(String path) {

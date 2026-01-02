@@ -2,6 +2,7 @@ package org.example.service.impl;
 
 import org.example.dto.request.Product.CreateProductRequest;
 import org.example.dto.request.Product.UpdateProductRequest;
+import org.example.dto.response.Batch.BatchResponse;
 import org.example.dto.response.CategoryResponse;
 import org.example.dto.response.ManufacturerResponse;
 import org.example.dto.response.Product.ProductDetailResponse;
@@ -92,6 +93,10 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<CategoryResponse> getAllCategories() {
         return categoryRepository.findAllActive();
+    }
+    @Override
+    public List<BatchResponse> getBatchesByProduct(Long productId){
+        return productRepository.findBatchesByProduct(productId);
     }
 
     @Override
