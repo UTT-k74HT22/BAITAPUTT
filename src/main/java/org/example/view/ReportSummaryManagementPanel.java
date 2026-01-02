@@ -188,18 +188,40 @@ public class ReportSummaryManagementPanel extends JPanel {
                     .max().orElse(1);
 
             int chartHeight = h - top - bottom;
-            int barWidth = (w - left - 20) / data.size();
+            int availableWidth = w - left - 40;
+
+            int barWidth;
+            if (decimal) {
+                barWidth = Math.min(120, availableWidth); // giới hạn cột doanh thu
+            } else {
+                barWidth = availableWidth / data.size();
+            }
+
 
             int i = 0;
             for (var e : data.entrySet()) {
                 double value = e.getValue().doubleValue();
                 int barHeight = (int) ((value / max) * chartHeight);
 
-                int x = left + i * barWidth;
+                int x;
+                if (decimal) {
+                    x = left + (availableWidth - barWidth) / 2;
+                } else {
+                    x = left + i * barWidth;
+                }
+
                 int y = h - bottom - barHeight;
 
                 g2.setColor(barColor);
-                g2.fillRoundRect(x + 12, y, barWidth - 24, barHeight, 12, 12);
+                g2.fillRoundRect(
+                        x + 12,
+                        y,
+                        barWidth - 24,
+                        barHeight,
+                        12,
+                        12
+                );
+
 
                 g2.setColor(Color.DARK_GRAY);
                 g2.setFont(new Font("Segoe UI", Font.PLAIN, 11));
