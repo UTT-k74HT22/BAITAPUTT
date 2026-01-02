@@ -46,9 +46,9 @@ public class ReportSummaryRepositoryImpl
     @Override
     public BigDecimal sumRevenue() {
         String sql = """
-            SELECT COALESCE(SUM(o.total_amount), 0)
-            FROM orders o
-            WHERE o.status = 'COMPLETED'
+            SELECT COALESCE(SUM(p.amount), 0)
+            FROM payments p
+            WHERE p.status = 'SUCCESS'
         """;
 
         return queryForObject(sql, rs -> rs.getBigDecimal(1))
