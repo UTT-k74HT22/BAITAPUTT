@@ -3,14 +3,18 @@ package org.example.view;
 import org.example.controller.StockMovementController;
 import org.example.controller.WarehouseController;
 import org.example.controller.ProductController;
+import org.example.controller.BatchController;
 import org.example.dto.request.CreateStockMovementRequest;
 import org.example.dto.response.StockMovementResponse;
 import org.example.dto.response.WarehouseResponse;
 import org.example.dto.response.Product.ProductResponse;
+import org.example.dto.response.Batch.BatchResponse;
 import org.example.entity.enums.StockMovementType;
+import org.example.repository.impl.BatchRepositoryImpl;
 import org.example.service.impl.StockMovementServiceImpl;
 import org.example.service.impl.WarehouseServiceImpl;
 import org.example.service.impl.ProductServiceImpl;
+import org.example.service.impl.BatchServiceImpl;
 import org.example.view.base.BaseManagementPanel;
 import org.example.view.base.UiFactory;
 import org.example.view.base.UiTheme;
@@ -39,6 +43,7 @@ public class StockMovementManagementPanel extends BaseManagementPanel<StockMovem
     private StockMovementController stockMovementController;
     private WarehouseController warehouseController;
     private ProductController productController;
+    private BatchController batchController;
 
     private JComboBox<WarehouseOption> warehouseFilter;
     private JComboBox<StockMovementType> movementTypeFilter;
@@ -127,6 +132,9 @@ public class StockMovementManagementPanel extends BaseManagementPanel<StockMovem
         }
         if (productController == null) {
             productController = new ProductController(new ProductServiceImpl());
+        }
+        if (batchController == null) {
+            batchController = new BatchController(new BatchServiceImpl(new BatchRepositoryImpl()));
         }
 
         JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
@@ -257,6 +265,17 @@ public class StockMovementManagementPanel extends BaseManagementPanel<StockMovem
      * Dialog tạo phiếu xuất/nhập kho
      */
     private void openMovementDialog(StockMovementType movementType) {
+        // Ensure controllers are initialized
+        if (batchController == null) {
+            batchController = new BatchController(new BatchServiceImpl(new BatchRepositoryImpl()));
+        }
+        if (warehouseController == null) {
+            warehouseController = new WarehouseController();
+        }
+        if (productController == null) {
+            productController = new ProductController(new ProductServiceImpl());
+        }
+        
         String title = switch (movementType) {
             case IMPORT -> "Tạo phiếu nhập kho";
             case EXPORT -> "Tạo phiếu xuất kho";
@@ -302,6 +321,61 @@ public class StockMovementManagementPanel extends BaseManagementPanel<StockMovem
             }
         });
 
+        // Batch ComboBox - initially empty, will be populated when product is selected
+        JComboBox<BatchResponse> batchBox = new JComboBox<>();
+        batchBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, 
+                                                         int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value != null) {
+                    BatchResponse b = (BatchResponse) value;
+                    setText(String.format("%s | Giá: %,.0f | HSD: %s | SL còn: %s",
+                        b.getBatchCode(),
+                        b.getImportPrice(),
+                        b.getExpiryDate(),
+                        b.getStatus()
+                    ));
+                }
+                return this;
+            }
+        });
+        batchBox.setEnabled(false);
+
+        // When product is selected, load its batches
+        productBox.addActionListener(e -> {
+            ProductResponse selectedProduct = (ProductResponse) productBox.getSelectedItem();
+            batchBox.removeAllItems();
+            if (selectedProduct != null) {
+                try {
+                    System.out.println("Loading batches for product ID: " + selectedProduct.getId());
+                    List<BatchResponse> batches = batchController.getByProduct(selectedProduct.getId());
+                    System.out.println("Found " + batches.size() + " batches");
+                    
+                    // Filter only ACTIVE batches
+                    batches.stream()
+                        .filter(b -> "ACTIVE".equals(b.getStatus()))
+                        .forEach(batch -> {
+                            System.out.println("Adding batch: " + batch.getBatchCode());
+                            batchBox.addItem(batch);
+                        });
+                    batchBox.setEnabled(batchBox.getItemCount() > 0);
+                    
+                    if (batchBox.getItemCount() == 0) {
+                        System.out.println("No ACTIVE batches found for this product");
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(dialog,
+                        "Lỗi khi tải danh sách lô hàng: " + ex.getMessage(),
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                batchBox.setEnabled(false);
+            }
+        });
+
         JTextField quantityField = new JTextField();
         JTextArea noteArea = new JTextArea(3, 20);
         noteArea.setLineWrap(true);
@@ -316,6 +390,30 @@ public class StockMovementManagementPanel extends BaseManagementPanel<StockMovem
         form.add(warehouseBox);
         form.add(new JLabel("Sản phẩm *:")); 
         form.add(productBox);
+        
+        // Add test button to check batches
+        JButton testBatchBtn = new JButton("Kiểm tra lô hàng");
+        testBatchBtn.addActionListener(e -> {
+            ProductResponse selectedProduct = (ProductResponse) productBox.getSelectedItem();
+            if (selectedProduct != null) {
+                List<BatchResponse> allBatches = batchController.getByProduct(selectedProduct.getId());
+                StringBuilder info = new StringBuilder();
+                info.append("Tổng số lô: ").append(allBatches.size()).append("\n\n");
+                for (BatchResponse b : allBatches) {
+                    info.append("Mã lô: ").append(b.getBatchCode()).append("\n");
+                    info.append("Trạng thái: ").append(b.getStatus()).append("\n");
+                    info.append("Giá nhập: ").append(b.getImportPrice()).append("\n");
+                    info.append("HSD: ").append(b.getExpiryDate()).append("\n\n");
+                }
+                JOptionPane.showMessageDialog(dialog, info.toString(), "Thông tin lô hàng", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+        
+        form.add(new JLabel("Lô hàng *:")); 
+        JPanel batchPanel = new JPanel(new BorderLayout(5, 0));
+        batchPanel.add(batchBox, BorderLayout.CENTER);
+        batchPanel.add(testBatchBtn, BorderLayout.EAST);
+        form.add(batchPanel);
         
         if (movementType == StockMovementType.ADJUST) {
             form.add(new JLabel("Số lượng mới *:"));
@@ -335,15 +433,21 @@ public class StockMovementManagementPanel extends BaseManagementPanel<StockMovem
             try {
                 WarehouseResponse selectedWarehouse = (WarehouseResponse) warehouseBox.getSelectedItem();
                 ProductResponse selectedProduct = (ProductResponse) productBox.getSelectedItem();
+                BatchResponse selectedBatch = (BatchResponse) batchBox.getSelectedItem();
                 
                 if (selectedWarehouse == null || selectedProduct == null) {
                     throw new IllegalArgumentException("Vui lòng chọn kho và sản phẩm");
+                }
+
+                if (selectedBatch == null) {
+                    throw new IllegalArgumentException("Vui lòng chọn lô hàng");
                 }
 
                 CreateStockMovementRequest request = new CreateStockMovementRequest();
                 request.setMovementType(movementType);
                 request.setWarehouseId(selectedWarehouse.getId());
                 request.setProductId(selectedProduct.getId());
+                request.setBatchId(selectedBatch.getId());
                 request.setQuantity(Integer.parseInt(quantityField.getText().trim()));
                 request.setNote(noteArea.getText().trim());
                 request.setPerformedByUserId(1L); // TODO: Get from logged in user
