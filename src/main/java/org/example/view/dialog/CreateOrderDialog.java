@@ -352,7 +352,7 @@ public class CreateOrderDialog extends JDialog {
         OrderItemRequest item = new OrderItemRequest();
         item.setProductId(Long.parseLong(productModel.getValueAt(row, 0).toString()));
         item.setBatchId(batch.getId());
-        item.setWarehouseId(wh.getId());
+        item.setWarehouseId(wh.getWarehouseId());
         item.setQuantity(qty);
         item.setUnitPrice(price);
         item.setNote("");

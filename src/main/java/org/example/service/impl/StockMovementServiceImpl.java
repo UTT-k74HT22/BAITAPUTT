@@ -174,14 +174,21 @@ public class StockMovementServiceImpl implements StockMovementService {
         if (movementType == StockMovementType.EXPORT || movementType == StockMovementType.TRANSFER) {
             if (quantityBefore < quantity) {
                 throw new IllegalStateException(
-                    String.format("Không đủ hàng để xuất. Tồn kho: %d, Yêu cầu: %d", quantityBefore, quantity)
+                    String.format("Không đủ hàng để xuất. Tồn kho: %d, Yêu cầu xuất: %d", quantityBefore, quantity)
                 );
             }
         }
-        
+
+        // ADJUST: quantity là giá trị tuyệt đối mới (phải >= 0)
+        if (movementType == StockMovementType.ADJUST) {
+            if (quantity < 0) {
+                throw new IllegalArgumentException("Số lượng điều chỉnh không được âm");
+            }
+        }
+
         // Quantity sau phải >= 0
         if (quantityAfter < 0) {
-            throw new IllegalStateException("Quantity sau giao dịch không được âm");
+            throw new IllegalStateException("Số lượng sau giao dịch không được âm");
         }
     }
 }

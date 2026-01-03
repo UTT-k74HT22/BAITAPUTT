@@ -157,16 +157,38 @@ public class OrderManagementPanel extends BaseManagementPanel<OrderResponse> {
 
             // 🔥 Đổi lại đúng key tồn kho
             Long batchId = item.getBatchId();
+            System.out.println("[VIEW]Lô hàng ID lấy từ order item: " + batchId);
             Long warehouseId = item.getWarehouseId(); // ← chắc chắn DTO này map đúng cột warehouse_id từ DB
+            System.out.println("[VIEW]Kho hàng ID lấy từ order item: " + warehouseId);
+
+            // ✅ Kiểm tra thông tin order item có đầy đủ không
+            if (warehouseId == null) {
+                JOptionPane.showMessageDialog(this,
+                        "Order item cho sản phẩm '" + item.getProductName() + "' không có thông tin kho!\n" +
+                        "Vui lòng kiểm tra lại dữ liệu đơn hàng.",
+                        "Lỗi dữ liệu", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
             int requiredQty = item.getQuantity();
+            System.out.println("[VIEW]Yêu cầu số lượng cho sản phẩm " + item.getProductName() + ": " + requiredQty);
 
             // tồn kho phải check đúng batch + warehouse
             int available = inventoryController.getCurrentQuantity(item.getProductId(), batchId, warehouseId);
+            System.out.println("[VIEW]Có sẵn từ kho: " + available);
+
+            System.out.println("Kiểm tra tồn kho cho sản phẩm " + item.getProductName() + " (ID " + item.getProductId() +
+                    ") tại kho " + warehouseId +
+                    " lô " + batchId +
+                    ": yêu cầu " + requiredQty +
+                    ", còn " + available);
 
             if (available < requiredQty) {
+                String batchInfo = batchId != null ? " ở lô " + batchId : " (không chỉ định lô)";
                 JOptionPane.showMessageDialog(this,
-                        "Kho " + warehouseId + " không đủ hàng ở lô " + batchId + " (còn: " + available + ")",
+                        "Sản phẩm: " + item.getProductName() + "\n" +
+                        "Kho " + warehouseId + batchInfo + " không đủ hàng!\n" +
+                        "Yêu cầu: " + requiredQty + ", Tồn kho: " + available,
                         "Lỗi tồn kho", JOptionPane.ERROR_MESSAGE);
                 return;
             }
