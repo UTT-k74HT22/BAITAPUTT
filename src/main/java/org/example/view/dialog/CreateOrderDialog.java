@@ -197,7 +197,9 @@ public class CreateOrderDialog extends JDialog {
         orderItemModel = new DefaultTableModel(
                 new String[]{"Product", "Warehouse", "Batch", "Quantity", "Unit Price", "Line Total", "Note"}, 0
         ) {
-            public boolean isCellEditable(int r, int c) { return false; }
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
         };
 
         tblOrderItems = new JTable(orderItemModel);

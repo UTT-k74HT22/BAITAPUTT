@@ -19,6 +19,5 @@ public interface InvoiceRepository {
 
     List<Invoice> findAll();
 
-
     void updatePayment(Integer invoiceId, BigDecimal paidAmount, String status);
 }

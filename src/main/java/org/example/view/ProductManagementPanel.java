@@ -250,7 +250,7 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
         JCheckBox rx = new JCheckBox("Cần toa thuốc");
 
         JComboBox<ProductStatus> statusBox = new JComboBox<>(ProductStatus.values());
-
+        // lấy danh sách sản phẩm
         List<CategoryResponse> categories = controller.getAllCategories();
         JComboBox<CategoryResponse> categoryBox = new JComboBox<>(categories.toArray(new CategoryResponse[0]));
         categoryBox.setRenderer(new DefaultListCellRenderer() {
