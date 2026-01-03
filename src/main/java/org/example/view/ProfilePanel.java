@@ -75,13 +75,16 @@ public class ProfilePanel extends JPanel {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 0));
         buttonPanel.setBackground(Color.WHITE);
 
+        JButton btnRefresh = new JButton("Refresh");
         JButton btnChangePassword = new JButton("Đổi mật khẩu");
         JButton btnEditProfile = new JButton("Sửa thông tin");
+        buttonPanel.add(btnRefresh);
         buttonPanel.add(btnChangePassword);
         buttonPanel.add(btnEditProfile);
         wrapper.add(buttonPanel);
 
         // ===== Sự kiện sửa profile =====
+        btnRefresh.addActionListener(e -> refreshProfile());
         btnEditProfile.addActionListener(e -> openEditProfileDialog());
         btnChangePassword.addActionListener(e -> openChangePassword());
 
@@ -282,5 +285,14 @@ public class ProfilePanel extends JPanel {
         });
 
         dialog.setVisible(true);
+    }
+
+
+    private void refreshProfile() {
+        currentProfile = profileController.loadProfile(
+                currentProfile.getUsername(),
+                currentProfile.getRole()
+        );
+        showProfile(currentProfile);
     }
 }

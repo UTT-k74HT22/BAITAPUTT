@@ -9,6 +9,8 @@ public class CustomerProfileResponse {
     private String code;
     private String fullName;
     private String phone;
+    private String email;
+    private String Address;
     private CustomerType customerType;
     private ProfileStatus profileStatus;
     private String taxCode;
@@ -52,6 +54,14 @@ public class CustomerProfileResponse {
     public void setPhone(String phone) {
         this.phone = phone;
     }
+
+    public String getEmail() {return email;}
+
+    public void setEmail(String email) {this.email = email;}
+
+    public String getAddress() {return Address;}
+
+    public void setAddress(String address) {this.Address = address;}
 
     public CustomerType getCustomerType() {
         return customerType;
