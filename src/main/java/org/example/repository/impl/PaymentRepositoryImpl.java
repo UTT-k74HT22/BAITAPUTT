@@ -73,11 +73,13 @@ public class PaymentRepositoryImpl extends BaseRepository implements PaymentRepo
     public void delete(Long id) {
         String sql = """
                 UPDATE payments
-                SET status = 'CANCELED'
+                SET status = ?
                 WHERE id = ?
-                AND status = 'SUCCESS'
+                AND status = ?
                 """;
-        executeUpdate(sql, params(PaymentStatus.CANCELED.name(), id));
+        executeUpdate(sql, params(PaymentStatus.CANCELED.name(),
+                id,
+                PaymentStatus.SUCCESS.name()));
     }
 
     @Override
