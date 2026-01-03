@@ -105,9 +105,6 @@ public class InvoiceRepositoryImpl extends BaseRepository implements InvoiceRepo
         return queryForList(sql, params(), this::mapRow);
     }
 
-
-
-
     @Override
     public void updatePayment(Integer invoiceId,
                               BigDecimal paidAmount,

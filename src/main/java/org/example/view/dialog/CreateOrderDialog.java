@@ -1,3 +1,4 @@
+// language: java
 package org.example.view.dialog;
 
 import org.example.controller.CategoryController;
@@ -12,6 +13,7 @@ import org.example.dto.response.InventoryResponse;
 import org.example.service.impl.CategoryServiceImpl;
 import org.example.service.impl.InventoryServiceImpl;
 import org.example.service.impl.ProductServiceImpl;
+import org.example.service.impl.AuthServiceImpl;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -195,7 +197,9 @@ public class CreateOrderDialog extends JDialog {
         orderItemModel = new DefaultTableModel(
                 new String[]{"Product", "Warehouse", "Batch", "Quantity", "Unit Price", "Line Total", "Note"}, 0
         ) {
-            public boolean isCellEditable(int r, int c) { return false; }
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
         };
 
         tblOrderItems = new JTable(orderItemModel);
@@ -224,9 +228,9 @@ public class CreateOrderDialog extends JDialog {
 
             // Show input dialog to edit the note
             String newNote = JOptionPane.showInputDialog(
-                this,
-                "Edit note:",
-                currentNote == null ? "" : currentNote
+                    this,
+                    "Edit note:",
+                    currentNote == null ? "" : currentNote
             );
 
             // If user didn't cancel and the note has changed
@@ -261,7 +265,9 @@ public class CreateOrderDialog extends JDialog {
 
         return p;
     }
-
+    /**
+     * Load categories into the combo box
+     * */
     private void loadCategories() {
         cbCategory.removeAllItems();
         categoryController.getAllCategories().forEach(cbCategory::addItem);
@@ -394,13 +400,34 @@ public class CreateOrderDialog extends JDialog {
 
     private void submitOrder() {
         try {
-            int row = tblProducts.getSelectedRow();
             if (orderItems.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Chưa có sản phẩm trong đơn!");
                 return;
             }
 
-            long customerId = Long.parseLong(txtCustomerId.getText());
+            String customerText = txtCustomerId.getText();
+            if (customerText == null || customerText.isBlank()) {
+                JOptionPane.showMessageDialog(this, "Customer ID chưa nhập!");
+                return;
+            }
+
+            long customerId;
+            try {
+                customerId = Long.parseLong(customerText.trim());
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Customer ID không hợp lệ!");
+                return;
+            }
+
+            // Resolve performer (employee) id: use passed employeeId, else try current user_profile id
+            Long performerId = this.employeeId;
+            if (performerId == null) {
+                performerId = AuthServiceImpl.getCurrentUserProfileId();
+            }
+            if (performerId == null) {
+                JOptionPane.showMessageDialog(this, "Người thực hiện (employee) chưa được thiết lập. Vui lòng đăng nhập hoặc cung cấp employeeId.");
+                return;
+            }
 
             CreateOrderWithItemsRequest req = new CreateOrderWithItemsRequest();
             req.setCustomerId(customerId);
@@ -408,7 +435,8 @@ public class CreateOrderDialog extends JDialog {
             req.setDiscount(new BigDecimal(txtDiscount.getText()));
             req.setItems(orderItems);
 
-            Long orderId = orderController.createOrder(req, employeeId);
+            // call controller with resolved performer id
+            Long orderId = orderController.createOrder(req, performerId);
 
             submitted = true;
             JOptionPane.showMessageDialog(this, "Đơn hàng đã được tạo (Trạng thái: NEW)!");

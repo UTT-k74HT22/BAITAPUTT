@@ -8,6 +8,8 @@ import java.sql.*;
 import java.util.List;
 import java.util.Optional;
 
+import static org.example.config.DatabaseConfig.getConnection;
+
 public class AccountRepositoryImpl extends BaseRepository implements AccountRepository {
 
     /**
@@ -157,6 +159,21 @@ public class AccountRepositoryImpl extends BaseRepository implements AccountRepo
             ps.setString(1, hashedPassword);
             ps.setLong(2, accountId);
         });
+    }
+    public Long findUserIdByAccountId(Long accountId) {
+        String sql = "SELECT id FROM user_profiles WHERE account_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setLong(1, accountId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getLong("id"); // đây là user_id đúng bảng user_profiles
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 

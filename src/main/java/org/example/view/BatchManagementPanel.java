@@ -290,7 +290,7 @@ public class BatchManagementPanel extends BaseManagementPanel<BatchResponse> {
                 "Cập nhật lô",
                 true
         );
-
+        // note
         JTextField expiryDate = new JTextField(b.getExpiryDate().toString());
         JComboBox<String> statusBox = new JComboBox<>(
                 new String[]{"ACTIVE", "EXPIRED", "BLOCKED", "DEPLETED"}

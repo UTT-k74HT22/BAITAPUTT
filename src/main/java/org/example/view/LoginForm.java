@@ -160,8 +160,21 @@ public class LoginForm extends JFrame {
                     "Thông báo",
                     JOptionPane.INFORMATION_MESSAGE);
 
-            // set user info
-            AuthContextManager.setUser(account.getId(), account.getRole());
+            // 🔥 Lấy đúng implementation để gọi hàm lấy user_id
+            AuthServiceImpl authImpl = (AuthServiceImpl) authService;
+            Long userId = authImpl.findUserIdByAccountId(account.getId());
+
+            if (userId == null) {
+                JOptionPane.showMessageDialog(this,
+                        "Tài khoản chưa có profile trong user_profiles!",
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // ✅ Lưu user_profiles.id vào context
+            AuthContextManager.setUser(userId, account.getRole());
+
             new MainFrame(account.getUsername(), account.getRole()).setVisible(true);
             this.dispose();
         } else {
@@ -171,4 +184,5 @@ public class LoginForm extends JFrame {
                     JOptionPane.ERROR_MESSAGE);
         }
     }
+
 }

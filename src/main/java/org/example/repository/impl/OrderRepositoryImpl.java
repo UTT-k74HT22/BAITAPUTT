@@ -175,10 +175,6 @@ public class OrderRepositoryImpl extends BaseRepository implements OrderReposito
             c.full_name AS creator_name,
             c.phone     AS creator_phone,
             c.email     AS creator_email
-           
-            
-            
-
         FROM orders o
         JOIN user_profiles u ON o.customer_id = u.id
         LEFT JOIN user_profiles c ON o.created_by_user_id = c.id  
