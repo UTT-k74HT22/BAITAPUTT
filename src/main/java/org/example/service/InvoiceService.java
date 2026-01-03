@@ -2,6 +2,7 @@ package org.example.service;
 
 import org.example.dto.request.CreateInvoiceRequest;
 import org.example.dto.response.InvoiceResponse;
+import org.example.entity.enums.InvoiceStatus;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -29,4 +30,9 @@ public interface InvoiceService {
     void updatePayment(Integer invoiceId, BigDecimal paidAmount);
 
     List<InvoiceResponse> getAll();
+
+    void delete(Integer invoiceId);
+
+    void updateStatus(Integer invoiceId, InvoiceStatus status);
+
 }

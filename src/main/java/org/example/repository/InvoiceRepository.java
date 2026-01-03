@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface InvoiceRepository {
+
     long insert(Invoice invoice);
 
     Optional<Invoice> findById(Integer id);
@@ -15,9 +16,18 @@ public interface InvoiceRepository {
 
     boolean existsByOrderId(Integer orderId);
 
-    List<Invoice> findAllByOrderId(Integer orderId);
+
 
     List<Invoice> findAll();
 
-    void updatePayment(Integer invoiceId, BigDecimal paidAmount, String status);
+    /**
+     * Dùng chung cho:
+     * - pay
+     * - partial
+     * - cancel
+     */
+    void updatePayment(Integer invoiceId,
+                       BigDecimal paidAmount,
+                       String status);
 }
+

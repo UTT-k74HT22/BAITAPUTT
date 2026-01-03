@@ -1,6 +1,5 @@
 package org.example.repository.impl;
 
-import org.example.dto.response.InvoiceResponse;
 import org.example.entity.Invoice;
 import org.example.entity.enums.InvoiceStatus;
 import org.example.repository.BaseRepository;
@@ -12,16 +11,13 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * JDBC implementation cho InvoiceRepository.
- */
 public class InvoiceRepositoryImpl extends BaseRepository implements InvoiceRepository {
 
     private static final String INSERT_SQL = """
         INSERT INTO invoices
         (order_id, invoice_number, issue_date, due_date,
-         total_amount, paid_amount, status, tax_code)
-        VALUES (?,?,?,?,?,?,?,?)
+         total_amount, paid_amount, status)
+        VALUES (?,?,?,?,?,?,?)
     """;
 
     private static final String FIND_BY_ID_SQL =
@@ -50,8 +46,7 @@ public class InvoiceRepositoryImpl extends BaseRepository implements InvoiceRepo
                         invoice.getDueDate(),
                         invoice.getTotalAmount(),
                         invoice.getPaidAmount(),
-                        invoice.getStatus().name(),
-                        invoice.getTaxCode()
+                        invoice.getStatus().name()
                 )
         );
     }
@@ -72,37 +67,12 @@ public class InvoiceRepositoryImpl extends BaseRepository implements InvoiceRepo
     }
 
     @Override
-    public List<Invoice> findAllByOrderId(Integer orderId) {
-        String sql = """
-        SELECT
-            i.id,
-            i.invoice_number,
-            i.order_id,
-            i.issue_date,
-            i.due_date,
-            i.total_amount,
-            i.paid_amount,
-            i.status,
-            i.tax_code
-        FROM invoices i
-        WHERE i.order_id = ?
-        ORDER BY issue_date DESC
-        """;
-
+    public List<Invoice> findAll() {
         return queryForList(
-                sql,
-                params(orderId),
+                "SELECT * FROM invoices ORDER BY issue_date DESC",
+                params(),
                 this::mapRow
         );
-    }
-    @Override
-    public List<Invoice> findAll() {
-        String sql = """
-        SELECT * FROM invoices
-        ORDER BY issue_date DESC
-    """;
-
-        return queryForList(sql, params(), this::mapRow);
     }
 
     @Override
@@ -116,41 +86,9 @@ public class InvoiceRepositoryImpl extends BaseRepository implements InvoiceRepo
         );
     }
 
-    /**
-     * Map ResultSet → Invoice entity.
-     */
     private Invoice mapRow(ResultSet rs) throws SQLException {
         Invoice i = new Invoice();
-        i.setId((long)rs.getInt("id"));
-        i.setOrderId(rs.getInt("order_id"));
-        i.setInvoiceNumber(rs.getString("invoice_number"));
-        i.setIssueDate(rs.getTimestamp("issue_date").toLocalDateTime());
-
-        i.setDueDate(
-                rs.getTimestamp("due_date") != null
-                        ? rs.getTimestamp("due_date").toLocalDateTime()
-                        : null
-        );
-
-        i.setTotalAmount(rs.getBigDecimal("total_amount"));
-        i.setPaidAmount(rs.getBigDecimal("paid_amount"));
-        i.setStatus(InvoiceStatus.valueOf(rs.getString("status")));
-        i.setTaxCode(rs.getString("tax_code"));
-        i.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-        i.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
-        return i;
-    }
-
-    /**
-     * Map to response
-     * @param rs
-     * @param rowNum
-     * @return
-     * @throws SQLException
-     */
-    private  InvoiceResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
-        InvoiceResponse i = new InvoiceResponse();
-        i.setId(rs.getInt("id"));
+        i.setId(rs.getLong("id"));
         i.setOrderId(rs.getInt("order_id"));
         i.setInvoiceNumber(rs.getString("invoice_number"));
         i.setIssueDate(rs.getTimestamp("issue_date").toLocalDateTime());
@@ -158,8 +96,6 @@ public class InvoiceRepositoryImpl extends BaseRepository implements InvoiceRepo
         i.setTotalAmount(rs.getBigDecimal("total_amount"));
         i.setPaidAmount(rs.getBigDecimal("paid_amount"));
         i.setStatus(InvoiceStatus.valueOf(rs.getString("status")));
-        i.setTaxCode(rs.getString("tax_code"));
         return i;
     }
 }
-

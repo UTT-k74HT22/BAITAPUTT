@@ -13,46 +13,40 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Xử lý nghiệp vụ Hóa đơn
- */
 public class InvoiceServiceImpl implements InvoiceService {
 
-    private final InvoiceRepository invoiceRepository;
-    public InvoiceServiceImpl() {
-        this.invoiceRepository = new InvoiceRepositoryImpl();
-    }
-
+    private final InvoiceRepository invoiceRepository = new InvoiceRepositoryImpl();
 
     @Override
     public InvoiceResponse create(CreateInvoiceRequest request) {
 
-        // 1. Kiểm tra order đã có invoice chưa
+        // 1. Check trùng invoice theo order
         if (invoiceRepository.existsByOrderId(request.getOrderId())) {
             throw new IllegalStateException("Order đã tồn tại hóa đơn");
         }
 
-        // 2. Khởi tạo entity Invoice
+        // 2. Tạo entity – SET ĐẦY ĐỦ DEFAULT
         Invoice invoice = new Invoice();
         invoice.setOrderId(request.getOrderId());
+
         invoice.setInvoiceNumber(generateInvoiceNumber());
         invoice.setIssueDate(LocalDateTime.now());
-        invoice.setDueDate(
-                request.getDueDate() != null
-                        ? request.getDueDate().atStartOfDay()
-                        : null
-        );
+        invoice.setDueDate(LocalDateTime.now().plusDays(7));
+
+        // ⚠️ CỰC KỲ QUAN TRỌNG
         invoice.setTotalAmount(request.getTotalAmount());
         invoice.setPaidAmount(BigDecimal.ZERO);
-        invoice.setStatus(InvoiceStatus.NEW);
-        invoice.setTaxCode(request.getTaxCode());
 
-        // 3. Insert DB
+        invoice.setStatus(InvoiceStatus.NEW);
+        // hoặc "" nếu DB cho phép
+
+        // 3. Insert
         long id = invoiceRepository.insert(invoice);
 
-        // 4. Trả response
-        return toResponse(invoiceRepository.findById((int) id)
-                .orElseThrow(() -> new RuntimeException("Create invoice failed")));
+        // 4. Response
+        return invoiceRepository.findById((int) id)
+                .map(this::toResponse)
+                .orElseThrow(() -> new RuntimeException("Create invoice failed"));
     }
 
     @Override
@@ -68,30 +62,6 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .map(this::toResponse)
                 .orElseThrow(() -> new RuntimeException("Invoice not found"));
     }
-
-    @Override
-    public void updatePayment(Integer invoiceId, BigDecimal paidAmount) {
-
-        Invoice invoice = invoiceRepository.findById(invoiceId)
-                .orElseThrow(() -> new RuntimeException("Invoice not found"));
-
-        BigDecimal newPaid = invoice.getPaidAmount().add(paidAmount);
-
-        // Xác định trạng thái hóa đơn
-        InvoiceStatus status;
-        if (newPaid.compareTo(invoice.getTotalAmount()) >= 0) {
-            status = InvoiceStatus.PAID;
-        } else {
-            status = InvoiceStatus.PARTIAL;
-        }
-
-        invoiceRepository.updatePayment(
-                invoiceId,
-                newPaid,
-                status.name()
-        );
-    }
-
     @Override
     public List<InvoiceResponse> getAll() {
         return invoiceRepository.findAll()
@@ -101,18 +71,70 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
 
 
+    @Override
+    public void updatePayment(Integer invoiceId, BigDecimal paidAmount) {
 
+        Invoice invoice = invoiceRepository.findById(invoiceId)
+                .orElseThrow(() -> new RuntimeException("Invoice not found"));
 
-    /**
-     * Sinh mã hóa đơn
-     */
-    private String generateInvoiceNumber() {
-        return "INV-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        if (invoice.getStatus() == InvoiceStatus.CANCELED) {
+            throw new IllegalStateException("Invoice đã bị hủy");
+        }
+
+        BigDecimal newPaid = invoice.getPaidAmount().add(paidAmount);
+
+        InvoiceStatus status =
+                newPaid.compareTo(invoice.getTotalAmount()) >= 0
+                        ? InvoiceStatus.PAID
+                        : InvoiceStatus.PARTIAL;
+
+        invoiceRepository.updatePayment(invoiceId, newPaid, status.name());
     }
 
-    /**
-     * Map Entity → Response DTO
-     */
+
+    @Override
+    public void delete(Integer id) {
+
+        Invoice invoice = invoiceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Invoice not found"));
+
+        if (invoice.getStatus() == InvoiceStatus.PAID) {
+            throw new IllegalStateException("Không thể hủy invoice đã thanh toán");
+        }
+
+        // ❗ HỦY = CANCEL
+        invoiceRepository.updatePayment(
+                id,
+                invoice.getPaidAmount(),
+                InvoiceStatus.CANCELED.name()
+        );
+    }
+
+
+
+    @Override
+    public void updateStatus(Integer invoiceId, InvoiceStatus status) {
+        Invoice invoice = invoiceRepository.findById(invoiceId)
+                .orElseThrow(() -> new RuntimeException("Invoice not found"));
+
+        invoiceRepository.updatePayment(
+                invoiceId,
+                invoice.getPaidAmount(),
+                status.name()
+        );
+    }
+
+
+
+    // ================= PRIVATE =================
+
+    private String generateInvoiceNumber() {
+        return "INV-" + UUID.randomUUID()
+                .toString()
+                .substring(0, 8)
+                .toUpperCase();
+    }
+
     private InvoiceResponse toResponse(Invoice i) {
         InvoiceResponse r = new InvoiceResponse();
         r.setId(i.getId().intValue());
@@ -123,7 +145,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         r.setTotalAmount(i.getTotalAmount());
         r.setPaidAmount(i.getPaidAmount());
         r.setStatus(i.getStatus());
-        r.setTaxCode(i.getTaxCode());
+
         return r;
     }
 }

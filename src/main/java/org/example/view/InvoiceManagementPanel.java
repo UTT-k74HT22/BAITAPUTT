@@ -3,89 +3,176 @@ package org.example.view;
 import org.example.controller.InvoiceController;
 import org.example.dto.request.CreateInvoiceRequest;
 import org.example.dto.response.InvoiceResponse;
+import org.example.entity.enums.InvoiceStatus;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 
-/**
- * Invoice Management Screen
- */
 public class InvoiceManagementPanel extends JPanel {
 
-    private final InvoiceController controller;
+    private final InvoiceController controller = new InvoiceController();
 
     private JTable table;
     private DefaultTableModel tableModel;
 
     private JTextField txtOrderId;
-    private JTextField txtTotalAmount;
-    private JTextField txtTaxCode;
     private JTextField txtPayAmount;
+    private JTextField txtTotal;
 
-    // ====== CONSTRUCTOR DUY NHẤT ======
+
     public InvoiceManagementPanel() {
-        this.controller = new InvoiceController();
-
         setLayout(new BorderLayout(10, 10));
         setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        add(createFormPanel(), BorderLayout.NORTH);
-        add(createTablePanel(), BorderLayout.CENTER);
-        add(createActionPanel(), BorderLayout.SOUTH);
+        add(buildCreatePanel(), BorderLayout.NORTH);
+        add(buildTable(), BorderLayout.CENTER);
+        add(buildActionPanel(), BorderLayout.SOUTH);
 
-        refreshTable(); // LOAD DATA NGAY
+        refreshTable();
     }
 
-    // ================= FORM =================
+    // ================= CREATE =================
 
-    private JPanel createFormPanel() {
-        JPanel panel = new JPanel(new GridLayout(2, 4, 10, 10));
+    private JPanel buildCreatePanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
 
-        txtOrderId = new JTextField();
-        txtTotalAmount = new JTextField();
-        txtTaxCode = new JTextField();
+        txtOrderId = new JTextField(10);
+        txtTotal = new JTextField(10);
 
-        panel.add(new JLabel("Order ID"));
-        panel.add(new JLabel("Total Amount"));
-        panel.add(new JLabel("Tax Code"));
-        panel.add(new JLabel(""));
+        panel.add(new JLabel("Total:"));
+        panel.add(txtTotal);
 
-        panel.add(txtOrderId);
-        panel.add(txtTotalAmount);
-        panel.add(txtTaxCode);
 
         JButton btnCreate = new JButton("Create Invoice");
         btnCreate.addActionListener(e -> createInvoice());
+        JButton btnEdit = new JButton("Edit Status");
+        JButton btnDelete = new JButton("Delete");
+        JButton btnReload = new JButton("Reload");
+
+        btnEdit.addActionListener(e -> editInvoice());
+        btnDelete.addActionListener(e -> deleteInvoice());
+        btnReload.addActionListener(e -> refreshTable());
+
+
+        panel.add(new JLabel("Order ID:"));
+        panel.add(txtOrderId);
         panel.add(btnCreate);
+        panel.add(btnEdit);
+        panel.add(btnDelete);
+
 
         return panel;
     }
 
+    private void createInvoice() {
+        if (txtOrderId.getText().isBlank()) {
+            JOptionPane.showMessageDialog(this, "Order ID is required");
+            return;
+        }
+
+        try {
+            int orderId = Integer.parseInt(txtOrderId.getText());
+
+            CreateInvoiceRequest req = new CreateInvoiceRequest();
+            req.setOrderId(orderId);
+
+
+            BigDecimal total = new BigDecimal(txtTotal.getText());
+
+            CreateInvoiceRequest requestq = new CreateInvoiceRequest();
+
+            req.setTotalAmount(total);
+
+
+            // ❗ KHÔNG SET total / taxCode
+            controller.createInvoice(req);
+
+            refreshTable();
+            txtOrderId.setText("");
+
+            JOptionPane.showMessageDialog(this, "Invoice created successfully");
+
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Order ID must be number");
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+
+    }
+    private void editInvoice() {
+        int row = table.getSelectedRow();
+        if (row < 0) return;
+
+        int id = (int) tableModel.getValueAt(row, 0);
+
+        InvoiceStatus status = (InvoiceStatus) JOptionPane.showInputDialog(
+                this,
+                "Select status",
+                "Edit Invoice",
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                InvoiceStatus.values(),
+                InvoiceStatus.NEW
+        );
+
+        if (status != null) {
+            controller.updateInvoiceStatus(id, status);
+            refreshTable();
+        }
+    }
+    private void deleteInvoice() {
+        int row = table.getSelectedRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this, "Select invoice first");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Soft delete this invoice?",
+                "Confirm",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        int id = (int) tableModel.getValueAt(row, 0);
+        controller.deleteInvoice(id);
+        refreshTable();
+    }
+
+
     // ================= TABLE =================
 
-    private JScrollPane createTablePanel() {
+    private JScrollPane buildTable() {
         tableModel = new DefaultTableModel(
                 new Object[]{
                         "ID", "Invoice No", "Order ID",
                         "Issue Date", "Total", "Paid",
-                        "Status", "Tax Code"
+                        "Status"
                 }, 0
-        );
+        ) {
+            @Override
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
+        };
 
         table = new JTable(tableModel);
         table.setRowHeight(24);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         return new JScrollPane(table);
     }
 
-    // ================= ACTION =================
+    // ================= PAYMENT =================
 
-    private JPanel createActionPanel() {
+    private JPanel buildActionPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
         txtPayAmount = new JTextField(10);
@@ -93,34 +180,15 @@ public class InvoiceManagementPanel extends JPanel {
         JButton btnPay = new JButton("Pay");
         btnPay.addActionListener(e -> payInvoice());
 
-        JButton btnRefresh = new JButton("Refresh");
-        btnRefresh.addActionListener(e -> refreshTable());
+        JButton btnReload = new JButton("Reload");
+        btnReload.addActionListener(e -> refreshTable());
 
-        panel.add(new JLabel("Pay Amount"));
+        panel.add(new JLabel("Pay Amount:"));
         panel.add(txtPayAmount);
         panel.add(btnPay);
-        panel.add(btnRefresh);
+        panel.add(btnReload);
 
         return panel;
-    }
-
-    // ================= LOGIC =================
-
-    private void createInvoice() {
-        try {
-            CreateInvoiceRequest req = new CreateInvoiceRequest();
-            req.setOrderId(Integer.parseInt(txtOrderId.getText()));
-            req.setTotalAmount(new BigDecimal(txtTotalAmount.getText()));
-            req.setTaxCode(txtTaxCode.getText());
-            req.setDueDate(LocalDate.now().plusDays(7));
-
-            controller.createInvoice(req);
-            refreshTable();
-
-            JOptionPane.showMessageDialog(this, "Create invoice success");
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
     }
 
     private void payInvoice() {
@@ -131,52 +199,48 @@ public class InvoiceManagementPanel extends JPanel {
         }
 
         try {
-            Integer invoiceId = (Integer) tableModel.getValueAt(row, 0);
+            int invoiceId = (int) tableModel.getValueAt(row, 0);
             BigDecimal amount = new BigDecimal(txtPayAmount.getText());
 
             controller.payInvoice(invoiceId, amount);
+
             refreshTable();
+            txtPayAmount.setText("");
+
+            JOptionPane.showMessageDialog(this, "Payment success");
+
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    /**
-     * Load dữ liệu bảng
-     */
+    // ================= LOAD =================
+
     private void refreshTable() {
         tableModel.setRowCount(0);
 
         try {
-            // Nếu có nhập orderId → lọc
-            if (!txtOrderId.getText().isBlank()) {
-                InvoiceResponse r =
-                        controller.getInvoiceByOrder(Integer.parseInt(txtOrderId.getText()));
-                addRow(r);
-                return;
-            }
-
-            // Ngược lại → load ALL
             List<InvoiceResponse> list = controller.getAllInvoices();
             for (InvoiceResponse r : list) {
-                addRow(r);
-            }
 
+                BigDecimal total =
+                        r.getTotalAmount() != null
+                                ? r.getTotalAmount()
+                                : BigDecimal.ZERO;
+
+                tableModel.addRow(new Object[]{
+                        r.getId(),
+                        r.getInvoiceNumber(),
+                        r.getOrderId(),
+                        r.getIssueDate(),
+                        total,               // ⬅ FIX Ở ĐÂY
+                        r.getPaidAmount(),
+                        r.getStatus()
+                });
+            }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage());
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void addRow(InvoiceResponse r) {
-        tableModel.addRow(new Object[]{
-                r.getId(),
-                r.getInvoiceNumber(),
-                r.getOrderId(),
-                r.getIssueDate(),
-                r.getTotalAmount(),
-                r.getPaidAmount(),
-                r.getStatus(),
-                r.getTaxCode()
-        });
-    }
 }
