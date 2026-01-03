@@ -34,34 +34,35 @@ public class PaymentRepositoryImpl extends BaseRepository implements PaymentRepo
     }
 
     @Override
-    public long insert(Payment p) {
+    public long insertByInvoiceId(
+            long invoiceId,
+            String paymentNumber,
+            String method
+    ) {
         String sql = """
-                INSERT INTO payments(invoice_id, payment_number, payment_date, amount, method,
-                            status)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """;
+        INSERT INTO payments (invoice_id, payment_number, payment_date, amount, method, status)
+        SELECT i.id, ?, NOW(), i.total_amount, ?, 'SUCCESS'
+        FROM invoices i
+        WHERE i.id = ?
+          AND i.status = 'NEW'
+        """;
+
         return executeUpdate(sql, ps -> {
-            ps.setInt(1, p.getInvoiceId());
-            ps.setString(2, p.getPaymentNumber());
-            ps.setTimestamp(3, Timestamp.valueOf(p.getPaymentDate()));
-            ps.setBigDecimal(4, p.getAmount());
-            ps.setString(5, p.getMethod());
-            ps.setString(6, p.getStatus().name());
+            ps.setString(1, paymentNumber);
+            ps.setString(2, method);
+            ps.setLong(3, invoiceId);
         });
     }
+
 
     @Override
     public void update(Payment p) {
         String sql = """
                 UPDATE payments
-                SET invoice_id = ?, payment_number = ?, payment_date = ?, amount = ?,  method = ?, status = ?
+                SET method = ?, status = ?
                 WHERE id = ?
                 """;
         executeUpdate(sql, params(
-                p.getInvoiceId(),
-                p.getPaymentNumber(),
-                Timestamp.valueOf(p.getPaymentDate()),
-                p.getAmount(),
                 p.getMethod(),
                 p.getStatus().name(),
                 p.getId()
@@ -74,8 +75,11 @@ public class PaymentRepositoryImpl extends BaseRepository implements PaymentRepo
                 UPDATE payments
                 SET status = ?
                 WHERE id = ?
+                AND status = ?
                 """;
-        executeUpdate(sql, params(PaymentStatus.CANCELED.name(), id));
+        executeUpdate(sql, params(PaymentStatus.CANCELED.name(),
+                id,
+                PaymentStatus.SUCCESS.name()));
     }
 
     @Override

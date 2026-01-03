@@ -1,10 +1,8 @@
 package org.example.service.impl;
 
-import org.example.controller.AccountController;
 import org.example.entity.Payment;
 import org.example.entity.enums.PaymentStatus;
 import org.example.repository.PaymentRepository;
-import org.example.repository.impl.ManufacturerReponsitoryImpl;
 import org.example.repository.impl.PaymentRepositoryImpl;
 import org.example.service.PaymentService;
 
@@ -30,17 +28,25 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public long create(Payment payment) {
+    public long createByInvoice(long invoiceId, String method) {
 
-        if (paymentRepository.existsByPaymentNumber(payment.getPaymentNumber())) {
-            throw new RuntimeException("Payment number đã tồn tại");
+        String paymentNumber = generatePaymentNumber();
+
+        if (paymentRepository.existsByPaymentNumber(paymentNumber)) {
+            throw new RuntimeException("Payment number bị trùng");
         }
 
-        if (payment.getStatus() == null) {
-            payment.setStatus(PaymentStatus.PENDING);
+        long rows = paymentRepository.insertByInvoiceId(
+                invoiceId,
+                paymentNumber,
+                method
+        );
+
+        if (rows == 0) {
+            throw new RuntimeException("Invoice không tồn tại hoặc đã được thanh toán");
         }
 
-        return paymentRepository.insert(payment);
+        return rows;
     }
 
     @Override
@@ -52,10 +58,18 @@ public class PaymentServiceImpl implements PaymentService {
     public void cancel(Long id) {
         Payment payment = getById(id);
 
-        if (payment.getStatus() == PaymentStatus.CANCELED) {
-            throw new RuntimeException("Payment đã bị hủy trước đó");
+        if  (payment == null) {
+            throw new RuntimeException("Payment không tồn tại");
+        }
+
+        if (payment.getStatus() != PaymentStatus.SUCCESS) {
+            throw new RuntimeException("Chỉ được hủy payment thành công");
         }
 
         paymentRepository.delete(id);
+    }
+
+    private String generatePaymentNumber() {
+        return "PAY-" + System.currentTimeMillis();
     }
 }

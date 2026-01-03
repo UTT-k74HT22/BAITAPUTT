@@ -9,7 +9,7 @@ public interface PaymentService {
 
     Payment getById(Long id);
 
-    long create(Payment payment);
+    long createByInvoice(long invoiceId, String method);
 
     void update(Payment payment);
 

@@ -9,7 +9,11 @@ public interface PaymentRepository {
 
     Payment findById(Long id);
 
-    long insert(Payment p);
+    long insertByInvoiceId(
+            long invoiceId,
+            String paymentNumber,
+            String method
+    );
 
     void update(Payment p);
 

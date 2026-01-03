@@ -1,12 +1,9 @@
 package org.example.view;
 
-import org.example.controller.AccountController;
 import org.example.controller.PaymentController;
 import org.example.entity.Payment;
 import org.example.entity.enums.PaymentStatus;
-import org.example.service.impl.AccountServiceImpl;
 import org.example.service.impl.PaymentServiceImpl;
-import org.example.service.impl.UserCreationServiceImpl;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -25,7 +22,6 @@ public class PaymentManagementPanel extends JPanel {
     // ===================== UI COMPONENTS =====================
     private JTable paymentTable;
     private DefaultTableModel tableModel;
-
     private JTextField searchField;
     private JComboBox<String> statusFilter;
     private JComboBox<String> methodFilter;
@@ -33,7 +29,7 @@ public class PaymentManagementPanel extends JPanel {
 
     // ===================== CONSTANTS =====================
     private static final String[] TABLE_COLUMNS = {
-            "STT", "ID", "Mã thanh toán", "Mã hóa đơn", "Ngày thanh toán", "Số tiền", "Phương thức", "Trạng thái"
+            "STT", "ID", "Mã thanh toán", "ID hóa đơn", "Ngày thanh toán", "Số tiền", "Phương thức", "Trạng thái"
     };
 
     // ===================== THEME =====================
@@ -56,7 +52,6 @@ public class PaymentManagementPanel extends JPanel {
         initUI();
         reloadPaymentTable();
     }
-
 
     // ===================== INIT UI =====================
     private void initUI() {
@@ -283,14 +278,9 @@ public class PaymentManagementPanel extends JPanel {
         gbc.weightx = 1;
 
         JTextField tfInvoiceId = new JTextField(20);
-        JTextField tfAmount = new JTextField(20);
-
         JComboBox<String> cbMethod = new JComboBox<>(
                 new String[]{"CASH", "BANK_TRANSFER", "CREDIT_CARD", "E_WALLET"}
         );
-
-        JComboBox<PaymentStatus> cbStatus =
-                new JComboBox<>(PaymentStatus.values());
 
         int row = 0;
 
@@ -300,26 +290,12 @@ public class PaymentManagementPanel extends JPanel {
         gbc.gridx = 1; gbc.weightx = 1;
         form.add(tfInvoiceId, gbc);
 
-        // ===== Amount =====
-        row++;
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        form.add(new JLabel("Số tiền"), gbc);
-        gbc.gridx = 1; gbc.weightx = 1;
-        form.add(tfAmount, gbc);
-
         // ===== Method =====
         row++;
         gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
         form.add(new JLabel("Phương thức"), gbc);
         gbc.gridx = 1; gbc.weightx = 1;
         form.add(cbMethod, gbc);
-
-        // ===== Status =====
-        row++;
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        form.add(new JLabel("Trạng thái"), gbc);
-        gbc.gridx = 1; gbc.weightx = 1;
-        form.add(cbStatus, gbc);
 
         // ===== ACTIONS =====
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
@@ -330,19 +306,10 @@ public class PaymentManagementPanel extends JPanel {
 
         btnSave.addActionListener(e -> {
             try {
-                int invoiceId = Integer.parseInt(tfInvoiceId.getText().trim());
-                java.math.BigDecimal amount =
-                        new java.math.BigDecimal(tfAmount.getText().trim());
+                long invoiceId = Long.parseLong(tfInvoiceId.getText().trim());
+                String method = (String) cbMethod.getSelectedItem();
 
-                Payment payment = new Payment();
-                payment.setInvoiceId(invoiceId);
-                payment.setAmount(amount);
-                payment.setMethod((String) cbMethod.getSelectedItem());
-                payment.setStatus((PaymentStatus) cbStatus.getSelectedItem());
-                payment.setPaymentDate(java.time.LocalDateTime.now());
-                payment.setPaymentNumber("PM" + System.currentTimeMillis());
-
-                controller.createPayment(payment);
+                controller.createPaymentByInvoice(invoiceId, method);
 
                 JOptionPane.showMessageDialog(dialog,
                         "Thêm thanh toán thành công!");
@@ -365,7 +332,6 @@ public class PaymentManagementPanel extends JPanel {
         dialog.setVisible(true);
     }
 
-
     private void openEditDialog() {
         Payment payment = getSelectedPayment();
         if (payment == null) return;
@@ -387,52 +353,34 @@ public class PaymentManagementPanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1;
 
-        JTextField tfInvoiceId = new JTextField(20);
-        JTextField tfAmount = new JTextField(20);
+        JTextField tfInvoiceId = new JTextField(String.valueOf(payment.getInvoiceId()));
+        tfInvoiceId.setEditable(false);
 
         JComboBox<String> cbMethod = new JComboBox<>(
                 new String[]{"CASH", "BANK_TRANSFER", "CREDIT_CARD", "E_WALLET"}
         );
-
-        JComboBox<PaymentStatus> cbStatus =
-                new JComboBox<>(PaymentStatus.values());
-
-        // ===== SET DATA =====
-        tfInvoiceId.setText(String.valueOf(payment.getInvoiceId()));
-        tfAmount.setText(payment.getAmount().toPlainString());
         cbMethod.setSelectedItem(payment.getMethod());
-        cbStatus.setSelectedItem(payment.getStatus());
 
-        // Không cho sửa paymentNumber & paymentDate
-        tfInvoiceId.setEditable(true);
+        JComboBox<PaymentStatus> cbStatus = new JComboBox<>(PaymentStatus.values());
+        cbStatus.setSelectedItem(payment.getStatus());
 
         int row = 0;
 
-        // Invoice ID
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        gbc.gridx = 0; gbc.gridy = row;
         form.add(new JLabel("Mã hóa đơn"), gbc);
-        gbc.gridx = 1; gbc.weightx = 1;
+        gbc.gridx = 1;
         form.add(tfInvoiceId, gbc);
 
-        // Amount
         row++;
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
-        form.add(new JLabel("Số tiền"), gbc);
-        gbc.gridx = 1; gbc.weightx = 1;
-        form.add(tfAmount, gbc);
-
-        // Method
-        row++;
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        gbc.gridx = 0; gbc.gridy = row;
         form.add(new JLabel("Phương thức"), gbc);
-        gbc.gridx = 1; gbc.weightx = 1;
+        gbc.gridx = 1;
         form.add(cbMethod, gbc);
 
-        // Status
         row++;
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        gbc.gridx = 0; gbc.gridy = row;
         form.add(new JLabel("Trạng thái"), gbc);
-        gbc.gridx = 1; gbc.weightx = 1;
+        gbc.gridx = 1;
         form.add(cbStatus, gbc);
 
         // ===== ACTIONS =====
@@ -444,12 +392,6 @@ public class PaymentManagementPanel extends JPanel {
 
         btnSave.addActionListener(e -> {
             try {
-                payment.setInvoiceId(
-                        Integer.parseInt(tfInvoiceId.getText().trim())
-                );
-                payment.setAmount(
-                        new java.math.BigDecimal(tfAmount.getText().trim())
-                );
                 payment.setMethod((String) cbMethod.getSelectedItem());
                 payment.setStatus((PaymentStatus) cbStatus.getSelectedItem());
 
