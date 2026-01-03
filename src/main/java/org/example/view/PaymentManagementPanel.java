@@ -29,7 +29,7 @@ public class PaymentManagementPanel extends JPanel {
 
     // ===================== CONSTANTS =====================
     private static final String[] TABLE_COLUMNS = {
-            "STT", "ID", "Mã thanh toán", "Mã hóa đơn", "Ngày thanh toán", "Số tiền", "Phương thức", "Trạng thái"
+            "STT", "ID", "Mã thanh toán", "ID hóa đơn", "Ngày thanh toán", "Số tiền", "Phương thức", "Trạng thái"
     };
 
     // ===================== THEME =====================

@@ -131,7 +131,6 @@ public class ManufacturerManagementPanel extends JPanel {
     }
 
     private void configureRenderer() {
-        // tắt viền các ô trong bảng
 //        table.setShowGrid(false);
         DefaultTableCellRenderer r = new DefaultTableCellRenderer() {
             @Override
