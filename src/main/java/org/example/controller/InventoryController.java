@@ -92,6 +92,8 @@ public class InventoryController {
      * Lấy số lượng tồn kho hiện tại
      */
     public Integer getCurrentQuantity(Long productId, Long batchId, Long warehouseId) {
-        return inventoryService.getCurrentQuantity(productId, batchId, warehouseId);
+        int soLuong = inventoryService.getCurrentQuantity(productId, batchId, warehouseId);
+        System.out.println("So luong ton kho hien tai: " + soLuong);
+        return soLuong;
     }
 }

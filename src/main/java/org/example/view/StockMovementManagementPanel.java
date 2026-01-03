@@ -103,6 +103,23 @@ public class StockMovementManagementPanel extends BaseManagementPanel<StockMovem
             case TRANSFER -> "Chuyển";
         };
 
+        // Hiển thị quantity theo nghĩa vụ từng loại giao dịch
+        String quantityDisplay;
+        if (item.getMovementType() == StockMovementType.ADJUST) {
+            // ADJUST: hiển thị delta (after - before) để thấy rõ tăng/giảm bao nhiêu
+            int before = item.getQuantityBefore() != null ? item.getQuantityBefore() : 0;
+            int after = item.getQuantityAfter() != null ? item.getQuantityAfter() : 0;
+            int delta = after - before;
+            quantityDisplay = String.format("%+d", delta); // +5 hoặc -3
+        } else if (item.getMovementType() == StockMovementType.EXPORT ||
+                   item.getMovementType() == StockMovementType.TRANSFER) {
+            // EXPORT/TRANSFER: hiển thị với dấu âm
+            quantityDisplay = "-" + item.getQuantity();
+        } else {
+            // IMPORT: hiển thị với dấu dương
+            quantityDisplay = "+" + item.getQuantity();
+        }
+
         return new Object[]{
             stt,
             movementTypeDisplay,
@@ -111,7 +128,7 @@ public class StockMovementManagementPanel extends BaseManagementPanel<StockMovem
             item.getProductCode(),
             item.getProductName(),
             item.getBatchCode() != null ? item.getBatchCode() : "-",
-            item.getQuantity(),
+            quantityDisplay, // Hiển thị rõ ràng +/- hoặc delta
             item.getQuantityBefore() != null ? item.getQuantityBefore() : "-",
             item.getQuantityAfter() != null ? item.getQuantityAfter() : "-",
             item.getPerformedByFullName() != null ? item.getPerformedByFullName() : "-",

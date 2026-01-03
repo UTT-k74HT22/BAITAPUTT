@@ -336,19 +336,46 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
 
     @Override
     public Integer getCurrentQuantity(Long productId, Long batchId, Long warehouseId) {
+        System.out.println("=== getCurrentQuantity DEBUG ===");
+        System.out.println("productId: " + productId);
+        System.out.println("batchId: " + batchId);
+        System.out.println("warehouseId: " + warehouseId);
+
         String sql = """
-            SELECT quantity_on_hand
+            SELECT id, quantity_on_hand, batch_id
             FROM inventory_items
-            WHERE product_id = ? 
+            WHERE product_id = ?
               AND warehouse_id = ?
               AND (batch_id = ? OR (batch_id IS NULL AND ? IS NULL))
         """;
 
-        return queryForObject(
+        Optional<Integer> result = queryForObject(
             sql,
             params(productId, warehouseId, batchId, batchId),
-            rs -> rs.getInt("quantity_on_hand")
-        ).orElse(0);
+            rs -> {
+                System.out.println("Found inventory_item ID: " + rs.getLong("id"));
+                System.out.println("batch_id in DB: " + rs.getObject("batch_id"));
+                System.out.println("quantity_on_hand: " + rs.getInt("quantity_on_hand"));
+                return rs.getInt("quantity_on_hand");
+            }
+        );
+
+        if (result.isEmpty()) {
+            System.out.println("WARNING: No inventory_item found for this combination!");
+            // Kiểm tra xem có record nào với product + warehouse không (bỏ qua batch)
+            String checkSql = """
+                SELECT id, batch_id, quantity_on_hand
+                FROM inventory_items
+                WHERE product_id = ? AND warehouse_id = ?
+            """;
+            List<String> existingRecords = queryForList(checkSql, params(productId, warehouseId), rs ->
+                "ID: " + rs.getLong("id") + ", batch_id: " + rs.getObject("batch_id") + ", qty: " + rs.getInt("quantity_on_hand")
+            );
+            System.out.println("Existing records for this product+warehouse: " + existingRecords);
+        }
+
+        System.out.println("=== END DEBUG ===");
+        return result.orElse(0);
     }
 
     @Override
