@@ -4,6 +4,7 @@ import org.example.service.CustomerService;
 import org.example.dto.response.CustomerProfileResponse;
 import org.example.entity.enums.CustomerType;
 import org.example.service.impl.CustomerServiceImpl;
+import org.example.dto.request.UpdateCustomerProfileRequest;
 
 import java.util.List;
 
@@ -31,16 +32,13 @@ public class CustomerController {
         return customerService.search(keyword, type);
     }
 
-    public void updateCustomer(String code,
-                               CustomerType customerType,
-                               String taxCode) {
+    public void updateCustomer(String code, UpdateCustomerProfileRequest request) {
 
         System.out.println("[Controller] Cập nhật khách hàng: " + code);
 
         customerService.update(
                 code,
-                customerType,
-                taxCode
+                request
         );
     }
 

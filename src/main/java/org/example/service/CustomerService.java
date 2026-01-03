@@ -1,5 +1,6 @@
 package org.example.service;
 
+import org.example.dto.request.UpdateCustomerProfileRequest;
 import org.example.dto.response.CustomerProfileResponse;
 import org.example.entity.enums.CustomerType;
 
@@ -29,13 +30,8 @@ public interface CustomerService {
 
     /**
      *
-     * @param code
-     * @param customerType
-     * @param taxCode
-     */
-    void update(String code,
-                CustomerType customerType,
-                String taxCode);
+     * **/
+    void update(String code, UpdateCustomerProfileRequest request);
 
     /**
      *

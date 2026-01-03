@@ -1,5 +1,6 @@
 package org.example.repository.impl;
 
+import org.example.dto.request.UpdateCustomerProfileRequest;
 import org.example.dto.request.UpdateEmployeeProfileDetailRequest;
 import org.example.dto.response.ProfileResponse;
 import org.example.entity.UserProfile;
@@ -136,6 +137,24 @@ public class UserProfileRepositoryImpl extends BaseRepository implements UserPro
         SET full_name = ?, phone = ?, email = ?, address = ?, status = ?
         WHERE code = ?
         """;
+        executeUpdate(sql, ps -> {
+            ps.setString(1, request.getFullName());
+            ps.setString(2, request.getPhone());
+            ps.setString(3, request.getEmail());
+            ps.setString(4, request.getAddress());
+            ps.setString(5, request.getStatus() == null ? null : request.getStatus().name());
+            ps.setString(6, code);
+        });
+    }
+
+    @Override
+    public void updateUserProfileForCustomer(String code, UpdateCustomerProfileRequest request) {
+        String sql = """
+        UPDATE user_profiles
+        SET full_name = ?, phone = ?, email = ?, address = ?, status = ?
+        WHERE code = ?
+    """;
+
         executeUpdate(sql, ps -> {
             ps.setString(1, request.getFullName());
             ps.setString(2, request.getPhone());

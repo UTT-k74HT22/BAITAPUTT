@@ -1,5 +1,6 @@
 package org.example.repository;
 
+import org.example.dto.request.UpdateCustomerProfileRequest;
 import org.example.dto.request.UpdateEmployeeProfileDetailRequest;
 import org.example.dto.request.UpdateProfileEmployeeRequest;
 import org.example.dto.response.ProfileResponse;
@@ -61,6 +62,8 @@ public interface UserProfileRepository {
      * @param request đối tượng yêu cầu chứa thông tin cập nhật chi tiết
      */
     void updateDetailByCode(String code, UpdateEmployeeProfileDetailRequest request);
+
+    void updateUserProfileForCustomer(String code, UpdateCustomerProfileRequest request);
 
     /**
      *

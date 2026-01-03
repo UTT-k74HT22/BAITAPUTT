@@ -1,19 +1,24 @@
 package org.example.service.impl;
 
-import org.example.service.CustomerService;
+import org.example.dto.request.UpdateCustomerProfileRequest;
 import org.example.dto.response.CustomerProfileResponse;
 import org.example.entity.enums.CustomerType;
 import org.example.repository.CustomerProfileRepository;
+import org.example.repository.UserProfileRepository;
 import org.example.repository.impl.CustomerProfileRepositoryImpl;
+import org.example.repository.impl.UserProfileRepositoryImpl;
+import org.example.service.CustomerService;
 
 import java.util.List;
 
 public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerProfileRepository customerProfileRepository;
+    private final UserProfileRepository userProfileRepository;
 
     public CustomerServiceImpl() {
         this.customerProfileRepository = new CustomerProfileRepositoryImpl();
+        this.userProfileRepository = new UserProfileRepositoryImpl();
     }
 
     @Override
@@ -38,14 +43,19 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public void update(String code, CustomerType customerType, String taxCode) {
+    public void update(String code, UpdateCustomerProfileRequest request) {
         System.out.println("[Service] Cập nhật khách hàng: " + code);
 
         if (code == null || code.isEmpty()) {
             throw new IllegalArgumentException("Code không được để trống");
         }
+        System.out.println("[Service] Cập nhật full profile cho: " + code);
 
-        customerProfileRepository.update(code, customerType, taxCode);
+        userProfileRepository.updateUserProfileForCustomer(code, request);
+
+        customerProfileRepository.update(code, request.getCustomerType(), request.getTaxCode());
+
+        System.out.println("[Service] Cập nhật khách hàng thành công: " + code);
     }
 
     @Override
