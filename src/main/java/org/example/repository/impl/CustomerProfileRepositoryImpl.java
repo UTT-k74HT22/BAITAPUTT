@@ -66,6 +66,8 @@ public class CustomerProfileRepositoryImpl extends BaseRepository implements Cus
                     up.code          AS code,
                     up.full_name     AS fullName,
                     up.phone         AS phone,
+                    up.email         AS email,
+                    up.address       AS address,
                     cp.customer_type AS customerType,
                     up.status        AS status
                 FROM customer_profiles cp
@@ -85,6 +87,8 @@ public class CustomerProfileRepositoryImpl extends BaseRepository implements Cus
                 up.code          AS code,
                 up.full_name     AS fullName,
                 up.phone         AS phone,
+                up.email         AS email,
+                up.address       AS address,
                 cp.customer_type AS customerType,
                 up.status        AS status
             FROM customer_profiles cp
