@@ -23,9 +23,9 @@ public class PaymentController {
     }
 
     // ===================== CREATE =====================
-    public long createPayment(Payment payment) {
+    public long createPaymentByInvoice( long invoiceId, String method ) {
         try {
-            return paymentService.create(payment);
+            return paymentService.createByInvoice( invoiceId, method );
         } catch (RuntimeException e) {
             throw new RuntimeException("Tạo payment thất bại: " + e.getMessage());
         }
