@@ -187,7 +187,7 @@ public class WarehouseManagementPanel extends JPanel {
         d.setLocationRelativeTo(this);
         d.setLayout(new BorderLayout(10,10));
 
-        JPanel form = new JPanel(new GridLayout(5,2,10,10));
+        JPanel form = new JPanel(new GridLayout(6,2,10,10));
         form.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
 
         JTextField tfCode = new JTextField(w != null ? w.getCode() : "");
@@ -196,6 +196,9 @@ public class WarehouseManagementPanel extends JPanel {
         JTextField tfPhone = new JTextField(w != null ? w.getPhone() : "");
         JTextField tfManager = new JTextField(w != null ? w.getManagerName() : "");
 
+        JCheckBox cbActive = new JCheckBox("Active");
+        cbActive.setSelected(w == null || w.isActive());
+
         if(w != null && !isCreate) tfCode.setEnabled(false);
 
         form.add(new JLabel("Code")); form.add(tfCode);
@@ -203,6 +206,7 @@ public class WarehouseManagementPanel extends JPanel {
         form.add(new JLabel("Address")); form.add(tfAddress);
         form.add(new JLabel("Phone")); form.add(tfPhone);
         form.add(new JLabel("Manager")); form.add(tfManager);
+        form.add(new JLabel("Status")); form.add(cbActive);
 
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnCancel = new JButton("Hủy");
@@ -218,6 +222,7 @@ public class WarehouseManagementPanel extends JPanel {
             req.setAddress(tfAddress.getText().trim());
             req.setPhone(tfPhone.getText().trim());
             req.setManagerName(tfManager.getText().trim());
+            req.setActive(cbActive.isSelected());
 
             if(isCreate) controller.createWarehouse(req);
             else controller.updateWarehouse(tfCode.getText().trim(), req);
