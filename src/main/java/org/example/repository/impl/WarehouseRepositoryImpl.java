@@ -16,7 +16,7 @@ public class WarehouseRepositoryImpl extends BaseRepository implements Warehouse
     public void insert(CreateWarehouseRequest request) {
         String sql = """
                 INSERT INTO warehouses (code, name, address, phone, manager_name, is_active)
-                VALUES (?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """;
         executeUpdate(sql, ps -> {
             ps.setString(1, request.getCode());
