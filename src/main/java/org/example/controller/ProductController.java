@@ -39,7 +39,6 @@ public class ProductController {
     public ProductResponse getByCode(String code) {
         return productService.getByCode(code);
     }
-
     /**
      * Lấy sản phẩm chi tiết theo mã.
      */
