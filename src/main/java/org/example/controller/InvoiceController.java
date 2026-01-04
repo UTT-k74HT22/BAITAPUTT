@@ -2,6 +2,7 @@ package org.example.controller;
 
 import org.example.dto.request.CreateInvoiceRequest;
 import org.example.dto.response.InvoiceResponse;
+import org.example.entity.enums.InvoiceStatus;
 import org.example.service.InvoiceService;
 import org.example.service.impl.InvoiceServiceImpl;
 
@@ -54,4 +55,14 @@ public class InvoiceController {
     public void payInvoice(Integer invoiceId, BigDecimal amount) {
         invoiceService.updatePayment(invoiceId, amount);
     }
+
+    public void deleteInvoice(Integer id) {
+        invoiceService.delete(id);
+    }
+
+
+    public void updateInvoiceStatus(Integer id, InvoiceStatus status) {
+        invoiceService.updateStatus(id, status);
+    }
+
 }
