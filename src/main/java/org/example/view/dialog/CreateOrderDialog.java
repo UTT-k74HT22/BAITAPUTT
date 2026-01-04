@@ -1,4 +1,3 @@
-// language: java
 package org.example.view.dialog;
 
 import org.example.controller.CategoryController;
@@ -71,8 +70,7 @@ public class CreateOrderDialog extends JDialog {
         add(buildOrderInfoPanel(), BorderLayout.NORTH);
         add(buildMainPanel(), BorderLayout.CENTER);
         add(buildActionPanel(), BorderLayout.SOUTH);
-
-        loadCategories();
+        loadCategories();//load danh mục
     }
 
     private JPanel buildOrderInfoPanel() {
@@ -248,9 +246,9 @@ public class CreateOrderDialog extends JDialog {
     private JPanel buildActionPanel() {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
-        JButton btnDelete = new JButton("🗑 Xóa dòng");
-        JButton btnDeleteAll = new JButton("🚫 Xóa tất cả");
-        JButton btnConfirm = new JButton("✔ Confirm Order");
+        JButton btnDelete = new JButton("Xóa dòng");
+        JButton btnDeleteAll = new JButton(" Xóa tất cả");
+        JButton btnConfirm = new JButton(" Confirm Order");
         JButton btnCancel = new JButton("Hủy");
 
         btnDelete.addActionListener(e -> deleteSelectedItem());
@@ -306,7 +304,7 @@ public class CreateOrderDialog extends JDialog {
             btnAddItem.setEnabled(true);
         }
 
-        // Load batch (không filter, vẫn show hết để nhìn thấy đỏ)
+        // Load batch
         List<BatchResponse> batchList = productController.getBatchesByProduct(productId);
         cbBatch.removeAllItems();
 
@@ -393,6 +391,10 @@ public class CreateOrderDialog extends JDialog {
         for (OrderItemRequest i : orderItems) {
             subtotal = subtotal.add(i.getUnitPrice().multiply(BigDecimal.valueOf(i.getQuantity())));
         }
+//        if(txtDiscount.getText().isBlank()) {
+//            JOptionPane.showMessageDialog(this, "Discount chưa nhập!");
+//            return;
+//        }
 
         BigDecimal discount = new BigDecimal(txtDiscount.getText());
         lblTotal.setText(subtotal.subtract(discount).toString());
@@ -419,7 +421,7 @@ public class CreateOrderDialog extends JDialog {
                 return;
             }
 
-            // Resolve performer (employee) id: use passed employeeId, else try current user_profile id
+            // Kiểm tra người thực hiện
             Long performerId = this.employeeId;
             if (performerId == null) {
                 performerId = AuthServiceImpl.getCurrentUserProfileId();
@@ -435,7 +437,7 @@ public class CreateOrderDialog extends JDialog {
             req.setDiscount(new BigDecimal(txtDiscount.getText()));
             req.setItems(orderItems);
 
-            // call controller with resolved performer id
+            // gọi controller hàm tạo đơn hàng
             Long orderId = orderController.createOrder(req, performerId);
 
             submitted = true;
@@ -448,3 +450,7 @@ public class CreateOrderDialog extends JDialog {
     }
 
 }
+
+
+//
+//String orderNumber = "ORD-" + System.currentTimeMillis();

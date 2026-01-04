@@ -42,6 +42,7 @@ public class ProductDetailPdfExporter {
 
             addRow(table, "Mã sản phẩm", p.getCode());
             addRow(table, "Tên sản phẩm", p.getName());
+            addRow(table,"BarCode",p.getBarcode());
             addRow(table, "Danh mục", p.getCategoryName());
             addRow(table, "Nhà sản xuất", p.getManufacturerName());
             addRow(table,"Giá bán",p.getStandardPrice().toString());
@@ -64,12 +65,12 @@ public class ProductDetailPdfExporter {
                 new Phrase(label, PdfStyles.HEADER_FONT)
         );
         labelCell.setBackgroundColor(PdfStyles.HEADER_BG);
-        labelCell.setPadding(8);
+        labelCell.setPadding(9);
 
         PdfPCell valueCell = new PdfPCell(
                 new Phrase(safe(value), PdfStyles.BODY_FONT)
         );
-        valueCell.setPadding(8);
+        valueCell.setPadding(9);
 
         table.addCell(labelCell);
         table.addCell(valueCell);
