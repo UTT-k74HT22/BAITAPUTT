@@ -61,14 +61,10 @@ public class OrderRepositoryImpl extends BaseRepository implements OrderReposito
             ps.setInt(4, item.getQuantity());
             ps.setBigDecimal(5, item.getUnitPrice());
             ps.setBigDecimal(6, item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
-
-            // ✅ set warehouseId vào tham số 7
             if (item.getWarehouseId() != null)
                 ps.setLong(7, item.getWarehouseId());
             else
                 ps.setNull(7, java.sql.Types.INTEGER);
-
-            // ✅ set note vào tham số 8
             ps.setString(8, item.getNote() == null ? "" : item.getNote());
         });
     }
@@ -236,9 +232,9 @@ public class OrderRepositoryImpl extends BaseRepository implements OrderReposito
             OrderItemResponse i = new OrderItemResponse();
             i.setId(rs.getLong("id"));
             i.setProductName(rs.getString("product_name"));
-            i.setProductId(rs.getLong("product_id"));     // map product id
-            i.setBatchId(rs.getLong("batch_id"));          // map batch id
-            i.setWarehouseId(rs.getLong("warehouse_id"));  // ✅ map warehouse id
+            i.setProductId(rs.getLong("product_id"));
+            i.setBatchId(rs.getLong("batch_id"));
+            i.setWarehouseId(rs.getLong("warehouse_id"));
             i.setQuantity(rs.getInt("quantity"));
             i.setUnitPrice(rs.getBigDecimal("unit_price"));
             i.setLineTotal(rs.getBigDecimal("line_total"));

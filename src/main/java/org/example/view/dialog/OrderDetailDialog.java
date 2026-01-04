@@ -34,8 +34,6 @@ public class OrderDetailDialog extends JDialog {
         add(buildFooter(), BorderLayout.SOUTH);
     }
 
-    /* ================= INFO ================= */
-
     private JPanel buildInfo() {
         OrderResponse o = controller.getById(orderId);
 
@@ -62,7 +60,7 @@ public class OrderDetailDialog extends JDialog {
         c.gridx = 3; c.weightx = 0.25;
         p.add(label("Tổng tiền: " + formatMoney(o.getTotalAmount())), c);
 
-        // ===== Dòng 2 =====
+        //  Dòng 2
         c.gridy = 1;
         c.gridx = 0; c.weightx = 0.2;
         p.add(label("Khách hàng: " + safe(o.getCustomerName())), c);
@@ -76,7 +74,7 @@ public class OrderDetailDialog extends JDialog {
         c.gridx = 3; c.weightx = 0.1;
         p.add(new JLabel(), c);
 
-        // ===== Dòng 3: Địa chỉ giao hàng =====
+        //  Địa chỉ giao hàng
         c.gridy = 2;
         c.gridx = 0; c.weightx = 0.2;
         p.add(label("Địa chỉ giao hàng:"), c);
@@ -86,7 +84,7 @@ public class OrderDetailDialog extends JDialog {
         p.add(new JLabel(safe(o.getShippingAddress())), c);
         c.gridwidth = 1;
 
-        // ===== Dòng 4: Người tạo =====
+        // Dòng 4: Người tạo
         c.gridy = 3;
         c.gridx = 0; c.weightx = 0.2;
         p.add(label("Người tạo: " + safe(o.getCreatorName())), c);
@@ -102,7 +100,6 @@ public class OrderDetailDialog extends JDialog {
     }
 
 
-    /* ================= TABLE ================= */
 
     private JScrollPane buildTable() {
         String[] cols = {
@@ -151,8 +148,6 @@ public class OrderDetailDialog extends JDialog {
         return new JScrollPane(table);
     }
 
-    /* ================= FOOTER ================= */
-
     private JPanel buildFooter() {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 12));
         p.setOpaque(false);
@@ -164,8 +159,6 @@ public class OrderDetailDialog extends JDialog {
         p.add(btnClose);
         return p;
     }
-
-    /* ================= UTIL ================= */
 
     private JLabel label(String text) {
         JLabel l = new JLabel(text);

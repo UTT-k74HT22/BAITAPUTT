@@ -49,7 +49,7 @@ public class OrderManagementPanel extends BaseManagementPanel<OrderResponse> {
 
     @Override
     protected int[] columnWidths() {
-        return new int[]{60, 120, 180, 140, 140, 140}; // ✔ khớp 6 cột
+        return new int[]{60, 120, 180, 140, 140, 140};
     }
 
     @Override
@@ -113,7 +113,7 @@ public class OrderManagementPanel extends BaseManagementPanel<OrderResponse> {
 
     public void onRefresh() {
         if (sorter != null) {
-            sorter.setRowFilter(null); // ← xóa filter tìm kiếm
+            sorter.setRowFilter(null);
         }
         reload();
     }
@@ -155,13 +155,12 @@ public class OrderManagementPanel extends BaseManagementPanel<OrderResponse> {
 
         for (OrderItemResponse item : orderItems) {
 
-            // 🔥 Đổi lại đúng key tồn kho
             Long batchId = item.getBatchId();
             System.out.println("[VIEW]Lô hàng ID lấy từ order item: " + batchId);
-            Long warehouseId = item.getWarehouseId(); // ← chắc chắn DTO này map đúng cột warehouse_id từ DB
+            Long warehouseId = item.getWarehouseId();
             System.out.println("[VIEW]Kho hàng ID lấy từ order item: " + warehouseId);
 
-            // ✅ Kiểm tra thông tin order item có đầy đủ không
+            //  Kiểm tra thông tin order item có đầy đủ không
             if (warehouseId == null) {
                 JOptionPane.showMessageDialog(this,
                         "Order item cho sản phẩm '" + item.getProductName() + "' không có thông tin kho!\n" +
