@@ -24,6 +24,7 @@ public class OrderServiceImpl implements OrderService {
             discount = req.getDiscount();
         }
         Long orderId = repo.insertOrder(
+
                 req.getCustomerId(),
                 req.getShippingAddress(),
                 req.getNote(),
@@ -78,3 +79,5 @@ public class OrderServiceImpl implements OrderService {
         repo.cancelOrder(orderId);
     }
 }
+
+//String orderNumber = "ORD-" + System.currentTimeMillis();

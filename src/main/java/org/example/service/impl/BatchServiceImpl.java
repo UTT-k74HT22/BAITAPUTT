@@ -20,34 +20,46 @@ public class BatchServiceImpl implements BatchService {
     public BatchServiceImpl() {
         this.batchRepository = new BatchRepositoryImpl();
     }
-
+    /**
+     * Lấy danh sách tất cả lô hàng.
+     */
     @Override
     public List<BatchResponse> getAll() {
         return batchRepository.findAll();
     }
-
+    /**
+     * Lấy danh sách lô hàng theo sản phẩm.
+     */
     @Override
     public List<BatchResponse> getByProduct(Long productId) {
         return batchRepository.findByProduct(productId);
     }
-
+    /**
+     * Lấy chi tiết lô hàng.
+     */
     @Override
     public BatchResponse getDetail(Long batchId) {
         return batchRepository.findDetail(batchId)
                 .orElseThrow(() -> new RuntimeException("Batch not found with id: " + batchId));
     }
-
+    /**
+     * Thêm mới lô hàng.
+     */
     @Override
     public Long create(CreateBatchRequest request) {
         return batchRepository.insert(request);
     }
-
+    /**
+     * Cập nhật lô hàng.
+     */
     @Override
     public Long update(Long batchId, UpdateBatchRequest updateBatchRequest) {
         batchRepository.update(batchId, updateBatchRequest);
         return batchId;
     }
-
+    /**
+     * Ngưng sử dụng lô hàng.
+     */
     @Override
     public void disable(Long batchId) {
         batchRepository.disable(batchId);

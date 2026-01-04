@@ -4,6 +4,7 @@ import org.example.controller.BatchController;
 import org.example.dto.request.Batch.CreateBatchRequest;
 import org.example.dto.request.Batch.UpdateBatchRequest;
 import org.example.dto.response.Batch.BatchResponse;
+import org.example.dto.response.Product.ProductResponse;
 import org.example.repository.impl.BatchRepositoryImpl;
 import org.example.service.impl.BatchServiceImpl;
 import org.example.view.base.BaseManagementPanel;
@@ -226,7 +227,6 @@ public class BatchManagementPanel extends BaseManagementPanel<BatchResponse> {
         );
 
         JTextField batchCode = new JTextField();
-        JTextField productId = new JTextField();
         JTextField importPrice = new JTextField();
         JTextField supplier = new JTextField();
         JTextField manufactureDate = new JTextField("2025-01-01");
@@ -236,11 +236,28 @@ public class BatchManagementPanel extends BaseManagementPanel<BatchResponse> {
                 new String[]{"ACTIVE", "EXPIRED", "BLOCKED", "DEPLETED"}
         );
 
+        // === 1. Load danh sách sản phẩm và đổ vào combo box ===
+        List<ProductResponse> products = controller.getAllProducts();
+        JComboBox<ProductResponse> productBox = new JComboBox<>(
+                products.toArray(new ProductResponse[0])
+        );
+        productBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(
+                    JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof ProductResponse p) {
+                    setText(p.getName());
+                }
+                return this;
+            }
+        });
+
         JPanel form = new JPanel(new GridLayout(0, 2, 8, 8));
         form.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
         form.add(new JLabel("Mã lô *")); form.add(batchCode);
-        form.add(new JLabel("Product ID *")); form.add(productId);
+        form.add(new JLabel("Sản phẩm *")); form.add(productBox); // Thay input ID bằng chọn sản phẩm
         form.add(new JLabel("Giá nhập *")); form.add(importPrice);
         form.add(new JLabel("Nhà cung cấp")); form.add(supplier);
         form.add(new JLabel("Ngày SX")); form.add(manufactureDate);
@@ -250,9 +267,13 @@ public class BatchManagementPanel extends BaseManagementPanel<BatchResponse> {
         JButton save = new JButton("Lưu");
         save.addActionListener(e -> {
             try {
+                // === 2. Lấy sản phẩm đang được chọn và tự lấy ID ===
+                ProductResponse selected = (ProductResponse) productBox.getSelectedItem();
+                if (selected == null) throw new Exception("Vui lòng chọn sản phẩm!");
+
                 CreateBatchRequest r = new CreateBatchRequest();
                 r.setBatchCode(batchCode.getText().trim());
-                r.setProductId(Long.parseLong(productId.getText().trim()));
+                r.setProductId(selected.getId()); // Tự confirm ID theo sản phẩm đã chọn
                 r.setImportPrice(new BigDecimal(importPrice.getText().trim()));
                 r.setSupplierName(supplier.getText().trim());
                 r.setManufactureDate(LocalDate.parse(manufactureDate.getText().trim()));
@@ -278,6 +299,7 @@ public class BatchManagementPanel extends BaseManagementPanel<BatchResponse> {
         d.setLocationRelativeTo(this);
         d.setVisible(true);
     }
+
 
     private void openEdit() {
         int row = getSelectedModelRow();

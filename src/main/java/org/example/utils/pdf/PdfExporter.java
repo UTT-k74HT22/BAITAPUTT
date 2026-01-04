@@ -5,6 +5,7 @@ import com.lowagie.text.Font;
 import com.lowagie.text.pdf.*;
 
 import java.awt.*;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +52,7 @@ public class PdfExporter {
             }
 
             document.add(table);
-
+            Desktop.getDesktop().open(new File(outputPath));
         } catch (Exception e) {
             throw new RuntimeException("Export PDF failed", e);
         } finally {
