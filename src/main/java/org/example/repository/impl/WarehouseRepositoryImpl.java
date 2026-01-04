@@ -15,8 +15,8 @@ public class WarehouseRepositoryImpl extends BaseRepository implements Warehouse
     @Override
     public void insert(CreateWarehouseRequest request) {
         String sql = """
-                INSERT INTO warehouses (code, name, address, phone, manager_name)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO warehouses (code, name, address, phone, manager_name, is_active)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """;
         executeUpdate(sql, ps -> {
             ps.setString(1, request.getCode());
@@ -24,6 +24,7 @@ public class WarehouseRepositoryImpl extends BaseRepository implements Warehouse
             ps.setString(3, request.getAddress());
             ps.setString(4, request.getPhone());
             ps.setString(5, request.getManagerName());
+            ps.setBoolean(6, request.isActive());
         });
     }
 
@@ -51,18 +52,25 @@ public class WarehouseRepositoryImpl extends BaseRepository implements Warehouse
     @Override
     public void updateByCode(String code, CreateWarehouseRequest request) {
         String sql = """
-                UPDATE warehouses
-                SET name = ?, address = ?, phone = ?, manager_name = ?
-                WHERE code = ? AND is_active = 1
-                """;
+            UPDATE warehouses
+            SET name = ?,
+                address = ?,
+                phone = ?,
+                manager_name = ?,
+                is_active = ?
+            WHERE code = ?
+            """;
+
         executeUpdate(sql, params(
                 request.getName(),
                 request.getAddress(),
                 request.getPhone(),
                 request.getManagerName(),
+                request.isActive(),
                 code
         ));
     }
+
 
     @Override
     public void softDelete(String code) {
