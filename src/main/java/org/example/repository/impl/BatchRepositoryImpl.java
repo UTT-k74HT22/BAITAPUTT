@@ -103,6 +103,21 @@ public class BatchRepositoryImpl extends BaseRepository implements BatchReposito
 
         return queryForList(sql, this::mapToRow);
     }
+
+    @Override
+    public BatchResponse findById(Long id) {
+        String sql = """
+                SELECT
+                    b.id,
+                    b.batch_code,
+                    b.expiry_date,
+                    b.status
+                FROM batches b
+                WHERE b.id = ?
+                """;
+        return queryForObject(sql, params(id), this::mapToRow).orElse(null);
+    }
+
     /**
      * Lấy danh sách lô hàng theo sản phẩm
      * */

@@ -12,18 +12,25 @@ import org.example.dto.response.Batch.BatchResponse;
 import org.example.entity.enums.StockMovementType;
 import org.example.repository.impl.BatchRepositoryImpl;
 import org.example.service.impl.StockMovementServiceImpl;
-import org.example.service.impl.WarehouseServiceImpl;
 import org.example.service.impl.ProductServiceImpl;
 import org.example.service.impl.BatchServiceImpl;
 import org.example.view.base.BaseManagementPanel;
 import org.example.view.base.UiFactory;
 import org.example.view.base.UiTheme;
-
+import org.example.service.impl.StockImportService;
+import org.example.dto.request.StockImportRequest;
+import org.example.dto.response.ImportPreviewResponse;
+import org.example.dto.response.ImportRowData;
+import org.example.utils.importer.template.StockMovementTemplateGenerator;
+import org.example.repository.impl.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.time.LocalDateTime;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -270,6 +277,13 @@ public class StockMovementManagementPanel extends BaseManagementPanel<StockMovem
             e -> openMovementDialog(StockMovementType.EXPORT)));
         row.add(UiFactory.button("Điều chỉnh", new Color(255, 193, 7),
             e -> openMovementDialog(StockMovementType.ADJUST)));
+        
+        // ⭐ THÊM CÁC NÚT IMPORT EXCEL
+        row.add(UiFactory.button("📥 Import Excel", new Color(0, 123, 255),
+            e -> handleImportExcel()));
+        row.add(UiFactory.button("📄 Tải Template", new Color(108, 117, 125),
+            e -> downloadTemplate()));
+        
         row.add(UiFactory.button("Refresh", new Color(108, 117, 125),
             e -> reload()));
 
@@ -531,5 +545,396 @@ public class StockMovementManagementPanel extends BaseManagementPanel<StockMovem
         public String toString() {
             return name;
         }
+    }
+
+    // ================= IMPORT EXCEL =================
+
+    /**
+     * Download template Excel để import
+     */
+    private void downloadTemplate() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+        fileChooser.setDialogTitle("Lưu Template Excel");
+        fileChooser.setSelectedFile(new File("stock_movement_template.xlsx"));
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Excel Files (*.xlsx)", "xlsx"));
+        
+        int result = fileChooser.showSaveDialog(this);
+        if (result != JFileChooser.APPROVE_OPTION) return;
+        
+        File file = fileChooser.getSelectedFile();
+        
+        // Kiểm tra đường dẫn hợp lệ
+        if (file == null || file.getPath().contains("::")) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Vui lòng chọn thư mục cụ thể để lưu file.\nKhông thể lưu vào 'This PC' hoặc vị trí ảo.",
+                "Đường dẫn không hợp lệ",
+                JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+        
+        if (!file.getName().toLowerCase().endsWith(".xlsx")) {
+            file = new File(file.getAbsolutePath() + ".xlsx");
+        }
+        
+        try {
+            StockMovementTemplateGenerator generator = new StockMovementTemplateGenerator();
+            byte[] templateBytes = generator.generate();
+            
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                fos.write(templateBytes);
+            }
+            
+            int choice = JOptionPane.showOptionDialog(
+                this,
+                "Template đã được lưu thành công!\n\n" +
+                "⚠️ LƯU Ý: Nếu mở file Excel, hãy ĐÓNG Excel trước khi Import.\n" +
+                "File Excel đang mở sẽ bị khóa và không thể đọc được.\n\n" +
+                "Bạn có muốn mở file ngay bây giờ?",
+                "Thành công",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.INFORMATION_MESSAGE,
+                null,
+                new Object[]{"Mở file", "Đóng"},
+                "Đóng"  // Changed default to "Đóng"
+            );
+            
+            if (choice == 0) {
+                Desktop.getDesktop().open(file);
+            }
+            
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Lỗi khi tạo template: " + ex.getMessage(),
+                "Lỗi",
+                JOptionPane.ERROR_MESSAGE
+            );
+            ex.printStackTrace();
+        }
+    }
+
+    /**
+     * Import dữ liệu từ file Excel
+     */
+    private void handleImportExcel() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Chọn file Excel để import");
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Excel Files (*.xlsx)", "xlsx"));
+        
+        int result = fileChooser.showOpenDialog(this);
+        if (result != JFileChooser.APPROVE_OPTION) return;
+        
+        File selectedFile = fileChooser.getSelectedFile();
+        
+        // Show loading dialog
+        JDialog loadingDialog = createLoadingDialog("Đang đọc file Excel...");
+        
+        // Import in background thread
+        SwingWorker<ImportPreviewResponse<StockImportRequest>, Void> worker = 
+            new SwingWorker<>() {
+                @Override
+                protected ImportPreviewResponse<StockImportRequest> doInBackground() throws Exception {
+                    StockImportService service = new StockImportService(
+                        new StockMovementServiceImpl(),
+                        new BatchRepositoryImpl(),
+                        new ProductRepositoryImpl(),
+                        new WarehouseRepositoryImpl(),
+                        new InventoryRepositoryImpl()
+                    );
+                    return service.previewFromFile(selectedFile);
+                }
+                
+                @Override
+                protected void done() {
+                    loadingDialog.dispose();
+                    
+                    try {
+                        ImportPreviewResponse<StockImportRequest> preview = get();
+                        showImportPreviewDialog(preview, selectedFile);
+                        
+                    } catch (Exception e) {
+                        String errorMsg = e.getMessage();
+                        Throwable cause = e.getCause();
+                        
+                        // Check if file is locked by another process
+                        if (cause instanceof java.io.FileNotFoundException && 
+                            (errorMsg.contains("being used by another process") || 
+                             (cause.getMessage() != null && cause.getMessage().contains("being used by another process")))) {
+                            JOptionPane.showMessageDialog(
+                                StockMovementManagementPanel.this,
+                                "❌ FILE ĐANG BỊ KHÓA!\n\n" +
+                                "File Excel đang được mở bởi chương trình khác (có thể là Excel).\n\n" +
+                                "Giải pháp:\n" +
+                                "1. Đóng file Excel nếu đang mở\n" +
+                                "2. Đóng tất cả chương trình đang sử dụng file này\n" +
+                                "3. Thử lại\n\n" +
+                                "File: " + selectedFile.getName(),
+                                "File đang được sử dụng",
+                                JOptionPane.WARNING_MESSAGE
+                            );
+                        } else {
+                            JOptionPane.showMessageDialog(
+                                StockMovementManagementPanel.this,
+                                "Lỗi khi đọc file: " + errorMsg,
+                                "Lỗi",
+                                JOptionPane.ERROR_MESSAGE
+                            );
+                        }
+                        e.printStackTrace();
+                    }
+                }
+            };
+        
+        worker.execute();
+        loadingDialog.setVisible(true);
+    }
+
+    /**
+     * Hiển thị preview trước khi import
+     */
+    private void showImportPreviewDialog(
+        ImportPreviewResponse<StockImportRequest> preview, File file) {
+        JDialog dialog = new JDialog(
+            (Frame) SwingUtilities.getWindowAncestor(this),
+            "Xem trước Import - " + file.getName(),
+            true
+        );
+        dialog.setLayout(new BorderLayout(10, 10));
+        
+        // Summary panel
+        JPanel summaryPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
+        summaryPanel.setBorder(BorderFactory.createTitledBorder("Tổng quan"));
+        summaryPanel.setBackground(Color.WHITE);
+        
+        JLabel validLabel = new JLabel("✅ Hợp lệ: " + preview.getValidCount() + " dòng");
+        validLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        validLabel.setForeground(new Color(40, 167, 69));
+        
+        JLabel invalidLabel = new JLabel("❌ Lỗi: " + preview.getInvalidCount() + " dòng");
+        invalidLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        invalidLabel.setForeground(new Color(220, 53, 69));
+        
+        summaryPanel.add(validLabel);
+        summaryPanel.add(invalidLabel);
+        
+        // Tabs
+        JTabbedPane tabbedPane = new JTabbedPane();
+        
+        // Tab 1: Valid data
+        if (!preview.getValidRows().isEmpty()) {
+            JTable validTable = createImportPreviewTable(preview.getValidRows(), false);
+            JScrollPane validScroll = new JScrollPane(validTable);
+            tabbedPane.addTab("✅ Hợp lệ (" + preview.getValidCount() + ")", validScroll);
+        }
+        
+        // Tab 2: Invalid data
+        if (!preview.getInvalidRows().isEmpty()) {
+            JTable invalidTable = createImportPreviewTable(preview.getInvalidRows(), true);
+            JScrollPane invalidScroll = new JScrollPane(invalidTable);
+            tabbedPane.addTab("❌ Lỗi (" + preview.getInvalidCount() + ")", invalidScroll);
+        }
+        
+        // Buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        buttonPanel.setBackground(Color.WHITE);
+        
+        JButton btnImport = UiFactory.button(
+            "Import " + preview.getValidCount() + " dòng", 
+            new Color(40, 167, 69),
+            e -> {
+                dialog.dispose();
+                executeImport(preview);
+            }
+        );
+        btnImport.setEnabled(preview.getValidCount() > 0);
+        
+        JButton btnCancel = UiFactory.button("Hủy", new Color(108, 117, 125), e -> dialog.dispose());
+        
+        buttonPanel.add(btnCancel);
+        buttonPanel.add(btnImport);
+        
+        dialog.add(summaryPanel, BorderLayout.NORTH);
+        dialog.add(tabbedPane, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        
+        dialog.setSize(1000, 600);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
+    /**
+     * Tạo bảng preview dữ liệu import
+     */
+    private JTable createImportPreviewTable(
+        List<ImportRowData<StockImportRequest>> rows,
+        boolean showErrors
+    ) {
+        String[] columns;
+        if (showErrors) {
+            columns = new String[]{"Dòng", "Loại", "Kho ID", "SP ID", "Lô ID", "Số lượng", "❌ Lỗi"};
+        } else {
+            columns = new String[]{"Dòng", "Loại", "Kho ID", "SP ID", "Lô ID", "Số lượng", "Ghi chú"};
+        }
+        
+        DefaultTableModel model = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        
+        for (var row : rows) {
+            StockImportRequest data = row.getData();
+            
+            String movementTypeDisplay = data.getMovementType() != null 
+                ? switch (data.getMovementType()) {
+                    case IMPORT -> "Nhập";
+                    case EXPORT -> "Xuất";
+                    case ADJUST -> "Điều chỉnh";
+                    case TRANSFER -> "Chuyển";
+                }
+                : "-";
+            
+            if (showErrors) {
+                // Convert List<ImportError> to String
+                StringBuilder errorStr = new StringBuilder();
+                for (var error : row.getErrors()) {
+                    errorStr.append(error.getColumnName()).append(": ").append(error.getMessage()).append("\n");
+                }
+                model.addRow(new Object[]{
+                    row.getRowIndex(),
+                    movementTypeDisplay,
+                    data.getWarehouseId() != null ? data.getWarehouseId() : "-",
+                    data.getProductId() != null ? data.getProductId() : "-",
+                    data.getBatchId() != null ? data.getBatchId() : "-",
+                    data.getQuantity() != null ? data.getQuantity() : "-",
+                    errorStr.toString().trim()
+                });
+            } else {
+                model.addRow(new Object[]{
+                    row.getRowIndex(),
+                    movementTypeDisplay,
+                    data.getWarehouseId(),
+                    data.getProductId(),
+                    data.getBatchId(),
+                    data.getQuantity(),
+                    data.getNote() != null ? data.getNote() : "-"
+                });
+            }
+        }
+        
+        JTable table = new JTable(model);
+        table.setFont(new Font("Arial", Font.PLAIN, 12));
+        table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+        table.setRowHeight(showErrors ? 60 : 25);
+        
+        // Set column widths
+        table.getColumnModel().getColumn(0).setPreferredWidth(60);
+        table.getColumnModel().getColumn(1).setPreferredWidth(100);
+        table.getColumnModel().getColumn(2).setPreferredWidth(80);
+        table.getColumnModel().getColumn(3).setPreferredWidth(80);
+        table.getColumnModel().getColumn(4).setPreferredWidth(80);
+        table.getColumnModel().getColumn(5).setPreferredWidth(80);
+        table.getColumnModel().getColumn(6).setPreferredWidth(showErrors ? 400 : 200);
+        
+        return table;
+    }
+
+    /**
+     * Thực hiện import sau khi user confirm
+     */
+    private void executeImport(ImportPreviewResponse<StockImportRequest> preview) {
+        JDialog loadingDialog = createLoadingDialog("Đang import dữ liệu vào database...");
+        
+        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                StockImportService service = new StockImportService(
+                    new StockMovementServiceImpl(),
+                    new BatchRepositoryImpl(),
+                    new ProductRepositoryImpl(),
+                    new WarehouseRepositoryImpl(),
+                    new InventoryRepositoryImpl()
+                );
+                
+                // Extract valid data from preview
+                List<StockImportRequest> validData = new ArrayList<>();
+                for (var row : preview.getValidRows()) {
+                    validData.add(row.getData());
+                }
+                
+                service.applyImport(validData);
+                return null;
+            }
+            
+            @Override
+            protected void done() {
+                loadingDialog.dispose();
+                
+                try {
+                    get();
+                    
+                    JOptionPane.showMessageDialog(
+                        StockMovementManagementPanel.this,
+                        String.format(
+                            "✅ Import thành công %d bản ghi!\n\n" +
+                            "Dữ liệu đã được cập nhật vào hệ thống.",
+                            preview.getValidCount()
+                        ),
+                        "Thành công",
+                        JOptionPane.INFORMATION_MESSAGE
+                    );
+                    
+                    reload();
+                    
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(
+                        StockMovementManagementPanel.this,
+                        "❌ Lỗi khi import:\n" + e.getMessage(),
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    e.printStackTrace();
+                }
+            }
+        };
+        
+        worker.execute();
+        loadingDialog.setVisible(true);
+    }
+
+    /**
+     * Tạo dialog loading với progress bar
+     */
+    private JDialog createLoadingDialog(String message) {
+        JDialog dialog = new JDialog(
+            (Frame) SwingUtilities.getWindowAncestor(this),
+            "Đang xử lý...",
+            true
+        );
+        dialog.setLayout(new BorderLayout(10, 10));
+        
+        JLabel label = new JLabel(message, SwingConstants.CENTER);
+        label.setFont(new Font("Arial", Font.PLAIN, 14));
+        label.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 20));
+        
+        JProgressBar progressBar = new JProgressBar();
+        progressBar.setIndeterminate(true);
+        progressBar.setBorder(BorderFactory.createEmptyBorder(10, 20, 20, 20));
+        
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+        panel.add(label, BorderLayout.CENTER);
+        panel.add(progressBar, BorderLayout.SOUTH);
+        
+        dialog.add(panel);
+        dialog.setSize(400, 150);
+        dialog.setLocationRelativeTo(this);
+        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        
+        return dialog;
     }
 }

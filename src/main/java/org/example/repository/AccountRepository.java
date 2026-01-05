@@ -72,5 +72,10 @@ public interface AccountRepository {
      */
     void updatePassword(long accountId, String hashedPassword);
 
+    /**
+     * Cập nhật thời gian đăng nhập cuối
+     */
+    void updateLastLogin(Long accountId);
+
     Long findUserIdByAccountId(Long accountId);
 }

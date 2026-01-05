@@ -13,6 +13,9 @@ public interface BatchRepository {
      * Lấy toàn bộ lô hàng
      * */
     List<BatchResponse> findAll();
+
+    BatchResponse findById(Long id);
+
     /**
      * Lấy danh sách lô hàng theo sản phẩm
      * */

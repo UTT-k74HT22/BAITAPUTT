@@ -71,7 +71,16 @@ public class StockMovementServiceImpl implements StockMovementService {
                 request.setQuantityAfter(quantityAfter);
                 request.setQuantityBefore(quantityBefore);
 
+                // Insert stock movement record
                 stockMovementRepository.insertWithQuantityTracking(request);
+
+                inventoryRepository.updateQuantity(
+                    (long) inventoryItem.getInventoryItemId(),
+                    quantityAfter
+                );
+
+                connection.commit();// Commit nếu thành công
+                System.out.println("[Service] Tạo giao dịch xuất/nhập kho thành công. Quantity: " + quantityBefore + " → " + quantityAfter);
 
             } catch (Exception e) {
 

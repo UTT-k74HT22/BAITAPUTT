@@ -3,7 +3,6 @@ package org.example.controller;
 import org.example.dto.request.UpdateInventoryThresholdRequest;
 import org.example.dto.response.InventoryResponse;
 import org.example.service.InventoryService;
-
 import java.util.List;
 
 /**
@@ -84,9 +83,9 @@ public class InventoryController {
      */
     public void insertStockMovement(Long productId, Long batchId, Long warehouseId,
                                     Integer quantity, Integer before, Integer after,
-                                    Long performedByUserId, String note) {
+                                    Long performedByUserId, String note, String movementType) {
         inventoryService.insertStockMovement(productId, batchId, warehouseId,
-                quantity, before, after, performedByUserId, note);
+                quantity, before, after, performedByUserId, note, movementType);
     }
     /**
      * Lấy số lượng tồn kho hiện tại
