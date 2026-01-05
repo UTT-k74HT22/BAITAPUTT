@@ -58,7 +58,7 @@ public interface InventoryService {
      */
     void insertStockMovement(Long productId, Long batchId, Long warehouseId,
                              Integer quantity, Integer before, Integer after,
-                             Long userId, String note);
+                             Long userId, String note, String movementType);
     /**
      * Lấy số lượng tồn kho hiện tại
      */

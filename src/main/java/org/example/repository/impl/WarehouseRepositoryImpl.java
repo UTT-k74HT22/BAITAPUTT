@@ -2,6 +2,7 @@ package org.example.repository.impl;
 
 import org.example.dto.request.CreateWarehouseRequest;
 import org.example.dto.response.WarehouseResponse;
+import org.example.entity.Warehouse;
 import org.example.repository.BaseRepository;
 import org.example.repository.WarehouseRepository;
 
@@ -76,6 +77,22 @@ public class WarehouseRepositoryImpl extends BaseRepository implements Warehouse
     public void softDelete(String code) {
         String sql = "UPDATE warehouses SET is_active = 0 WHERE code = ?";
         executeUpdate(sql, params(code));
+    }
+
+    @Override
+    public Optional<Warehouse> findById(Long id) {
+        String sql = "SELECT * FROM warehouses WHERE id = ?";
+        return queryForObject(sql, params(id), rs -> {
+            Warehouse w = new Warehouse();
+            w.setId(rs.getLong("id"));
+            w.setCode(rs.getString("code"));
+            w.setName(rs.getString("name"));
+            w.setAddress(rs.getString("address"));
+            w.setPhone(rs.getString("phone"));
+            w.setManagerName(rs.getString("manager_name"));
+            w.setActive(rs.getBoolean("is_active"));
+            return w;
+        });
     }
 
     /* ================= MAP RESULT ================= */

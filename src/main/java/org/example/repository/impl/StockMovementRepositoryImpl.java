@@ -59,6 +59,9 @@ public class StockMovementRepositoryImpl extends BaseRepository implements Stock
         });
     }
 
+    /**
+     * Lấy tất cả giao dịch
+     */
     @Override
     public List<StockMovementResponse> getAll() {
         String sql = """
@@ -316,20 +319,18 @@ public class StockMovementRepositoryImpl extends BaseRepository implements Stock
         return queryForList(sql, params(productId, warehouseId), this::mapToResponse);
     }
 
+    /**
+     * Tạo giao dịch xuất/nhập kho với tracking quantity before/after (dùng trong transaction)
+     */
     @Override
-    public long insertWithQuantityTracking(
-        CreateStockMovementRequest request,
-        Integer quantityBefore,
-        Integer quantityAfter
-    ) {
+    public long insertWithQuantityTracking(CreateStockMovementRequest request) throws SQLException {
         String sql = """
-               INSERT INTO stock_movements
-                       (movement_type, product_id, batch_id, warehouse_id,
-                        quantity, reference_type, reference_id,
-                        performed_by_user_id, note)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """;
-
+                   INSERT INTO stock_movements
+                           (movement_type, product_id, batch_id, warehouse_id,
+                            quantity, reference_type, reference_id,
+                            performed_by_user_id, note, quantity_before, quantity_after)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                   """;
         return executeInsertAndReturnId(sql, ps -> {
             ps.setString(1, request.getMovementType().name());
             ps.setLong(2, request.getProductId());
@@ -338,11 +339,10 @@ public class StockMovementRepositoryImpl extends BaseRepository implements Stock
             ps.setInt(5, request.getQuantity());
             ps.setString(6, request.getReferenceType());
             ps.setObject(7, request.getReferenceId(), Types.BIGINT);
-
-
             ps.setLong(8, AuthContextManager.getUserId());
-
             ps.setString(9, request.getNote());
+            ps.setObject(10, request.getQuantityBefore(), Types.INTEGER);
+            ps.setObject(11, request.getQuantityAfter(), Types.INTEGER);
         });
     }
 

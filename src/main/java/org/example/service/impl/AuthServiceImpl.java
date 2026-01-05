@@ -9,7 +9,6 @@ import org.example.repository.impl.AccountRepositoryImpl;
 import org.example.service.AuthService;
 import org.example.service.UserCreationService;
 import org.mindrot.jbcrypt.BCrypt;
-
 import java.util.logging.Logger;
 
 public class AuthServiceImpl implements AuthService {
@@ -65,12 +64,9 @@ public class AuthServiceImpl implements AuthService {
             log.info("Login failed: incorrect password - " + username);
             return null;
         }
-
+        accountRepository.updateLastLogin(account.getId());
         currentAccount = account;
-
         Long userProfileId = accountRepository.findUserIdByAccountId(account.getId());
-
-        // DO NOT overwrite account id. Store the user_profile id separately.
         currentUserProfileId = userProfileId;
 
         log.info("Login successful: " + username + " (user_profile_id=" + userProfileId + ")");
@@ -111,12 +107,33 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Password không được để trống");
         }
 
+        String password = request.getPassword();
+        if (password.length() < 6) {
+            throw new RuntimeException("Password phải có ít nhất 6 ký tự");
+        }
+        if (password.length() > 100) {
+            throw new RuntimeException("Password không được quá 100 ký tự");
+        }
+        
+        // Kiểm tra password không chỉ toàn khoảng trắng
+        if (password.trim().length() < 6) {
+            throw new RuntimeException("Password không hợp lệ (chỉ chứa khoảng trắng)");
+        }
+
         if (request.getConfirmPassword() == null || request.getConfirmPassword().isBlank()) {
             throw new RuntimeException("Confirm Password không được để trống");
         }
 
         if (!request.isPasswordConfirmed()) {
             throw new RuntimeException("Password và Confirm Password không khớp!");
+        }
+
+        String username = request.getUsername().trim();
+        if (username.length() < 3) {
+            throw new RuntimeException("Username phải có ít nhất 3 ký tự");
+        }
+        if (username.length() > 50) {
+            throw new RuntimeException("Username không được quá 50 ký tự");
         }
 
         if (accountRepository.existsByUsername(request.getUsername().trim())) {

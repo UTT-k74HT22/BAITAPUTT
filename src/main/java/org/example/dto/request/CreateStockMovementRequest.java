@@ -21,6 +21,11 @@ public class CreateStockMovementRequest {
     private Long performedByUserId;
     private String note;
 
+    private Integer quantityBefore;
+    private Integer quantityAfter;
+
+
+
     public CreateStockMovementRequest() {}
 
     // Getters and Setters
@@ -94,5 +99,21 @@ public class CreateStockMovementRequest {
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    public Integer getQuantityBefore() {
+        return quantityBefore;
+    }
+
+    public void setQuantityBefore(Integer quantityBefore) {
+        this.quantityBefore = quantityBefore;
+    }
+
+    public Integer getQuantityAfter() {
+        return quantityAfter;
+    }
+
+    public void setQuantityAfter(Integer quantityAfter) {
+        this.quantityAfter = quantityAfter;
     }
 }

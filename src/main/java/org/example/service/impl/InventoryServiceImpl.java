@@ -100,9 +100,9 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public void insertStockMovement(Long productId, Long batchId, Long warehouseId,
                                     Integer quantity, Integer before, Integer after,
-                                    Long userId, String note) {
+                                    Long userId, String note, String movementType) {
         inventoryRepository.insertStockMovement(productId, batchId, warehouseId,
-                quantity, before, after, userId, note);
+                quantity, before, after, userId, note, movementType);
     }
 
     @Override

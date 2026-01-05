@@ -1,29 +1,24 @@
 package org.example.entity;
 
 import org.example.entity.enums.StockMovementType;
-
 import java.time.LocalDateTime;
 
 public class StockMovement extends BaseEntity {
 
-    private StockMovementType movementType;
+    private StockMovementType movementType; // Loại giao dich
 
     private Long productId;
     private Long batchId;
     private Long warehouseId;
-
     private Integer quantity;
     private Integer quantityBefore;
     private Integer quantityAfter;
-
-    private LocalDateTime movementDate;
-
-    private String reason;
-    private String referenceType;
-    private Long referenceId;
-
-    private Long performedByEmployeeId;
-    private String note;
+    private LocalDateTime movementDate; // Thời gian giao dich
+    private String reason; // Lý do xuất nhập kho
+    private String referenceType; // Loại tham chiếu: "IMPORT_ORDER", "SALE_ORDER", "STOCK_CHECK"
+    private Long referenceId; // ID tham chiếu
+    private Long performedByEmployeeId; // Nhân viên thực hiện giao dịch
+    private String note; // Ghi chú thêm
 
     public StockMovement() {}
 

@@ -38,9 +38,9 @@ public class AccountRepositoryImpl extends BaseRepository implements AccountRepo
         String sql = """
             SELECT id, username, password, role, is_active, last_login_at
             FROM accounts
-            WHERE username = ?
+            WHERE username LIKE ?
         """;
-        Optional<Account> account = queryForObject(sql, params(username), this::mapRow);
+        Optional<Account> account = queryForObject(sql, params("%" + username + "%"), this::mapRow);
         return account.orElse(null);
     }
 
@@ -160,6 +160,13 @@ public class AccountRepositoryImpl extends BaseRepository implements AccountRepo
             ps.setLong(2, accountId);
         });
     }
+
+    @Override
+    public void updateLastLogin(Long accountId) {
+        String sql = "UPDATE accounts SET last_login_at = NOW() WHERE id = ?";
+        executeUpdate(sql, params(accountId));
+    }
+
     public Long findUserIdByAccountId(Long accountId) {
         String sql = "SELECT id FROM user_profiles WHERE account_id = ?";
         try (Connection conn = getConnection();

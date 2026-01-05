@@ -3,7 +3,7 @@ package org.example.repository;
 import org.example.dto.request.CreateStockMovementRequest;
 import org.example.dto.response.StockMovementResponse;
 import org.example.entity.enums.StockMovementType;
-
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -58,9 +58,5 @@ public interface StockMovementRepository {
      * Tạo giao dịch xuất/nhập kho với tracking quantity before/after (dùng trong transaction)
      * @return ID của giao dịch
      */
-    long insertWithQuantityTracking(
-        CreateStockMovementRequest request,
-        Integer quantityBefore,
-        Integer quantityAfter
-    );
+    long insertWithQuantityTracking(CreateStockMovementRequest request) throws SQLException;
 }

@@ -110,8 +110,6 @@ public class AccountManagementPanel extends JPanel {
         row.add(createButton("Refresh", new Color(108,117,125), e -> reloadAccountTable()));
         row.add(Box.createHorizontalStrut(20));
         row.add(createButton("Excel", new Color(23,162,184), e -> exportExcel()));
-        row.add(createButton("PDF", new Color(111,66,193), e -> exportPdf()));
-
         return row;
     }
 
@@ -178,6 +176,7 @@ public class AccountManagementPanel extends JPanel {
         }
     }
 
+    // config cell renderers
     private void configureTableRenderers() {
         DefaultTableCellRenderer base = new DefaultTableCellRenderer() {
             @Override
@@ -187,7 +186,7 @@ public class AccountManagementPanel extends JPanel {
                 setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
                 setForeground(COLOR_TEXT);
                 setBackground(sel ? COLOR_SELECT : (r % 2 == 0 ? Color.WHITE : COLOR_ROW_ALT));
-                setHorizontalAlignment(c <= 1 || c >= 6 ? CENTER : LEFT);
+                setHorizontalAlignment(c == 0 || c == 1 || c == 4 ? JLabel.CENTER : JLabel.LEFT); //căn chỉnh cột
                 return this;
             }
         };
@@ -212,6 +211,7 @@ public class AccountManagementPanel extends JPanel {
         renderTable(a == null ? List.of() : List.of(a));
     }
 
+    //Filter roles and status
     private void applyFilters() {
         List<Account> data = controller.getAllAccounts();
 
@@ -265,7 +265,7 @@ public class AccountManagementPanel extends JPanel {
 
         JPanel form = new JPanel(new GridBagLayout());
         form.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
-        GridBagConstraints gbc = new GridBagConstraints();
+        GridBagConstraints gbc = new GridBagConstraints(); //Căn chỉnh lưới
         gbc.insets = new Insets(6, 6, 6, 6);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1;
@@ -280,7 +280,9 @@ public class AccountManagementPanel extends JPanel {
         int row = 0;
 
         // Username
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0;
+        gbc.gridx = 0; // cột
+        gbc.gridy = row; // hàng
+        gbc.weightx = 0; // số lượng cột chiếm
         form.add(new JLabel("Username"), gbc);
         gbc.gridx = 1; gbc.weightx = 1;
         form.add(tfUsername, gbc);
@@ -442,7 +444,6 @@ public class AccountManagementPanel extends JPanel {
 
         controller.getAllAccountResponses(this);
     }
-    private void exportPdf()   { JOptionPane.showMessageDialog(this,"TODO: Export PDF"); }
 
     // ===================== UTIL =====================
     private JTextField createTextField(int cols) {

@@ -199,7 +199,8 @@ public class OrderManagementPanel extends BaseManagementPanel<OrderResponse> {
             inventoryController.insertStockMovement(
                     item.getProductId(), batchId, warehouseId,
                     requiredQty, before, after, this.userId,
-                    "Trừ kho từ Order: " + order.getOrderNumber()
+                    "Trừ kho từ Order: " + order.getOrderNumber(),
+                    "EXPORT"
             );
         }
 
