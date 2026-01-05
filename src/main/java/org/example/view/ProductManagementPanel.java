@@ -32,11 +32,7 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * ============================
- * PRODUCT MANAGEMENT PANEL
- * ============================
- */
+
 public class ProductManagementPanel extends BaseManagementPanel<ProductResponse> {
 
     private final ProductController controller;
@@ -97,8 +93,6 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
         };
     }
 
-    // ================= FILTER =================
-
     @Override
     protected JPanel buildFilters() {
         JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
@@ -149,8 +143,6 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
         });
     }
 
-    // ================= ACTION BUTTONS =================
-
     @Override
     protected JPanel buildActions() {
         JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
@@ -161,8 +153,6 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
         row.add(UiFactory.button("Xóa", new Color(220,53,69), e -> deleteProduct()));
         row.add(UiFactory.button("Chi tiết", new Color(108,117,125), e -> openDetail()));
         row.add(UiFactory.button("Refresh", new Color(108,117,125), e -> reload()));
-
-        // ✅ THÊM CHỨC NĂNG XUẤT PDF
         row.add(UiFactory.button("Xuất PDF", new Color(0, 123, 255), e -> exportPdf()));
 
         row.add(Box.createHorizontalStrut(20));
@@ -171,8 +161,6 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
 
         return row;
     }
-
-    // ================= DETAIL =================
 
     private void openDetail() {
         int row = getSelectedModelRow();
@@ -209,9 +197,7 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
 
         JOptionPane.showMessageDialog(this, new JScrollPane(area), "Chi tiết sản phẩm", JOptionPane.INFORMATION_MESSAGE);
     }
-
-    // ================= CRUD =================
-
+    // crud
     private void openEdit() {
         int row = getSelectedModelRow();
         if (row < 0) return;
@@ -229,8 +215,6 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
             reload();
         }
     }
-
-    // ================= ADD / EDIT DIALOG =================
 
     private void openProductDialog(String editCode) {
         boolean edit = editCode != null;
@@ -362,7 +346,6 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
         d.setVisible(true);
     }
 
-    // ================= EXPORT PDF =================
 
     private void exportPdf() {
         int row = getSelectedModelRow();
@@ -416,8 +399,6 @@ public class ProductManagementPanel extends BaseManagementPanel<ProductResponse>
             }
         }
     }
-
-    // ================= IMPORT EXCEL =================
 
     private void importFromExcel() {
         JFileChooser fileChooser = new JFileChooser();

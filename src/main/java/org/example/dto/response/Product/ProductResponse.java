@@ -18,10 +18,6 @@ public class ProductResponse {
 
     private ProductStatus status;
 
-    // =========================
-    // Constructors
-    // =========================
-
     public ProductResponse() {
     }
 
@@ -42,10 +38,6 @@ public class ProductResponse {
         this.requiresPrescription = requiresPrescription;
         this.status = status;
     }
-
-    // =========================
-    // Getter / Setter
-    // =========================
 
     public Long getId() {
         return id;

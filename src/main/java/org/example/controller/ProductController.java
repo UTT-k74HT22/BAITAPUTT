@@ -12,10 +12,6 @@ import org.example.service.ProductService;
 import org.example.utils.pdf.ProductDetailPdfExporter;
 
 import java.util.List;
-
-/**
- * Controller xử lý nghiệp vụ sản phẩm.
- */
 public class ProductController {
 
     private final ProductService productService;
@@ -86,7 +82,9 @@ public class ProductController {
     public List<ProductResponse> getByCategory(Long categoryId) {
         return repo.findByCategory(categoryId);
     }
-
+    /**
+     * Lấy sản phẩm đúng lô hàng
+     * */
     public List<BatchResponse> getBatchesByProduct(Long productId) {
         return repo.findBatchesByProduct(productId);
     }

@@ -36,7 +36,7 @@ public class BatchRepositoryImpl extends BaseRepository implements BatchReposito
             ps.setDate(4, java.sql.Date.valueOf(request.getManufactureDate()));
             ps.setDate(5, java.sql.Date.valueOf(request.getExpiryDate()));
             ps.setString(6, request.getSupplierName());
-            ps.setString(7, request.getStatus()); // ACTIVE
+            ps.setString(7, request.getStatus());
         });
     }
     /**
