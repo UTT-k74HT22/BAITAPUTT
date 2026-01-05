@@ -186,7 +186,18 @@ public class InventoryManagementPanel extends BaseManagementPanel<InventoryRespo
                 }
 
                 if (!"TẤT CẢ".equals(status)) {
-                    if (!e.getValue(11).toString().contains(status.substring(2))) return false; // Skip emoji
+                    String currentStatus = e.getValue(11).toString();
+                    
+                    // Map từ giá trị combobox sang trạng thái trong bảng
+                    String expectedStatus = switch(status) {
+                        case "SẮP HẾT HÀNG" -> "Sắp hết";
+                        case "SẮP HẾT HẠN" -> "Sắp hết hạn";
+                        case "DƯ THỪA" -> "Dư thừa";
+                        case "BÌNH THƯỜNG" -> "Bình thường";
+                        default -> "";
+                    };
+                    
+                    if (!currentStatus.equals(expectedStatus)) return false;
                 }
 
                 return true;
@@ -299,7 +310,7 @@ public class InventoryManagementPanel extends BaseManagementPanel<InventoryRespo
         }
 
         // Set filter to low stock
-        stockStatusFilter.setSelectedItem("⚠ SẮP HẾT HÀNG");
+        stockStatusFilter.setSelectedItem("SẮP HẾT HÀNG");
     }
 
     /**

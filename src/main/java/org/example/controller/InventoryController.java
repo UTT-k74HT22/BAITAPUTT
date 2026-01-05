@@ -66,7 +66,7 @@ public class InventoryController {
     }
 
     /**
-     * Kiểm tra còn hàng
+     * Kiểm tra còn hàng theo product + warehouse
      */
     public boolean hasStock(Long productId, Long warehouseId, Integer requiredQuantity) {
         return inventoryService.hasStock(productId, warehouseId, requiredQuantity);
