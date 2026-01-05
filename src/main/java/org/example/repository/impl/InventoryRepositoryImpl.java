@@ -1,11 +1,10 @@
 package org.example.repository.impl;
 
 import org.example.dto.request.UpdateInventoryThresholdRequest;
+import org.example.dto.response.InventoryItemInfo;
 import org.example.dto.response.InventoryResponse;
 import org.example.repository.BaseRepository;
 import org.example.repository.InventoryRepository;
-
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -36,7 +35,7 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
                 ii.quantity_on_hand,
                 ii.quantity_reserved,
                 (ii.quantity_on_hand - ii.quantity_reserved) AS quantity_available,
-                ii.min_threshold,   
+                ii.min_threshold,
                 ii.max_threshold,
                 ii.last_stock_check,
                 CASE WHEN ii.quantity_on_hand <= ii.min_threshold THEN 1 ELSE 0 END AS is_low_stock,
@@ -150,7 +149,7 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
             INNER JOIN products p ON ii.product_id = p.id
             LEFT JOIN batches b ON ii.batch_id = b.id
             INNER JOIN warehouses w ON ii.warehouse_id = w.id
-            WHERE ii.product_id = ? 
+            WHERE ii.product_id = ?
               AND ii.warehouse_id = ?
               AND (ii.batch_id = ? OR (ii.batch_id IS NULL AND ? IS NULL))
         """;
@@ -221,7 +220,7 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
             INNER JOIN products p ON ii.product_id = p.id
             INNER JOIN batches b ON ii.batch_id = b.id
             INNER JOIN warehouses w ON ii.warehouse_id = w.id
-            WHERE b.expiry_date IS NOT NULL 
+            WHERE b.expiry_date IS NOT NULL
               AND DATEDIFF(b.expiry_date, CURDATE()) <= 90
               AND DATEDIFF(b.expiry_date, CURDATE()) >= 0
             ORDER BY b.expiry_date ASC
@@ -277,19 +276,26 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
 
     @Override
     public InventoryItemInfo getOrCreateInventoryItem(Long productId, Long batchId, Long warehouseId) {
-        // Kiểm tra đã tồn tại chưa
-        String selectSql = """
-            SELECT id, quantity_on_hand
-            FROM inventory_items
-            WHERE product_id = ? 
-              AND warehouse_id = ?
-              AND (batch_id = ? OR (batch_id IS NULL AND ? IS NULL))
-        """;
+        // Defensive validation to provide a clear error before hitting DB constraints
+        if (productId == null) {
+            throw new IllegalArgumentException("productId is required when creating or fetching inventory item");
+        }
+        if (warehouseId == null) {
+            throw new IllegalArgumentException("warehouseId is required when creating or fetching inventory item");
+        }
+         // Kiểm tra đã tồn tại chưa
+         String selectSql = """
+             SELECT id, quantity_on_hand
+             FROM inventory_items
+             WHERE product_id = ? 
+               AND warehouse_id = ?
+               AND (batch_id = ? OR (batch_id IS NULL AND ? IS NULL))
+         """;
 
         Optional<InventoryItemInfo> existing = queryForObject(
             selectSql,
             params(productId, warehouseId, batchId, batchId),
-            rs -> new InventoryItemInfo(rs.getLong("id"), rs.getInt("quantity_on_hand"))
+            rs -> new InventoryItemInfo((int) rs.getLong("id"), rs.getInt("quantity_on_hand"))
         );
 
         if (existing.isPresent()) {
@@ -315,7 +321,7 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
             ps.setLong(3, warehouseId);
         });
 
-        return new InventoryItemInfo(newId, 0);
+        return new InventoryItemInfo((int) newId, 0);
     }
 
     @Override

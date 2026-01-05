@@ -1,6 +1,7 @@
 package org.example.repository;
 
 import org.example.dto.request.UpdateInventoryThresholdRequest;
+import org.example.dto.response.InventoryItemInfo;
 import org.example.dto.response.InventoryResponse;
 
 import java.util.List;
@@ -71,11 +72,6 @@ public interface InventoryRepository {
      * Lấy số lượng hiện tại của inventory item
      */
     Integer getCurrentQuantity(Long productId, Long batchId, Long warehouseId);
-    
-    /**
-     * DTO để trả về thông tin inventory item cơ bản
-     */
-    record InventoryItemInfo(Long inventoryItemId, Integer quantityOnHand) {}
 
     void updateStock(Long productId, Long batchId, Long warehouseId, Integer newQuantity);
 

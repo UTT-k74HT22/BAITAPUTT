@@ -2,15 +2,14 @@ package org.example.service.impl;
 
 import org.example.config.DatabaseConfig;
 import org.example.dto.request.CreateStockMovementRequest;
+import org.example.dto.response.InventoryItemInfo;
 import org.example.dto.response.StockMovementResponse;
 import org.example.entity.enums.StockMovementType;
 import org.example.repository.InventoryRepository;
-import org.example.repository.InventoryRepository.InventoryItemInfo;
 import org.example.repository.StockMovementRepository;
 import org.example.repository.impl.InventoryRepositoryImpl;
 import org.example.repository.impl.StockMovementRepositoryImpl;
 import org.example.service.StockMovementService;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -28,52 +27,65 @@ import java.util.List;
  */
 public class StockMovementServiceImpl implements StockMovementService {
 
-    private final StockMovementRepository stockMovementRepository = new StockMovementRepositoryImpl();
-    private final InventoryRepository inventoryRepository = new InventoryRepositoryImpl();
+    private final StockMovementRepository stockMovementRepository;
+    private final InventoryRepository inventoryRepository;
+
+    public StockMovementServiceImpl() {
+        this.stockMovementRepository = new StockMovementRepositoryImpl();
+        this.inventoryRepository = new InventoryRepositoryImpl();
+    }
 
     @Override
     public void createMovement(CreateStockMovementRequest request) {
+        System.out.println("[Service] Tạo giao dịch xuất/nhập kho: " + request);
+        // Validate request
         validateRequest(request);
-        
-        try (Connection conn = DatabaseConfig.getConnection()) {
-            conn.setAutoCommit(false);
-            
+        System.out.println("[Service DEBUG] productId=" + request.getProductId()
+                + ", batchId=" + request.getBatchId()
+                + ", warehouseId=" + request.getWarehouseId());
+        try (Connection connection = DatabaseConfig.getConnection()) {
+            connection.setAutoCommit(false); // Bắt đầu transaction
             try {
-                // 1. Lấy thông tin inventory hiện tại
-                InventoryItemInfo inventoryInfo = inventoryRepository.getOrCreateInventoryItem(
+
+                InventoryItemInfo inventoryItem = inventoryRepository.getOrCreateInventoryItem(
                     request.getProductId(),
                     request.getBatchId(),
                     request.getWarehouseId()
                 );
-                
-                // 2. Tính toán quantity mới
-                int quantityBefore = inventoryInfo.quantityOnHand();
+
+                int quantityBefore = inventoryItem.getQuantityOnHand();
                 int quantityAfter = calculateQuantityAfter(
                     request.getMovementType(),
                     quantityBefore,
                     request.getQuantity()
                 );
-                
-                // 3. Validate business rules
-                validateMovement(request.getMovementType(), quantityBefore, request.getQuantity(), quantityAfter);
-                
-                // 4. Cập nhật inventory
-                inventoryRepository.updateQuantity(inventoryInfo.inventoryItemId(), quantityAfter);
-                
-                // 5. Tạo stock movement record với quantity_before và quantity_after
-                stockMovementRepository.insertWithQuantityTracking(request, quantityBefore, quantityAfter);
-                
-                conn.commit();
-                
+
+                // Validate business rules
+                validateMovement(
+                    request.getMovementType(),
+                    quantityBefore,
+                    request.getQuantity(),
+                    quantityAfter
+                );
+
+                request.setQuantityAfter(quantityAfter);
+                request.setQuantityBefore(quantityBefore);
+
+                stockMovementRepository.insertWithQuantityTracking(request);
+
             } catch (Exception e) {
-                conn.rollback();
-                throw new RuntimeException("Lỗi khi tạo giao dịch xuất nhập kho: " + e.getMessage(), e);
+
+                connection.rollback(); // Rollback nếu có lỗi
+                System.out.println("[Service] Lỗi khi tạo giao dịch xuất/nhập kho, đã rollback: " + e.getMessage());
+                throw new RuntimeException("Lỗi khi tạo giao dịch xuất/nhập kho: " + e.getMessage(), e);
+
             } finally {
-                conn.setAutoCommit(true);
+                connection.setAutoCommit(true); // Reset auto-commit
             }
-            
+
         } catch (SQLException e) {
-            throw new RuntimeException("Lỗi kết nối database: " + e.getMessage(), e);
+            System.out.println("[Service] Lỗi khi tạo giao dịch xuất/nhập kho: " + e.getMessage());
+            throw new RuntimeException("Lỗi khi tạo giao dịch xuất/nhập kho: " + e.getMessage(), e);
         }
     }
 
