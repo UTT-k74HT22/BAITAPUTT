@@ -9,9 +9,9 @@ import java.util.List;
 
 public abstract class BaseManagementPanel<T> extends JPanel {
 
-    protected JTable table;
-    protected DefaultTableModel model;
-    protected TableRowSorter<DefaultTableModel> sorter;
+    protected JTable table; // bảng hiển thị dữ liệu
+    protected DefaultTableModel model; // dữ liệu bảng
+    protected TableRowSorter<DefaultTableModel> sorter; // để sắp xếp, lọc
 
     protected JLabel totalLabel;
 
@@ -115,6 +115,10 @@ public abstract class BaseManagementPanel<T> extends JPanel {
         applyFilters();
     }
 
+    /**
+     * Lấy chỉ số dòng đã chọn trong model (không phải trong view)
+     * @return chỉ số dòng trong model, hoặc -1 nếu không có dòng nào được chọn
+     */
     protected final int getSelectedModelRow() {
         int viewRow = table.getSelectedRow();
         if (viewRow < 0) return -1;
