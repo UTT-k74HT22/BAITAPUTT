@@ -12,62 +12,64 @@ import java.util.Optional;
 
 public interface ProductRepository {
     /**
-    * Insert a new product into the database.
-    * @param request the product to insert
-    * @return the ID of the inserted product
-    * */
+    * Thêm mới một sản phẩm vào cơ sở dữ liệu.
+    * @param request đối tượng chứa thông tin sản phẩm cần thêm
+    * @return ID của sản phẩm vừa được thêm
+    */
     long insert(CreateProductRequest request);
 
     /**
-    * Get all products from the database.
-    * @return a list of all products
-    * */
+    * Lấy tất cả sản phẩm từ cơ sở dữ liệu.
+    * @return danh sách tất cả sản phẩm
+    */
     List<ProductResponse> getAll();
 
     /**
-    * Find a product by its code.
-    * @param code the code of the product to find
-    * @return an Optional containing the product if found, or an empty Optional if not found
-    * */
+    * Tìm kiếm sản phẩm theo mã.
+    * @param code mã sản phẩm cần tìm
+    * @return Optional chứa thông tin sản phẩm nếu tìm thấy, hoặc rỗng nếu không tìm thấy
+    */
     Optional<ProductResponse> findByCode(String code);
     /**
-     *  Get information product for Edit
-     * */
+     * Lấy thông tin sản phẩm để chỉnh sửa
+     * @param id ID của sản phẩm cần lấy thông tin
+     * @return Optional chứa thông tin sản phẩm nếu tìm thấy
+     */
     Optional<ProductResponse> findById(long id);
 
     /**
-    * Find a product by its code.
-    * @param code the code of the product to find
-    * @return an Optional containing the product if found, or an empty Optional if not found
-    * */
+    * Tìm kiếm chi tiết sản phẩm theo mã.
+    * @param code mã sản phẩm cần tìm
+    * @return Optional chứa chi tiết sản phẩm nếu tìm thấy, hoặc rỗng nếu không tìm thấy
+    */
     Optional<ProductDetailResponse> findDetailByCode(String code);
     /**
-    * Check if a product with the given code exists in the database.
-    * @param code the code of the product to check
-    * @return true if the product exists, false otherwise
-    * */
+    * Kiểm tra sự tồn tại của sản phẩm trong cơ sở dữ liệu.
+    * @param code mã sản phẩm cần kiểm tra
+    * @return true nếu sản phẩm tồn tại, false nếu không tồn tại
+    */
     boolean existsByCode(String code);
     /**
-    * Update a product by its code.
-    * @param code the code of the product to update
-    * @param request the product to update
-    * */
+    * Cập nhật thông tin sản phẩm theo mã.
+    * @param code mã sản phẩm cần cập nhật
+    * @param request đối tượng chứa thông tin cập nhật
+    */
     void updateByCode(String code, UpdateProductRequest request);
     /**
-    * Soft delete a product by its code.
-    * @param code the code of the product to delete
-    * */
+    * Xóa mềm sản phẩm theo mã (đánh dấu đã xóa).
+    * @param code mã sản phẩm cần xóa
+    */
     void softDeleteByCode(String code);
     /**
-     * Find batches by product ID.
-     * @param productId the ID of the product to find batches for
-     * @return a list of batches for the given product
-     * */
+     * Tìm kiếm các lô hàng theo ID sản phẩm.
+     * @param productId ID của sản phẩm cần tìm lô hàng
+     * @return danh sách các lô hàng của sản phẩm
+     */
     List<BatchResponse> findBatchesByProduct(Long productId);
     /**
-     * Find products by category ID.
-     * @param categoryId the ID of the category to find products for
-     * @return a list of products in the given category
-     * */
+     * Tìm kiếm sản phẩm theo ID danh mục.
+     * @param categoryId ID của danh mục cần tìm sản phẩm
+     * @return danh sách sản phẩm thuộc danh mục
+     */
     List<ProductResponse> findByCategory(Long categoryId);
 }

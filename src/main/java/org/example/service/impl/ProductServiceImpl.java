@@ -98,7 +98,9 @@ public class ProductServiceImpl implements ProductService {
     public List<BatchResponse> getBatchesByProduct(Long productId){
         return productRepository.findBatchesByProduct(productId);
     }
-
+    /**
+     * Lấy toàn bo nsx
+     * */
     @Override
     public List<ManufacturerResponse> getAllManufacturers() {
         return manufacturerRepository.findAllActive();

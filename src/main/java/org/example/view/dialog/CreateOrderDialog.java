@@ -221,22 +221,17 @@ public class CreateOrderDialog extends JDialog {
     private void editNoteAtSelectedRow() {
         int selectedRow = tblOrderItems.getSelectedRow();
         if (selectedRow >= 0) {
-            // Get the current note (6th column, 0-based index)
+
             String currentNote = (String) orderItemModel.getValueAt(selectedRow, 6);
 
-            // Show input dialog to edit the note
             String newNote = JOptionPane.showInputDialog(
                     this,
                     "Edit note:",
                     currentNote == null ? "" : currentNote
             );
 
-            // If user didn't cancel and the note has changed
             if (newNote != null && !newNote.equals(currentNote)) {
-                // Update the table
                 orderItemModel.setValueAt(newNote, selectedRow, 6);
-
-                // Update the order item in the list
                 OrderItemRequest item = orderItems.get(selectedRow);
                 item.setNote(newNote);
             }
@@ -391,10 +386,6 @@ public class CreateOrderDialog extends JDialog {
         for (OrderItemRequest i : orderItems) {
             subtotal = subtotal.add(i.getUnitPrice().multiply(BigDecimal.valueOf(i.getQuantity())));
         }
-//        if(txtDiscount.getText().isBlank()) {
-//            JOptionPane.showMessageDialog(this, "Discount chưa nhập!");
-//            return;
-//        }
 
         BigDecimal discount = new BigDecimal(txtDiscount.getText());
         lblTotal.setText(subtotal.subtract(discount).toString());
