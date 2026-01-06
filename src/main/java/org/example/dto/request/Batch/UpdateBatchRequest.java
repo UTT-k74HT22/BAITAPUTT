@@ -11,13 +11,12 @@ import java.time.LocalDate;
 public class UpdateBatchRequest {
 
     private LocalDate expiryDate;
-
     /**
      * ACTIVE | EXPIRED | BLOCKED | DEPLETED
      */
     private String status;
 
-    // ===== Getter / Setter =====
+
 
     public LocalDate getExpiryDate() {
         return expiryDate;

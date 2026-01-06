@@ -20,10 +20,10 @@ public class BatchResponse {
     private String supplierName;
     private String status;
 
-    // ===== Getter / Setter =====
+
     @Override
     public String toString() {
-        return batchCode; // ComboBox sẽ hiện mã lô
+        return batchCode;
     }
     public Long getId() {
         return id;

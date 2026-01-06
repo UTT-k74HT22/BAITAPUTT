@@ -12,7 +12,6 @@ public class UpdateProductRequest {
     /** ID danh mục (categories.id) */
     private Long categoryId;
 
-    /** ID nhà sản xuất (manufacturers.id), có thể null */
     private Long manufacturerId;
 
     /** Mã vạch */
@@ -38,10 +37,6 @@ public class UpdateProductRequest {
 
     /** Trạng thái sản phẩm */
     private ProductStatus status;
-
-    // =========================
-    // Getter / Setter
-    // =========================
 
     public Long getCategoryId() {
         return categoryId;

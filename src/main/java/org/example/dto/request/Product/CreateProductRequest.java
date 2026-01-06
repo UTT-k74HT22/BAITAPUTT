@@ -12,7 +12,6 @@ public class CreateProductRequest {
     /** ID danh mục (categories.id) */
     private Long categoryId;
 
-    /** ID nhà sản xuất (manufacturers.id), có thể null */
     private Long manufacturerId;
 
     /** Mã sản phẩm (unique) */
@@ -42,9 +41,6 @@ public class CreateProductRequest {
     /** Trạng thái sản phẩm */
     private ProductStatus status = ProductStatus.ACTIVE;
 
-    // =========================
-    // Getter / Setter
-    // =========================
 
     public Long getCategoryId() {
         return categoryId;

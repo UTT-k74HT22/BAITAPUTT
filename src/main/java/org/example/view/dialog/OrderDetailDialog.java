@@ -46,7 +46,7 @@ public class OrderDetailDialog extends JDialog {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.anchor = GridBagConstraints.WEST;
 
-        // ===== Dòng 1 =====
+        //dòng 1
         c.gridy = 0;
         c.gridx = 0; c.weightx = 0.2;
         p.add(label("Mã đơn: " + o.getOrderNumber()), c);
@@ -60,7 +60,7 @@ public class OrderDetailDialog extends JDialog {
         c.gridx = 3; c.weightx = 0.25;
         p.add(label("Tổng tiền: " + formatMoney(o.getTotalAmount())), c);
 
-        //  Dòng 2
+        // dòng 2
         c.gridy = 1;
         c.gridx = 0; c.weightx = 0.2;
         p.add(label("Khách hàng: " + safe(o.getCustomerName())), c);
@@ -84,7 +84,7 @@ public class OrderDetailDialog extends JDialog {
         p.add(new JLabel(safe(o.getShippingAddress())), c);
         c.gridwidth = 1;
 
-        // Dòng 4: Người tạo
+        // dòng 4: Người tạo
         c.gridy = 3;
         c.gridx = 0; c.weightx = 0.2;
         p.add(label("Người tạo: " + safe(o.getCreatorName())), c);
@@ -121,11 +121,6 @@ public class OrderDetailDialog extends JDialog {
         JTable table = new JTable(model);
 
 //        table.getColumnModel().getColumn(0).setPreferredWidth(40);
-//        table.getColumnModel().getColumn(1).setPreferredWidth(200);
-//        table.getColumnModel().getColumn(2).setPreferredWidth(80);
-//        table.getColumnModel().getColumn(3).setPreferredWidth(120);
-//        table.getColumnModel().getColumn(4).setPreferredWidth(120);
-//        table.getColumnModel().getColumn(5).setPreferredWidth(180);
 
         table.getTableHeader().setResizingAllowed(false); // (tuỳ chọn) khóa kéo size
         UiFactory.styleTable(table);

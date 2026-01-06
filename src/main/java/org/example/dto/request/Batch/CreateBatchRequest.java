@@ -23,7 +23,7 @@ public class CreateBatchRequest {
      */
     private String status;
 
-    // ===== Getter / Setter =====
+
 
     public String getBatchCode() {
         return batchCode;

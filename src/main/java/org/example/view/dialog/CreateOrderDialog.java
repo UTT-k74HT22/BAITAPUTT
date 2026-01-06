@@ -221,22 +221,17 @@ public class CreateOrderDialog extends JDialog {
     private void editNoteAtSelectedRow() {
         int selectedRow = tblOrderItems.getSelectedRow();
         if (selectedRow >= 0) {
-            // Lấy ghi chú hiện tại
+
             String currentNote = (String) orderItemModel.getValueAt(selectedRow, 6);
 
-            // Hiển thị hộp thoại nhập ghi chú
             String newNote = JOptionPane.showInputDialog(
                     this,
                     "Edit note:",
                     currentNote == null ? "" : currentNote
             );
 
-            // nếu người dùng nhấn Cancel thì newNote sẽ là null
             if (newNote != null && !newNote.equals(currentNote)) {
-                // Update the table
                 orderItemModel.setValueAt(newNote, selectedRow, 6);
-
-                // cập nhật trong danh sách orderItems
                 OrderItemRequest item = orderItems.get(selectedRow);
                 item.setNote(newNote);
             }
@@ -391,10 +386,6 @@ public class CreateOrderDialog extends JDialog {
         for (OrderItemRequest i : orderItems) {
             subtotal = subtotal.add(i.getUnitPrice().multiply(BigDecimal.valueOf(i.getQuantity())));
         }
-//        if(txtDiscount.getText().isBlank()) {
-//            JOptionPane.showMessageDialog(this, "Discount chưa nhập!");
-//            return;
-//        }
 
         BigDecimal discount = new BigDecimal(txtDiscount.getText());
         lblTotal.setText(subtotal.subtract(discount).toString());
