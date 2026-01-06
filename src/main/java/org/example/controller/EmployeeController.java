@@ -8,7 +8,7 @@ import org.example.entity.enums.ProfileStatus;
 import org.example.service.EmployeeService;
 import org.example.utils.excel.employees.EmployeeDetailExcelWriter;
 import org.example.utils.excel.employees.EmployeeExcelWriter;
-import org.example.utils.excel.ExcelExporter;
+import org.example.utils.excel.core.ExcelExporter;
 import java.awt.Component;
 import java.util.List;
 

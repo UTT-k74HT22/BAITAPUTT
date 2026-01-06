@@ -17,6 +17,10 @@ import java.util.Optional;
  */
 public class InventoryRepositoryImpl extends BaseRepository implements InventoryRepository {
 
+    /**
+     * is_low_stock: 1 nếu quantity_on_hand <= min_threshold => sắp hết han
+     * @return
+     */
     @Override
     public List<InventoryResponse> getAll() {
         String sql = """
@@ -38,7 +42,7 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
                 ii.min_threshold,
                 ii.max_threshold,
                 ii.last_stock_check,
-                CASE WHEN ii.quantity_on_hand <= ii.min_threshold THEN 1 ELSE 0 END AS is_low_stock,
+                CASE WHEN ii.quantity_on_hand <= ii.min_threshold THEN 1 ELSE 0 END AS is_low_stock, 
                 CASE WHEN ii.quantity_on_hand >= ii.max_threshold THEN 1 ELSE 0 END AS is_over_stock,
                 CASE WHEN b.expiry_date IS NOT NULL AND DATEDIFF(b.expiry_date, CURDATE()) <= 90 THEN 1 ELSE 0 END AS is_near_expiry
             FROM inventory_items ii
@@ -367,7 +371,7 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
 
     @Override
     public void updateStock(Long productId, Long batchId, Long warehouseId, Integer newQuantity) {
-        // ✅ FIX BUG #11: Validate newQuantity
+        // Validate newQuantity
         if (newQuantity == null) {
             throw new IllegalArgumentException("newQuantity không được null");
         }
@@ -389,7 +393,7 @@ public class InventoryRepositoryImpl extends BaseRepository implements Inventory
         );
     }
     /**
-     * ✅ FIX BUG #12: Thêm parameter movementType thay vì hard-code EXPORT
+     * Thêm parameter movementType thay vì hard-code EXPORT
      * */
     @Override
     public void insertStockMovement(Long productId, Long batchId, Long warehouseId,

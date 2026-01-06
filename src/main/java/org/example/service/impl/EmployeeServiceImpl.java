@@ -4,17 +4,13 @@ import org.example.dto.request.UpdateEmployeeProfileDetailRequest;
 import org.example.dto.request.UpdateProfileEmployeeRequest;
 import org.example.dto.response.EmployeeProfileDetailResponse;
 import org.example.dto.response.EmployeeProfileResponse;
-import org.example.dto.response.EmployeeResponse;
 import org.example.entity.enums.ProfileStatus;
 import org.example.repository.EmployeeProfileRepository;
 import org.example.repository.UserProfileRepository;
 import org.example.repository.impl.EmployeeProfileRepositoryImpl;
 import org.example.repository.impl.UserProfileRepositoryImpl;
 import org.example.service.EmployeeService;
-import org.example.utils.excel.ExcelExporter;
-import org.example.utils.excel.employees.EmployeeDetailExcelWriter;
 
-import java.awt.*;
 import java.util.List;
 
 public class EmployeeServiceImpl implements EmployeeService {

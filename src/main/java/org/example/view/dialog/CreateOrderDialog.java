@@ -221,22 +221,22 @@ public class CreateOrderDialog extends JDialog {
     private void editNoteAtSelectedRow() {
         int selectedRow = tblOrderItems.getSelectedRow();
         if (selectedRow >= 0) {
-            // Get the current note (6th column, 0-based index)
+            // Lấy ghi chú hiện tại
             String currentNote = (String) orderItemModel.getValueAt(selectedRow, 6);
 
-            // Show input dialog to edit the note
+            // Hiển thị hộp thoại nhập ghi chú
             String newNote = JOptionPane.showInputDialog(
                     this,
                     "Edit note:",
                     currentNote == null ? "" : currentNote
             );
 
-            // If user didn't cancel and the note has changed
+            // nếu người dùng nhấn Cancel thì newNote sẽ là null
             if (newNote != null && !newNote.equals(currentNote)) {
                 // Update the table
                 orderItemModel.setValueAt(newNote, selectedRow, 6);
 
-                // Update the order item in the list
+                // cập nhật trong danh sách orderItems
                 OrderItemRequest item = orderItems.get(selectedRow);
                 item.setNote(newNote);
             }

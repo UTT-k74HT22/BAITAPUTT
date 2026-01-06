@@ -32,11 +32,6 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * ============================
- * PRODUCT MANAGEMENT PANEL
- * ============================
- */
 public class ProductManagementPanel extends BaseManagementPanel<ProductResponse> {
 
     private final ProductController controller;
