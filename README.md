@@ -32,10 +32,10 @@
 
 ### 🎓 Đề Tài Đồ Án
 
-- **Môn học:** Lập Trình Hướng Đối Tượng / Phát Triển Ứng Dụng Desktop
+- **Môn học:** Java Nâng Cao
 - **Trường:** Đại học Công Nghệ Giao Thông Vận Tải (UTT)
-- **Năm học:** 2024-2025
-- **Thời gian thực hiện:** Tháng 10/2024 - Tháng 12/2024
+- **Năm học:** 2025-2026
+- **Thời gian thực hiện:** Tháng 10/2025
 
 ---
 
@@ -721,7 +721,7 @@ Dự án được phát triển bởi nhóm sinh viên Đại học Công Nghệ
 
 ### Liên Hệ
 
-- 📧 Email: hoangdinhdung@utt.edu.vn
+- 📧 Email: hoangdinhdung@gmail.com
 - 🌐 GitHub: [Hospital Management System](https://github.com/your-org/hms)
 - 📚 Documentation: [Wiki](https://github.com/your-org/hms/wiki)
 
